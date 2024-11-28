@@ -1,0 +1,134 @@
+
+  <style>
+    .navbar-custom {
+      background-color: #00c9ff;
+    }
+    .footer {
+      background-color: #2f8595;
+      color: white;
+      padding: 20px 0;
+    }
+    .otp-box {
+      background-color: #f2f8fb;
+      border-radius: 8px;
+      padding: 40px;
+      text-align: center;
+    }
+    .otp-input {
+      width: 50px;
+      height: 50px;
+      font-size: 24px;
+      text-align: center;
+      margin: 0 5px;
+    }
+    .submit-btn {
+      background-color: #00008b;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+    }
+  </style>
+
+
+  <!-- Main Content -->
+  <div class="container d-flex align-items-center justify-content-center main" style="min-height: 70vh;">
+    <div class="otp-box">
+      <h4>Verify Your OTP</h4>
+      <div class="d-flex justify-content-center my-4">
+        <input type="text" maxlength="1" class="otp-input" />
+        <input type="text" maxlength="1" class="otp-input" />
+        <input type="text" maxlength="1" class="otp-input" />
+        <input type="text" maxlength="1" class="otp-input" />
+      </div>
+      <button class="submit-btn" id="resend-otp" onclick="handleResendOtp(event)">Resend OTP</button>
+      <div class="text-muted mb-3 timer">00:45</div>
+      <button class="submit-btn" onclick="handleOtpVerification(event)">Submit</button>
+    </div>
+  </div>
+
+  <script>
+  
+         //make the cursor automatically moves to next field on inputing otp
+  document.addEventListener("DOMContentLoaded",()=>{
+    const inputs=document.querySelectorAll(".otp-input");
+    inputs.forEach((input,index)=>{
+      input.addEventListener("input",(event)=>{
+        if(index<inputs.length-1&&event.target.value.length===1){
+          inputs[index+1].focus();
+          console.log("helloworld")
+        }
+      });
+      input.addEventListener("keydown",(event)=>{
+        if(event.key==="Backspace"&&index>0&&!event.target.value){
+          input[index-1].focus();
+        }
+      })
+    })
+  })
+
+  //handle OTP verification
+  async function handleOtpverification(event){
+    const inputs=document.querySelectorAll(".otp-input");
+    let otp="";
+    inputs.forEach((x)=>{
+      otp+=x;
+    })
+   try{
+    const response=await fetch('/verify-otp',
+      {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify(otp)
+      }
+    );
+
+   }catch(error){
+     console.error("Error while verifying otp : ",error);
+   } 
+  }
+
+
+  //handle resend OTP
+  async function handleResendOtp(event){
+    const inputs=document.querySelectorAll(".otp-input");
+    let otp="";
+    inputs.forEach((x)=>{
+      otp+=x;
+    })
+   try{
+    const response=await fetch('/verify-otp',
+      {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify(otp)
+      }
+    );
+
+   }catch(error){
+     console.error("Error while verifying otp : ",error);
+   } 
+  }
+
+
+  //handling timer
+  function startTimer(duration) {
+    let timeRemaining = duration;
+    const timerDisplay = document.getElementById("timer");
+    const resendButton = document.getElementById("resend-otp");
+  
+    resendButton.style.display = 'none';
+        timer = setInterval(() => {
+      if (timeRemaining <= 0) {
+        clearInterval(timer);
+        timerDisplay.textContent = "Resend the OTP.";
+        
+        resendButton.style.display = 'block';
+      } else {
+        timeRemaining--;
+        timerDisplay.textContent = `Resend OTP in ${timeRemaining} seconds.`;
+      }
+    }, 1000);
+  }
+
+  </script>

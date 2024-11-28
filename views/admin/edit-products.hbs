@@ -1,0 +1,122 @@
+
+  <style>
+    .main {
+      background-color: #111;
+      color: #fff;
+    }
+    .sidebar {
+      background-color: #333;
+      height: 100vh;
+      padding: 20px;
+    }
+    .sidebar a {
+      text-decoration: none;
+      color: #fff;
+      margin: 10px 0;
+      display: block;
+    }
+    .sidebar a:hover {
+      color: #ffcc00;
+    }
+    .logo {
+      font-size: 1.5rem;
+      color: #fff;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .form-container {
+      background-color: #222;
+      padding: 20px;
+      border-radius: 8px;
+    }
+    .btn-custom {
+      background-color: #ff9900;
+      border: none;
+    }
+    .btn-custom:hover {
+      background-color: #cc7a00;
+    }
+  </style>
+
+  <div class="container-fluid main">
+    <div class="row">
+      <!-- Sidebar -->
+      <div class="col-md-2 sidebar d-flex flex-column">
+        <a href="#">Dashboard</a>
+        <a href="#">Products</a>
+        <a href="#">Customers</a>
+        <a href="#">Orders</a>
+        <a href="#">Coupons</a>
+        <a href="#">Category</a>
+        <a href="#">Offers</a>
+        <a href="#">Banner</a>
+        <a href="#">Sales Report</a>
+        <a href="#" class="text-danger">Logout</a>
+      </div>
+
+      <!-- Main Content -->
+      <div class="col-md-10 p-4">
+        <h3>Add Product</h3>
+        <div class="form-container mt-4">
+          <form>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="productName" class="form-label">Product Name</label>
+                <input type="text" class="form-control" id="productName" placeholder="Enter product name">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="stock" class="form-label">Stock</label>
+                <input type="number" class="form-control" id="stock" placeholder="Enter stock quantity">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="price" class="form-label">Price</label>
+                <input type="number" class="form-control" id="price" placeholder="Enter price">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="category" class="form-label">Category</label>
+                <input type="text" class="form-control" id="category" placeholder="Enter category">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="gender" class="form-label">Gender</label>
+                <input type="text" class="form-control" id="gender" placeholder="Enter gender">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="brand" class="form-label">Brand Name</label>
+                <input type="text" class="form-control" id="brand" placeholder="Enter brand name">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea class="form-control" id="description" rows="3" placeholder="Enter description"></textarea>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="specifications" class="form-label">Specifications</label>
+                <textarea class="form-control" id="specifications" rows="3" placeholder="Enter specifications"></textarea>
+              </div>
+              <div class="col-12 mb-3">
+                <label for="productImage" class="form-label">Product Image1</label>
+                <input type="file" class="form-control" id="productImage">
+              </div>
+              <div class="col-12 mb-3">
+                <label for="productImage" class="form-label">Product Image2</label>
+                <input type="file" class="form-control" id="productImage">
+              </div>
+              <div class="col-12 mb-3">
+                <label for="productImage" class="form-label">Product Image3</label>
+                <input type="file" class="form-control" id="productImage">
+              </div>
+              <div class="col-12 mb-3">
+                <label for="productImage" class="form-label">Product Image4</label>
+                <input type="file" class="form-control" id="productImage">
+              </div>
+              <div class="col-12">
+                <button type="submit" class="btn btn-custom w-100">Add Product</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  

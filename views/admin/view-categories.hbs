@@ -1,0 +1,445 @@
+<style>
+  .main {
+    background-color: #111;
+    color: #fff;
+  }
+
+  .sidebar {
+    background-color: #333;
+    height: 100vh;
+    padding: 20px;
+  }
+
+  .sidebar a {
+    text-decoration: none;
+    color: #fff;
+    margin: 10px 0;
+    display: block;
+  }
+
+  .sidebar a:hover {
+    color: #ffcc00;
+  }
+
+  .logo {
+    font-size: 1.5rem;
+    color: #fff;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .table-container {
+    background-color: #222;
+    padding: 20px;
+    border-radius: 8px;
+  }
+
+  .btn-custom {
+    background-color: #ff9900;
+    border: none;
+  }
+
+  .btn-custom:hover {
+    background-color: #cc7a00;
+  }
+
+  .btn-edit {
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+  }
+
+  .btn-edit:hover {
+    background-color: #218838;
+  }
+
+  .btn-remove {
+    background-color: #dc3545;
+    color: #fff;
+    border: none;
+  }
+
+  .btn-remove:hover {
+    background-color: #c82333;
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<div class="container-fluid main">
+  <div class="row">
+    <!-- Sidebar -->
+    <div class="col-md-2 sidebar d-flex flex-column">
+
+      <a href="#">Dashboard</a>
+      <a href="#">Products</a>
+      <a href="#">Customers</a>
+      <a href="#">Orders</a>
+      <a href="#">Coupons</a>
+      <a href="#">Category</a>
+      <a href="#">Discounts</a>
+      <a href="#">Banner</a>
+      <a href="#">Sales Report</a>
+      <a href="#" class="text-danger">Logout</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="col-md-10 p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4>Categories</h4>
+        <div class="input-group w-50">
+          <input type="text" class="form-control" placeholder="Search for Categories">
+          <button class="btn btn-outline-secondary" type="button">Search</button>
+        </div>
+      </div>
+
+      <div class="table-container mt-4">
+        <table class="table table-dark table-hover">
+          <thead>
+            <tr>
+              <th>Sl. No</th>
+              <th>Name</th>
+              <th>Added On</th>
+              <th>Status</th>
+              <th>Edit</th>
+            </tr>
+          </thead>
+
+
+
+          <!-- Edit Category Modal -->
+          {{!-- <div id="editCategoryModal" class="fixed inset-0 flex items-center justify-center z-50 hidden">
+            <div class="bg-zinc-500 bg-opacity-50 absolute inset-0"></div>
+            <div class="bg-black text-white rounded-lg shadow-xl relative z-10 p-6 w-1/3">
+              <h2 class="text-xl font-semibold mb-4">Edit Category</h2>
+              <form id="editCategoryForm" method="POST">
+                <div class="mb-4">
+                  <label for="editCategoryName" class="block text-gray-300">Category Name</label>
+                  <input type="text" id="editCategoryName" name="categoriesName"
+                    class="bg-zinc-900 w-full px-4 py-2 border rounded-lg" required>
+                </div>
+                <div class="flex justify-end space-x-4">
+                  <button type="button" onclick="closeEditModal()"
+                    class="px-4 py-2 bg-gray-700 text-white rounded-lg">Cancel</button>
+                  <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded-lg">Update</button>
+                </div>
+              </form>
+            </div>
+          </div> --}}
+
+
+          <tbody>
+            {{#each categories}}
+            <tr>
+              <td>{{this.index}}</td>
+              <td>'{{this.categoryName}}'</td>
+              <td>'{{this.createdDate}}'</td>
+              <td>'{{this.status}}'</td>
+              <td>
+                <button class="btn btn-edit btn-sm" data-bs-toggle="modal" data-bs-target="#editCategoryModal"
+                  onclick="editCatogoryModal('{{this._id}}','{{this.categoryName}}')">Edit</button>
+                <button class="btn btn-remove btn-sm" onclick="deleteCategory('{{this._id}}')">Remove</button>
+              </td>
+            </tr>
+            {{/each}}
+          </tbody>
+        </table>
+
+        <div class="d-flex justify-content-between align-items-center mt-3">
+          <nav>
+            <ul class="pagination">
+              <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
+              <li class="page-item"><a class="page-link" href="#">1</a></li>
+              <li class="page-item"><a class="page-link" href="#">2</a></li>
+              <li class="page-item"><a class="page-link" href="#">3</a></li>
+              <li class="page-item"><a class="page-link" href="#">Next</a></li>
+            </ul>
+          </nav>
+          <button class="btn btn-custom" data-bs-toggle="modal" data-bs-target="#addCategoryModal">Add New Category</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Button to Trigger Modal -->
+    {{!-- <button type="button" class="btn btn-primary my-4" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+      Add Category
+    </button> --}}
+
+    <!-- Add Category Modal -->
+    <div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel"
+      aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <!-- Modal Header -->
+          <div class="modal-header">
+            <h5 class="modal-title" id="addCategoryModalLabel">Add Category</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+
+          <!-- Modal Body -->
+          <div class="modal-body">
+            <form id="addCategoryForm">
+              <div class="mb-3">
+                <label for="categoryName" class="form-label">Category Name</label>
+                <input type="text" id="categoryName" class="form-control" placeholder="Enter category name">
+              </div>
+              <div class="text-center">
+                <button type="submit" class="btn btn-success px-4">Add Category</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {{!-- <button type="button" class="btn btn-primary my-4" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+      Add Category
+    </button> --}}
+
+    <!-- Edit Category Modal -->
+    <div class="modal fade" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryModalLabel"
+      aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <!-- Modal Header -->
+          <div class="modal-header">
+            <h5 class="modal-title" id="editCategoryModalLabel">Edit Category</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+             <div class="mb-3">
+                <label for="addCategorytatus" class="form-label">Status</label>
+                <select name="status" id="addCategoryStatus" required
+                  class="form-select w-100 bg-dark text-white px-3 py-2 rounded focus-ring focus:ring-2 focus:ring-orange-500">
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+          </div>
+
+          <!-- Modal Body -->
+          <div class="modal-body">
+            <form>
+              <div class="mb-3">
+                <label for="categoryName" class="form-label">Category Name</label>
+                <input type="text" id="categoryName" class="form-control" placeholder="Enter category name">
+              </div>
+              <div class="mb-3">
+                <label for="editedStatus" class="form-label">Status</label>
+                <select name="status" id="editCategoryStatus" required
+                  class="form-select w-100 bg-dark text-white px-3 py-2 rounded focus-ring focus:ring-2 focus:ring-orange-500">
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+              <div class="text-center">
+                <button type="submit" class="btn btn-success px-4" >Save changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+<script>
+
+ function editCategoryModal(categoryId,categoryName,status) {
+            const category = document.querySelector(`button[data-id="${categoryId}"]`).closest('tr').querySelectorAll('td');
+            document.getElementById('editCategoryId').value = categoryId;
+            document.getElementById('editCategoryName').value = categoryName;
+            document.getElementById('editCategoryStatus').value = status === 'active' ? 'Active' : 'Inactive';
+
+            // Dynamically set the form action
+            document.getElementById('editCategoryForm').action = `/admin/categories/${categoryId}`;
+
+            document.getElementById('editCategoryModal').classList.remove('hidden');
+        }
+
+
+ // Validation function
+        function validateCategoryForm(formData) {
+            const categoryName = formData.get('categoryName').trim();
+            
+            if (!categoryName) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validation Error',
+                    text: 'Category name is required.',
+                });
+                return false;
+            }
+
+            if (categoryName.length < 3 || categoryName.length > 50) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validation Error',
+                    text: 'Category name must be between 3 and 50 characters.',
+                });
+                return false;
+            }
+
+            if (!/^[a-zA-Z0-9 ]+$/.test(categoryName)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Validation Error',
+                    text: 'Category name can only contain letters, numbers, and spaces.',
+                });
+                return false;
+            }
+            return true;
+        }
+
+
+//addCategoryForm
+document.getElementById('addCategoryForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+
+            if (!validateCategoryForm(formData)) return;
+
+            const jsonData = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await fetch(this.action, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(jsonData),
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: result.message,
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: result.message,
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An unexpected error occurred. Please try again.',
+                });
+            }
+
+        });
+      
+       // Edit Category Form
+        document.getElementById('editCategoryForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+
+            if (!validateCategoryForm(formData)) return;
+
+            const jsonData = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await fetch(this.action, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(jsonData),
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: result.message,
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: result.message,
+                    });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An unexpected error occurred. Please try again.',
+                });
+            }
+        });
+         // Delete Category
+
+function deleteCategory(categoryId){
+  Swal.fire({
+            title: 'Are you sure?',
+            text: "This action cannot be undone!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#f97316',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`/admin/categories/${categoryId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                    });
+                    const result = await response.json();
+
+                    if (result.success) {
+                        Swal.fire(
+                            'Deleted!',
+                            result.message,
+                            'success'
+                        ).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire(
+                            'Error!',
+                            result.message,
+                            'error'
+                        );
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    Swal.fire(
+                        'Error!',
+                        'An unexpected error occurred.',
+                        'error'
+                    );
+                }
+            }
+        });
+}  
+
+
+
+</script>
+
+
+
+    <!-- Bootstrap JS and Popper.js -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  </div>
+</div>
+
+{{!-- Handlebars.registerHelper('addOne', function (currentPage, index) {
+return (currentPage - 1) * 3 + index + 1;
+});
+Handlebars.registerHelper('index', function (array, item) {
+return array.indexOf(item);
+});
+--}}
