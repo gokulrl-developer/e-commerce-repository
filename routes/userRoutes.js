@@ -21,6 +21,7 @@ router.post('/resend-otp',userController.resendOtp);
 router.get('/user/forgot-Password',(req,res)=>{
     res.render('index');
 })
+//hello
 
 router.get('/user/verify-Otp',userController.verifyOtp)
 
