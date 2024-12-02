@@ -5,7 +5,7 @@ const categorySchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     auto: true,
   },
-  categoriesName: {
+  categoryName: {
     type: String,
     required: true,
     unique: true,
@@ -16,23 +16,23 @@ const categorySchema = new mongoose.Schema({
   },
   createdAt: {
     type: Date,
-    default: Date.now,
+    default: Date.now(),
   },
   updatedAt: {
     type: Date,
-    default: Date.now,
+    default: Date.now(),
   },
   status:{
     type:String,
     required:true,
     enum:["Active","Inactive"],
-    default:Active,
+    default:"Active",
   }
 });
 
 // Create index with collation for case insensitivity
 categorySchema.index(
-  { categoriesName: 1 },
+  { categoryName: 1 },
   { unique: true, collation: { locale: "en", strength: 2 } }
 );
 

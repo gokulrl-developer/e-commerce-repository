@@ -3,13 +3,12 @@ const mongoose=require('mongoose');
 const productSchema=mongoose.Schema({
 productName:{type:String,required:true},
 price:{type:Number,required:true},
-category:{type:String,required:true},
 gender:{type:String,required:true},
 brand:{type:String,required:true},
 stock:{type:Number,required:true},
 specifications:{type:String,required:true},
 description:{type:String,required:true},
-categoriesId: {
+categoryId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Category",
     required: true,

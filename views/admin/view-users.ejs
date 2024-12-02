@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hello, world!</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-900 text-white">
+    <!-- Header -->
+    <header>
+      <nav class="bg-gray-100">
+        <div class="max-w-7xl mx-auto flex items-center justify-between px-4 py-3">
+          <a class="flex items-center space-x-2" href="#">
+            <img src="/images/logo.svg" alt="Logo" class="h-8" />
+          </a>
+          <button
+            class="text-gray-700 md:hidden focus:outline-none focus:ring-2 focus:ring-gray-400"
+            aria-label="Toggle navigation"
+          >
+            ☰
+          </button>
+          <div class="hidden md:flex space-x-4 items-center">
+            <a href="#" class="text-gray-700 hover:text-gray-900">Home</a>
+            <a href="#" class="flex items-center space-x-1 text-gray-700 hover:text-gray-900">
+              <img src="/images/profileicon.svg" alt="Profile" class="h-6" />
+              <span>Admin</span>
+            </a>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <!-- Main Content -->
+    <div class="flex h-screen">
+      <!-- Sidebar -->
+      <aside class="w-1/5 bg-gray-800 p-4 flex flex-col space-y-3">
+        <a href="#" class="hover:text-yellow-400">Dashboard</a>
+        <a href="#" class="hover:text-yellow-400">Products</a>
+        <a href="#" class="hover:text-yellow-400">Customers</a>
+        <a href="#" class="hover:text-yellow-400">Orders</a>
+        <a href="#" class="hover:text-yellow-400">Coupons</a>
+        <a href="#" class="hover:text-yellow-400">Category</a>
+        <a href="#" class="hover:text-yellow-400">Offers</a>
+        <a href="#" class="hover:text-yellow-400">Banner</a>
+        <a href="#" class="hover:text-yellow-400">Sales Report</a>
+        <a href="#" class="text-red-500 hover:text-red-600">Logout</a>
+      </aside>
+
+      <!-- Main Section -->
+      <main class="w-4/5 p-6">
+        <!-- Search Bar -->
+        <div class="flex justify-between items-center mb-6">
+          <div class="relative w-1/2">
+            <input
+              type="text"
+              placeholder="Search for Customers"
+              class="w-full px-4 py-2 border rounded-l-md bg-gray-700 border-gray-600 text-gray-300"
+            />
+            <button class="px-4 py-2 bg-gray-600 border-l border-gray-500 text-gray-300 rounded-r-md">
+              Search
+            </button>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="bg-gray-800 p-4 rounded-lg shadow">
+          <table class="w-full text-left table-auto">
+            <thead class="bg-gray-700">
+              <tr>
+                <th class="p-3">ID</th>
+                <th class="p-3">Name</th>
+                <th class="p-3">Email</th>
+                <th class="p-3">Mobile</th>
+                <th class="p-3">Address</th>
+                <th class="p-3">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% const customers = [
+                { id: 1, name: "Obu", email: "obu@gmail.com", mobile: "9015648565", address: "Nilamukku, 695305, Trivandrum" },
+                { id: 2, name: "Zoya", email: "zoya@gmail.com", mobile: "9015648565", address: "Nilamukku, 695305, Trivandrum" },
+                { id: 3, name: "Rehu", email: "rehu@gmail.com", mobile: "9015648565", address: "Nilamukku, 695305, Trivandrum" },
+                { id: 4, name: "Mrunal", email: "mrunal@gmail.com", mobile: "9015648565", address: "Nilamukku, 695305, Trivandrum" },
+              ]; %>
+              <% customers.forEach(customer => { %>
+                <tr class="bg-gray-900 hover:bg-gray-700">
+                  <td class="p-3"><%= customer.id %></td>
+                  <td class="p-3"><%= customer.name %></td>
+                  <td class="p-3"><%= customer.email %></td>
+                  <td class="p-3"><%= customer.mobile %></td>
+                  <td class="p-3"><%= customer.address %></td>
+                  <td class="p-3 flex space-x-2">
+                    <button class="px-3 py-1 bg-green-600 rounded text-white hover:bg-green-500">
+                      Unlock
+                    </button>
+                    <button class="px-3 py-1 bg-red-600 rounded text-white hover:bg-red-500">
+                      Block
+                    </button>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+
+          <!-- Pagination -->
+          <div class="flex justify-center mt-4">
+            <ul class="flex space-x-2">
+              <li><a href="#" class="px-3 py-1 bg-gray-700 text-gray-300 rounded hover:bg-gray-600">Previous</a></li>
+              <li><a href="#" class="px-3 py-1 bg-gray-700 text-gray-300 rounded hover:bg-gray-600">1</a></li>
+              <li><a href="#" class="px-3 py-1 bg-gray-700 text-gray-300 rounded hover:bg-gray-600">2</a></li>
+              <li><a href="#" class="px-3 py-1 bg-gray-700 text-gray-300 rounded hover:bg-gray-600">3</a></li>
+              <li><a href="#" class="px-3 py-1 bg-gray-700 text-gray-300 rounded hover:bg-gray-600">Next</a></li>
+            </ul>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-blue-500 text-gray-100">
+      <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-6 p-6">
+        <div>
+          <h5 class="text-lg">Driven by <span class="font-bold">Excellence</span></h5>
+        </div>
+        <div>
+          <h6 class="font-bold">Support</h6>
+          <ul>
+            <li><a href="#" class="hover:text-yellow-400">Order Status</a></li>
+          </ul>
+        </div>
+        <!-- Similar sections for About and Contact -->
+      </div>
+    </footer>
+  </body>
+</html>

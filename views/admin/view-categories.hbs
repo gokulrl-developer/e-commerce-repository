@@ -1,9 +1,49 @@
+<!doctype html >
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Bootstrap CSS -->
+    
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <title>Hello, world!</title>
+  </head>
+  <body >
+   <header>
+ <nav class="navbar navbar-expand-lg bg-body-tertiary">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#"><img src="/images/logo.svg"></a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="#">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#"><img src="/images/profileicon.svg"  width="30" height="24"><span>Admin</span></a>
+        </li>
+        
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+</header>
+      
 <style>
   .main {
     background-color: #111;
     color: #fff;
   }
-
+ .modal-title{
+  color:black;
+ }
   .sidebar {
     background-color: #333;
     height: 100vh;
@@ -72,8 +112,8 @@
     <div class="col-md-2 sidebar d-flex flex-column">
 
       <a href="#">Dashboard</a>
-      <a href="#">Products</a>
-      <a href="#">Customers</a>
+      <a href="/admin/products">Products</a>
+      <a href="/admin/users">Customers</a>
       <a href="#">Orders</a>
       <a href="#">Coupons</a>
       <a href="#">Category</a>
@@ -106,38 +146,16 @@
           </thead>
 
 
-
-          <!-- Edit Category Modal -->
-          {{!-- <div id="editCategoryModal" class="fixed inset-0 flex items-center justify-center z-50 hidden">
-            <div class="bg-zinc-500 bg-opacity-50 absolute inset-0"></div>
-            <div class="bg-black text-white rounded-lg shadow-xl relative z-10 p-6 w-1/3">
-              <h2 class="text-xl font-semibold mb-4">Edit Category</h2>
-              <form id="editCategoryForm" method="POST">
-                <div class="mb-4">
-                  <label for="editCategoryName" class="block text-gray-300">Category Name</label>
-                  <input type="text" id="editCategoryName" name="categoriesName"
-                    class="bg-zinc-900 w-full px-4 py-2 border rounded-lg" required>
-                </div>
-                <div class="flex justify-end space-x-4">
-                  <button type="button" onclick="closeEditModal()"
-                    class="px-4 py-2 bg-gray-700 text-white rounded-lg">Cancel</button>
-                  <button type="submit" class="px-4 py-2 bg-green-500 text-white rounded-lg">Update</button>
-                </div>
-              </form>
-            </div>
-          </div> --}}
-
-
           <tbody>
             {{#each categories}}
             <tr>
               <td>{{this.index}}</td>
-              <td>'{{this.categoryName}}'</td>
-              <td>'{{this.createdDate}}'</td>
-              <td>'{{this.status}}'</td>
+              <td>{{this.categoryName}}</td>
+              <td>{{this.createdDate}}</td>
+              <td>{{this.status}}</td>
               <td>
                 <button class="btn btn-edit btn-sm" data-bs-toggle="modal" data-bs-target="#editCategoryModal"
-                  onclick="editCatogoryModal('{{this._id}}','{{this.categoryName}}')">Edit</button>
+                  onclick="editCategoryModal('{{this._id}}','{{this.categoryName}}')">Edit</button>
                 <button class="btn btn-remove btn-sm" onclick="deleteCategory('{{this._id}}')">Remove</button>
               </td>
             </tr>
@@ -146,7 +164,7 @@
         </table>
 
         <div class="d-flex justify-content-between align-items-center mt-3">
-          <nav>
+          {{!-- <nav>
             <ul class="pagination">
               <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
               <li class="page-item"><a class="page-link" href="#">1</a></li>
@@ -154,8 +172,9 @@
               <li class="page-item"><a class="page-link" href="#">3</a></li>
               <li class="page-item"><a class="page-link" href="#">Next</a></li>
             </ul>
-          </nav>
-          <button class="btn btn-custom" data-bs-toggle="modal" data-bs-target="#addCategoryModal">Add New Category</button>
+          </nav> --}}
+          <button class="btn btn-custom" data-bs-toggle="modal" data-bs-target="#addCategoryModal">Add New
+            Category</button>
         </div>
       </div>
     </div>
@@ -178,11 +197,19 @@
 
           <!-- Modal Body -->
           <div class="modal-body">
-            <form id="addCategoryForm">
+            <form id="addCategoryForm" action="/admin/categories/add/" method="POST">
               <div class="mb-3">
                 <label for="categoryName" class="form-label">Category Name</label>
-                <input type="text" id="categoryName" class="form-control" placeholder="Enter category name">
+                <input type="text" id="categoryName" class="form-control" placeholder="Enter category name"name="categoryName">
               </div>
+              <div class="mb-3">
+              <label for="addCategorytatus" class="form-label">Status</label>
+              <select name="status" id="addCategoryStatus" required
+                class="form-select w-100 bg-dark text-white px-3 py-2 rounded focus-ring focus:ring-2 focus:ring-orange-500">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
               <div class="text-center">
                 <button type="submit" class="btn btn-success px-4">Add Category</button>
               </div>
@@ -205,236 +232,302 @@
           <div class="modal-header">
             <h5 class="modal-title" id="editCategoryModalLabel">Edit Category</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-             <div class="mb-3">
-                <label for="addCategorytatus" class="form-label">Status</label>
-                <select name="status" id="addCategoryStatus" required
-                  class="form-select w-100 bg-dark text-white px-3 py-2 rounded focus-ring focus:ring-2 focus:ring-orange-500">
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
-              </div>
           </div>
 
           <!-- Modal Body -->
           <div class="modal-body">
-            <form>
+            <form id="editCategoryForm">
               <div class="mb-3">
                 <label for="categoryName" class="form-label">Category Name</label>
-                <input type="text" id="categoryName" class="form-control" placeholder="Enter category name">
+                <input type="text" id="categoryName" class="form-control" placeholder="Enter category name" name="categoryName">
               </div>
+              
+                <input type="hidden" id="editCategoryId" name="categoryId" >
+      
               <div class="mb-3">
                 <label for="editedStatus" class="form-label">Status</label>
-                <select name="status" id="editCategoryStatus" required
+                <select name="status" id="editCategoryStatus" 
                   class="form-select w-100 bg-dark text-white px-3 py-2 rounded focus-ring focus:ring-2 focus:ring-orange-500">
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
                 </select>
               </div>
               <div class="text-center">
-                <button type="submit" class="btn btn-success px-4" >Save changes</button>
+                <button type="submit" class="btn btn-success px-4">Save changes</button>
               </div>
             </form>
           </div>
         </div>
       </div>
     </div>
-<script>
+    <script>
 
- function editCategoryModal(categoryId,categoryName,status) {
-            const category = document.querySelector(`button[data-id="${categoryId}"]`).closest('tr').querySelectorAll('td');
-            document.getElementById('editCategoryId').value = categoryId;
-            document.getElementById('editCategoryName').value = categoryName;
-            document.getElementById('editCategoryStatus').value = status === 'active' ? 'Active' : 'Inactive';
+      function editCategoryModal(categoryId, categoryName, status) {
+        document.getElementById('editCategoryId').value = categoryId;
+        document.getElementById('editCategoryName').value = categoryName;
+        document.getElementById('editCategoryStatus').value = status === 'Active' ? 'Active' : 'Inactive';
 
-            // Dynamically set the form action
-            document.getElementById('editCategoryForm').action = `/admin/categories/${categoryId}`;
+        // Dynamically set the form action
+        document.getElementById('editCategoryForm').action = `/admin/categories/edit/${categoryId}`;
 
-            document.getElementById('editCategoryModal').classList.remove('hidden');
+      }
+
+
+      // Validation function
+      function validateCategoryForm(formData) {
+        const categoryName = formData.get('categoryName').trim();
+
+        if (!categoryName) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Validation Error',
+            text: 'Category name is required.',
+          });
+          return false;
         }
 
-
- // Validation function
-        function validateCategoryForm(formData) {
-            const categoryName = formData.get('categoryName').trim();
-            
-            if (!categoryName) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Validation Error',
-                    text: 'Category name is required.',
-                });
-                return false;
-            }
-
-            if (categoryName.length < 3 || categoryName.length > 50) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Validation Error',
-                    text: 'Category name must be between 3 and 50 characters.',
-                });
-                return false;
-            }
-
-            if (!/^[a-zA-Z0-9 ]+$/.test(categoryName)) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Validation Error',
-                    text: 'Category name can only contain letters, numbers, and spaces.',
-                });
-                return false;
-            }
-            return true;
+        if (categoryName.length < 3 || categoryName.length > 50) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Validation Error',
+            text: 'Category name must be between 3 and 50 characters.',
+          });
+          return false;
         }
 
+        if (!/^[a-zA-Z0-9 ]+$/.test(categoryName)) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Validation Error',
+            text: 'Category name can only contain letters, numbers, and spaces.',
+          });
+          return false;
+        }
+        return true;
+      }
 
-//addCategoryForm
-document.getElementById('addCategoryForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
-            const formData = new FormData(this);
 
-            if (!validateCategoryForm(formData)) return;
+      //addCategoryForm
+      document.getElementById('addCategoryForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const formData = new FormData(this);
 
-            const jsonData = Object.fromEntries(formData.entries());
+        if (!validateCategoryForm(formData)) return;
 
-            try {
-                const response = await fetch(this.action, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(jsonData),
-                });
-                const result = await response.json();
+        const jsonData = Object.fromEntries(formData.entries());
 
-                if (result.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success',
-                        text: result.message,
-                    }).then(() => {
-                        location.reload();
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: result.message,
-                    });
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'An unexpected error occurred. Please try again.',
-                });
-            }
+        try {
+          const response = await fetch(this.action, {
+            method:'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(jsonData),
+          });
+          const result = await response.json();
 
-        });
-      
-       // Edit Category Form
-        document.getElementById('editCategoryForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
-            const formData = new FormData(this);
+          if (result.success) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Success',
+              text: result.message,
+            }).then(() => {
+              location.reload();
+            });
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: result.message,
+            });
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'An unexpected error occurred. Please try again.',
+          });
+        }
 
-            if (!validateCategoryForm(formData)) return;
+      });
 
-            const jsonData = Object.fromEntries(formData.entries());
+      // Edit Category Form
+      document.getElementById('editCategoryForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+          
+        if (!validateCategoryForm(formData)) return;
+           
+        const jsonData = Object.fromEntries(formData.entries());
 
-            try {
-                const response = await fetch(this.action, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(jsonData),
-                });
-                const result = await response.json();
+        try {
+          const categoryId=document.getElementById('editCategoryId').value;
+          const response = await fetch(`/admin/categories/edit/${categoryId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(jsonData),
+          });
+          const result = await response.json();
 
-                if (result.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success',
-                        text: result.message,
-                    }).then(() => {
-                        location.reload();
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: result.message,
-                    });
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'An unexpected error occurred. Please try again.',
-                });
-            }
-        });
-         // Delete Category
+          if (result.success) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Success',
+              text: result.message,
+            }).then(() => {
+              location.reload();
+            });
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: result.message,
+            });
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'An unexpected error occurred. Please try again.',
+          });
+        }
+      });
+      // Delete Category
 
-function deleteCategory(categoryId){
-  Swal.fire({
-            title: 'Are you sure?',
-            text: "This action cannot be undone!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#f97316',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, delete it!'
+      function deleteCategory(categoryId) {
+        Swal.fire({
+          title: 'Are you sure?',
+          text: "This action cannot be undone!",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#f97316',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'Yes, delete it!'
         }).then(async (result) => {
-            if (result.isConfirmed) {
-                try {
-                    const response = await fetch(`/admin/categories/${categoryId}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                    });
-                    const result = await response.json();
+          if (result.isConfirmed) {
+            try {
+              const response = await fetch(`/admin/categories/delete/${categoryId}`, {
+                method: 'DELETE',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+              });
+              const result = await response.json();
 
-                    if (result.success) {
-                        Swal.fire(
-                            'Deleted!',
-                            result.message,
-                            'success'
-                        ).then(() => {
-                            location.reload();
-                        });
-                    } else {
-                        Swal.fire(
-                            'Error!',
-                            result.message,
-                            'error'
-                        );
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    Swal.fire(
-                        'Error!',
-                        'An unexpected error occurred.',
-                        'error'
-                    );
-                }
+              if (result.success) {
+                Swal.fire(
+                  'Deleted!',
+                  result.message,
+                  'success'
+                ).then(() => {
+                  location.reload();
+                });
+              } else {
+                Swal.fire(
+                  'Error!',
+                  result.message,
+                  'error'
+                );
+              }
+            } catch (error) {
+              console.error('Error:', error);
+              Swal.fire(
+                'Error!',
+                'An unexpected error occurred.',
+                'error'
+              );
             }
+          }
         });
-}  
+      }
 
 
 
-</script>
+    </script>
+
+
+
+  </div>
+</div>
+ 
+  
+
+  
+ 
+
+    <footer class="footer" style="background-color: #54aad4;">
+  
+    <div class="row text-center text-md-start m-0 p-0">
+      <!-- Branding Section -->
+      <div class="col-12 col-md-4 mb-4">
+        <h5 class="text-dark">Driven by <span class="text-dark">Excellence.</span></h5>
+      </div>
+
+      <!-- Support Section -->
+      <div class="col-12 col-md-2 mb-4">
+        <h6 class="fw-bold">Support</h6>
+        <ul class="list-unstyled">
+          <li><a href="#" class="text-dark text-decoration-none">Order Status</a></li>
+          <li><a href="#" class="text-dark text-decoration-none">Product Support</a></li>
+          <li><a href="#" class="text-dark text-decoration-none">Shipping & Return Policy</a></li>
+          <li><a href="#" class="text-dark text-decoration-none">Complaint Registration</a></li>
+        </ul>
+      </div>
+
+      <!-- About Us Section -->
+      <div class="col-12 col-md-2 mb-4">
+        <h6 class="fw-bold">About Us</h6>
+        <ul class="list-unstyled">
+          <li><a href="#" class="text-dark text-decoration-none">Order Status</a></li>
+          <li><a href="#" class="text-dark text-decoration-none">Privacy Policy</a></li>
+          <li><a href="#" class="text-dark text-decoration-none">Terms of Use</a></li>
+          <li><a href="#" class="text-dark text-decoration-none">FAQ</a></li>
+        </ul>
+      </div>
+
+      <!-- Contact Section -->
+      <div class="col-12 col-md-4 mb-4">
+        <h6 class="fw-bold">Contact</h6>
+        <p class="mb-1">Email: <a href="mailto:carrymart@gmail.com" class="text-dark text-decoration-none">carrymart@gmail.com</a></p>
+        <p>Phone: +91 9999999999</p>
+      </div>
+    </div>
+
+    <!-- Footer Disclaimer -->
+    <div class="row text-center mt-4">
+      <div class="col">
+        <p class="small text-muted">
+          *All product names, logos, and brands are property of their respective owners. Use of these names, logos, and brands does not imply endorsement.
+        </p>
+      </div>
+    </div>
+
+    <!-- Footer Bottom -->
+    <div class="row text-center mt-3">
+      <div class="col">
+        <p class="mb-0">&copy; 2024 Carry Mart. All rights reserved.</p>
+      </div>
+    </div>
+  
+</footer>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>   
+  </body>
+</html>
+
+
 
 
 
     <!-- Bootstrap JS and Popper.js -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+   {{!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> --}}
 
-  </div>
-</div>
+ 
 
 {{!-- Handlebars.registerHelper('addOne', function (currentPage, index) {
 return (currentPage - 1) * 3 + index + 1;

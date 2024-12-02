@@ -61,25 +61,25 @@
       });
       input.addEventListener("keydown",(event)=>{
         if(event.key==="Backspace"&&index>0&&!event.target.value){
-          input[index-1].focus();
+          inputs[index-1].focus();
         }
       })
     })
   })
 
   //handle OTP verification
-  async function handleOtpverification(event){
+  async function handleOtpVerification(event){
     const inputs=document.querySelectorAll(".otp-input");
     let otp="";
-    inputs.forEach((x)=>{
-      otp+=x;
+    inputs.forEach((input)=>{
+      otp+=input.value;
     })
    try{
     const response=await fetch('/verify-otp',
       {
         method:"POST",
         headers:{"Content-Type":"application/json"},
-        body:JSON.stringify(otp)
+        body:JSON.stringify({otp})
       }
     );
 

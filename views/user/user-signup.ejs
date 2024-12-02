@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hello, world!</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100">
+    <header>
+        <nav class="bg-[#00c8ff]">
+            <div class="container mx-auto flex items-center justify-between py-4">
+                <a href="/" class="text-black font-bold">
+                    <img src="/images/logo.svg" alt="Logo">
+                </a>
+                <button class="lg:hidden" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse hidden lg:flex" id="navbarSupportedContent">
+                    <ul class="flex space-x-6">
+                        <li><a href="/" class="text-white">Home</a></li>
+                        <li><a href="/shopAll" class="text-white">Shop</a></li>
+                        <li><a href="#" class="text-white">About Us</a></li>
+                        <li><a href="#" class="text-white">Contact Us</a></li>
+                        <li><a href="/login"><img src="/images/profileicon.svg" width="30" height="24" alt="Profile Icon"></a></li>
+                        <li><a href="#"><img src="/images/carticon.svg" width="30" height="24" alt="Cart Icon"></a></li>
+                    </ul>
+                    <form class="flex space-x-2 mt-2 lg:mt-0">
+                        <input class="form-control py-2 px-3 rounded" type="search" placeholder="Search">
+                        <button class="btn btn-outline-success py-2 px-4 rounded">Search</button>
+                    </form>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container mx-auto my-8 max-w-xl">
+        <div class="bg-[#eef6f9] p-8 rounded-lg">
+            <h3 class="text-center text-2xl font-semibold mb-6">Sign-up</h3>
+            <form action="/sign-up" method="POST">
+                <div class="mb-4">
+                    <label for="fullName" class="block text-sm font-semibold">Full Name</label>
+                    <input type="text" class="form-control w-full py-2 px-3 rounded" id="fullName" placeholder="Enter your full name" name="name">
+                </div>
+                <div class="mb-4">
+                    <label for="email" class="block text-sm font-semibold">Email</label>
+                    <input type="email" class="form-control w-full py-2 px-3 rounded" id="email" placeholder="Enter your email" name="email">
+                </div>
+                <div class="mb-4">
+                    <label for="contact" class="block text-sm font-semibold">Contact</label>
+                    <input type="text" class="form-control w-full py-2 px-3 rounded" id="contact" placeholder="Enter your contact number" name="mobile">
+                </div>
+                <div class="mb-4">
+                    <label for="password" class="block text-sm font-semibold">Password</label>
+                    <input type="password" class="form-control w-full py-2 px-3 rounded" id="password" placeholder="Enter your password" name="password">
+                </div>
+                <div class="mb-4">
+                    <label for="confirmPassword" class="block text-sm font-semibold">Confirm Password</label>
+                    <input type="password" class="form-control w-full py-2 px-3 rounded" id="confirmPassword" placeholder="Confirm your password" name="confirmPassword">
+                </div>
+                <div class="flex justify-between mb-4">
+                    <a href="#" class="text-sm text-blue-500">Login</a>
+                    <a href="#" class="text-sm text-blue-500">Forgot Password?</a>
+                </div>
+                <button type="submit" class="w-full py-2 px-4 bg-blue-600 text-white rounded hover:bg-blue-700">Sign Up</button>
+            </form>
+            <hr class="my-6">
+            <div class="text-center">
+                <button class="w-full py-2 px-4 border border-gray-300 rounded flex items-center justify-center space-x-2">
+                    <i class="bi bi-google"></i>
+                    <span>Continue with Google</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-[#54aad4] text-white py-6">
+        <div class="container mx-auto grid grid-cols-1 md:grid-cols-4 text-center md:text-left space-y-6 md:space-y-0">
+            <!-- Branding Section -->
+            <div>
+                <h5 class="font-semibold">Driven by <span class="font-bold">Excellence.</span></h5>
+            </div>
+
+            <!-- Support Section -->
+            <div>
+                <h6 class="font-semibold">Support</h6>
+                <ul>
+                    <li><a href="#" class="text-white">Order Status</a></li>
+                    <li><a href="#" class="text-white">Product Support</a></li>
+                    <li><a href="#" class="text-white">Shipping & Return Policy</a></li>
+                    <li><a href="#" class="text-white">Complaint Registration</a></li>
+                </ul>
+            </div>
+
+            <!-- About Us Section -->
+            <div>
+                <h6 class="font-semibold">About Us</h6>
+                <ul>
+                    <li><a href="#" class="text-white">Order Status</a></li>
+                    <li><a href="#" class="text-white">Privacy Policy</a></li>
+                    <li><a href="#" class="text-white">Terms of Use</a></li>
+                    <li><a href="#" class="text-white">FAQ</a></li>
+                </ul>
+            </div>
+
+            <!-- Contact Section -->
+            <div>
+                <h6 class="font-semibold">Contact</h6>
+                <p>Email: <a href="mailto:carrymart@gmail.com" class="text-white">carrymart@gmail.com</a></p>
+                <p>Phone: +91 9999999999</p>
+            </div>
+        </div>
+
+        <!-- Footer Disclaimer -->
+        <div class="text-center mt-4 text-sm">
+            <p>*All product names, logos, and brands are property of their respective owners. Use of these names, logos, and brands does not imply endorsement.</p>
+        </div>
+
+        <!-- Footer Bottom -->
+        <div class="text-center mt-4">
+            <p>&copy; 2024 Carry Mart. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

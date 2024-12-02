@@ -1,0 +1,116 @@
+<style>
+  body {
+    background-color: #eaf8ff; /* Light blue background */
+  }
+
+  .navbar {
+    background-color: #007bff; /* Blue navbar */
+  }
+
+  .navbar-brand {
+    color: #fff;
+  }
+
+  .product-image {
+    width: 100%;
+    max-height: 400px;
+    object-fit: cover;
+  }
+
+  .btn-custom {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+  }
+
+  .btn-custom:hover {
+    background-color: #0056b3;
+  }
+
+  .footer {
+    background-color: #004a6e;
+    color: #fff;
+    padding: 20px 0;
+  }
+
+  .footer a {
+    color: #fff;
+    text-decoration: none;
+  }
+
+  .thumbnail-img {
+    max-width: 80px;
+    height: auto;
+    cursor: pointer;
+  }
+
+  .thumbnail-img:hover {
+    opacity: 0.8;
+  }
+</style>
+
+<div class="container my-5">
+  <div class="row ">
+    <!-- Product Image Thumbnails -->
+    <div class="col-12 col-md-1 d-flex flex-md-column align-items-center gap-2" id="thumbnails">
+      {{#each productImageUrls}}
+      <img src="{{this.url}}" class="img-thumbnail thumbnail-img rounded " id="{{this.index}}" onclick="changeImage('{{this.url}}')"/>
+      {{/each}}
+    </div>
+
+    <!-- Main Product Image -->
+    <div class="col-12 col-md-6 text-center ">
+      <img src="" class="img-fluid rounded shadow-lg" style="max-height: 500px; object-fit: cover;" id="main-image"/>
+    </div>
+
+    <!-- Product Details -->
+    <div class="col-12 col-md-5">
+      <h3 class="fw-bold">Product Name: Backpack XYZ</h3>
+      <p><strong>Brand Name:</strong> Brand ABC</p>
+      <p><strong>Price:</strong> $50</p>
+      <p><strong>Gender:</strong> Unisex</p>
+      <p><strong>Specifications:</strong> Lightweight, Durable, Waterproof</p>
+      <div class="d-flex gap-2 mt-3">
+        <button class="btn btn-custom btn-lg flex-grow-1">Buy Now</button>
+        <button class="btn btn-outline-primary btn-lg flex-grow-1">Add to Cart</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Related Products -->
+  <div class="row mt-5">
+    <h4 class="mb-4 text-center">Related Products</h4>
+    <!-- Product Cards -->
+    <div class="col-md-3 col-sm-6 text-center">
+      <img src="{{product.firstImageUrl}}" alt="Related Product" class="img-fluid rounded shadow-sm mb-2">
+      <h6>Product A</h6>
+      <p>$30</p>
+    </div>
+    <div class="col-md-3 col-sm-6 text-center">
+      <img src="{{product.firstImageUrl}}" alt="Related Product" class="img-fluid rounded shadow-sm mb-2">
+      <h6>Product B</h6>
+      <p>$40</p>
+    </div>
+    <div class="col-md-3 col-sm-6 text-center">
+      <img src="{{product.firstImageUrl}}" alt="Related Product" class="img-fluid rounded shadow-sm mb-2">
+      <h6>Product C</h6>
+      <p>$45</p>
+    </div>
+    <div class="col-md-3 col-sm-6 text-center">
+      <img src="{{product.firstImageUrl}}" alt="Related Product" class="img-fluid rounded shadow-sm mb-2">
+      <h6>Product D</h6>
+      <p>$50</p>
+    </div>
+  </div>
+</div>
+<script>
+  document.addEventListener("DOMContentLoaded",function(){
+    const mainImage=document.getElementById('0').src;
+    console.log(mainImage);
+    document.getElementById('main-image').src=mainImage;
+  })
+  function changeImage(url){
+    document.getElementById('main-image').src=url;
+  }
+  
+</script>

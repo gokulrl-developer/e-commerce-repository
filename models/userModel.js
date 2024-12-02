@@ -9,10 +9,10 @@ phone:{type:String},
 password:{type:String,required:function(){
     return !this.googleId},  // Password is required if googleId is not present
 },
-googleId:{type:String,
+/* googleId:{type:String,
     required:true,
     sparse:true   //Allows for null values
-},
+}, */
 status:{
     type:String,
     enum:["Active","Blocked"],

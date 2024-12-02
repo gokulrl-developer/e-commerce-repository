@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <title>Hello, world!</title>
+  </head>
+  <body>
+    <header>
+      <nav class="bg-[#54aad4] p-4">
+        <div class="container mx-auto flex justify-between items-center">
+          <a class="navbar-brand" href="/"><img src="/images/logo.svg" class="h-8" alt="Logo"></a>
+          <button class="lg:hidden text-white focus:outline-none" type="button" aria-label="Toggle navigation">
+            <span class="text-white">☰</span>
+          </button>
+          <div class="hidden lg:flex space-x-8 items-center">
+            <a href="/" class="text-white">Home</a>
+            <a href="/shopAll" class="text-white">Shop</a>
+            <a href="#" class="text-white">About us</a>
+            <a href="#" class="text-white">Contact us</a>
+            <a href="/login" class="text-white"><img src="/images/profileicon.svg" width="30" height="24" alt="Profile Icon"></a>
+            <a href="#" class="text-white"><img src="/images/carticon.svg" width="30" height="24" alt="Cart Icon"></a>
+          </div>
+          <form class="flex space-x-2">
+            <input type="search" class="form-input rounded px-3 py-1" placeholder="Search">
+            <button class="bg-transparent border-2 border-white text-white rounded px-4 py-1">Search</button>
+          </form>
+        </div>
+      </nav>
+    </header>
+
+    <style>
+      .filter-section {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+      }
+    </style>
+
+    <!-- Main Content -->
+    <div class="container mx-auto my-4">
+      <div class="flex">
+        <!-- Sidebar -->
+        <aside class="w-full lg:w-1/4 mb-4">
+          <div class="filter-section">
+            <h4 class="text-lg font-semibold">Categories</h4>
+            <ul class="space-y-2">
+              <li><input type="checkbox" id="backpacks"> <label for="backpacks">Backpacks</label></li>
+              <li><input type="checkbox" id="handbags"> <label for="handbags">Hand Bags</label></li>
+              <li><input type="checkbox" id="slingbags"> <label for="slingbags">Sling Bags</label></li>
+              <li><input type="checkbox" id="trolleybags"> <label for="trolleybags">Trolley Bags</label></li>
+              <li><input type="checkbox" id="wallets"> <label for="wallets">Wallets</label></li>
+            </ul>
+            <h4 class="text-lg font-semibold mt-4">Filter</h4>
+            <p class="text-sm">Gender</p>
+            <ul class="space-y-2">
+              <li><input type="radio" name="gender" id="men"> <label for="men">Men</label></li>
+              <li><input type="radio" name="gender" id="women"> <label for="women">Women</label></li>
+              <li><input type="radio" name="gender" id="unisex"> <label for="unisex">Unisex</label></li>
+            </ul>
+            <p class="text-sm mt-4">Price</p>
+            <div class="flex space-x-2">
+              <input type="number" class="form-input rounded px-3 py-1 w-1/2" placeholder="Min">
+              <input type="number" class="form-input rounded px-3 py-1 w-1/2" placeholder="Max">
+            </div>
+          </div>
+        </aside>
+
+        <!-- Product Section -->
+        <main class="w-full lg:w-3/4">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold">Our Collection</h2>
+            <select class="bg-white text-black border-2 border-gray-300 rounded px-4 py-2">
+              <option selected>Sort</option>
+              <option value="price-low-high">Price: Low to High</option>
+              <option value="price-high-low">Price: High to Low</option>
+              <option value="popular">Most Popular</option>
+            </select>
+          </div>
+          <div class="mb-4">
+            <input type="text" class="form-input rounded px-4 py-2 w-full" placeholder="Search an item">
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Product Card -->
+            <% products.forEach(function(product) { %>
+              <div class="card p-4 border rounded shadow-md">
+                <img src="<%= product.firstImageUrl %>" class="w-full h-48 object-cover rounded" alt="Product Image">
+                <div class="text-center mt-3">
+                  <h6 class="text-lg font-semibold"><%= product.productName %></h6>
+                  <p class="text-gray-600"><%= product.price %></p>
+                  <a href="/product/<%= product._id %>" class="btn bg-blue-500 text-white rounded px-4 py-2 mt-2 inline-block">View Product</a>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+          <div class="text-center mt-4">
+            <button class="bg-blue-500 text-white px-6 py-2 rounded">Load More</button>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <footer class="bg-[#54aad4] text-white p-4 mt-8">
+      <div class="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Branding Section -->
+        <div>
+          <h5 class="text-xl font-semibold">Driven by <span class="text-dark">Excellence.</span></h5>
+        </div>
+
+        <!-- Support Section -->
+        <div>
+          <h6 class="font-semibold">Support</h6>
+          <ul class="space-y-2">
+            <li><a href="#" class="text-white">Order Status</a></li>
+            <li><a href="#" class="text-white">Product Support</a></li>
+            <li><a href="#" class="text-white">Shipping & Return Policy</a></li>
+            <li><a href="#" class="text-white">Complaint Registration</a></li>
+          </ul>
+        </div>
+
+        <!-- About Us Section -->
+        <div>
+          <h6 class="font-semibold">About Us</h6>
+          <ul class="space-y-2">
+            <li><a href="#" class="text-white">Order Status</a></li>
+            <li><a href="#" class="text-white">Privacy Policy</a></li>
+            <li><a href="#" class="text-white">Terms of Use</a></li>
+            <li><a href="#" class="text-white">FAQ</a></li>
+          </ul>
+        </div>
+
+        <!-- Contact Section -->
+        <div>
+          <h6 class="font-semibold">Contact</h6>
+          <p class="mb-1">Email: <a href="mailto:carrymart@gmail.com" class="text-white">carrymart@gmail.com</a></p>
+          <p>Phone: +91 9999999999</p>
+        </div>
+      </div>
+
+      <!-- Footer Disclaimer -->
+      <div class="text-center mt-4">
+        <p class="text-sm text-gray-300">
+          *All product names, logos, and brands are property of their respective owners. Use of these names, logos, and brands does not imply endorsement.
+        </p>
+      </div>
+
+      <!-- Footer Bottom -->
+      <div class="text-center mt-3">
+        <p>&copy; 2024 Carry Mart. All rights reserved.</p>
+      </div>
+    </footer>
+  </body>
+</html>
