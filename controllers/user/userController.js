@@ -17,14 +17,22 @@ async function getLogin(req,res){
 res.render('user/user-login');
   }catch(error){
     res.status(500).json({Message:"Cannot retrieve login page"});
-    console.error("Error on retrieving login page : ",err)
+    console.error("Error on retrieving login page : ",error)
+  }
+}
+
+async function getProfile(req,res){
+  try{
+    res.render('user/user-profile');
+  }catch(error){
+    res.status(500).json({Message:"Error showing profile"});
+    console.error("Error on showing Profile page : ",error)
   }
 }
 
 async function postLogin(req,res){
   try{
     const {email,password}=req.body;
-
     const matchedUser=await User.findOne({email}).lean();
     if(!matchedUser){
       return res.status(401).json({Message:"Invalid credentials"});
@@ -33,7 +41,9 @@ async function postLogin(req,res){
     if(!isMatch){
       return res.status(401).json({Message:"Invalid credentials"});
     }else{
-      res.render('user/user-home',{user:true});
+      
+      req.session.user=matchedUser;
+      res.redirect('/');
     }
 
   }catch(error){
@@ -76,6 +86,7 @@ async function verifyOtp(req,res){
   try {
     const {otp} = req.body;
     const user=req.session.userData;
+    console.log(otp)
     const otpRecord = await Otp.findOne({ email:user.email});
     if (!otpRecord) {
       return res.status(400).json({ message: "Invalid OTP",otp });
@@ -87,10 +98,11 @@ async function verifyOtp(req,res){
     req.session.userData=null;
     await Otp.deleteOne({ email:user.email });
 
-    res.status(201).render('user/user-login',{user:true,message: "User registered successfully"});
+    res.status(201).render('user/user-home',{user:true,message: "User registered successfully"});
 
   } catch (error) {
     res.status(500).json({ message: "Server error" });
+    
   }
 }
 
@@ -123,5 +135,6 @@ getSignUp,
 getLogin,
 getHome,
 postLogin,
-shopAll
+shopAll,
+getProfile
 }

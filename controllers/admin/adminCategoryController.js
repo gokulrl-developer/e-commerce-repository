@@ -14,9 +14,8 @@ const formattedDate = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYe
        category.createdDate=formattedDate;
     })
     const totalPages = Math.ceil(totalCategories / limit);
-    const previousPage=currentPage-1;
-    const nextPage=currentPage+1;
-    res.render('admin/view-categories', { categories,previousPage, currentPage,nextPage, totalPages });
+    
+    res.render('admin/view-categories', { categories,currentPage,totalPages });
   } catch (error) {
     console.error('Error fetching categories:', error);
     res.status(500).send('Internal Server Error');

@@ -8,7 +8,7 @@ brand:{type:String,required:true},
 stock:{type:Number,required:true},
 specifications:{type:String,required:true},
 description:{type:String,required:true},
-categoryId: {
+category: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Category",
     required: true,

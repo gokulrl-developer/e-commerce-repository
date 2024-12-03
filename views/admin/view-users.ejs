@@ -9,44 +9,12 @@
   </head>
   <body class="bg-gray-900 text-white">
     <!-- Header -->
-    <header>
-      <nav class="bg-gray-100">
-        <div class="max-w-7xl mx-auto flex items-center justify-between px-4 py-3">
-          <a class="flex items-center space-x-2" href="#">
-            <img src="/images/logo.svg" alt="Logo" class="h-8" />
-          </a>
-          <button
-            class="text-gray-700 md:hidden focus:outline-none focus:ring-2 focus:ring-gray-400"
-            aria-label="Toggle navigation"
-          >
-            ☰
-          </button>
-          <div class="hidden md:flex space-x-4 items-center">
-            <a href="#" class="text-gray-700 hover:text-gray-900">Home</a>
-            <a href="#" class="flex items-center space-x-1 text-gray-700 hover:text-gray-900">
-              <img src="/images/profileicon.svg" alt="Profile" class="h-6" />
-              <span>Admin</span>
-            </a>
-          </div>
-        </div>
-      </nav>
-    </header>
+   <%-include('../partials/admin-header')%>
 
     <!-- Main Content -->
     <div class="flex h-screen">
       <!-- Sidebar -->
-      <aside class="w-1/5 bg-gray-800 p-4 flex flex-col space-y-3">
-        <a href="#" class="hover:text-yellow-400">Dashboard</a>
-        <a href="#" class="hover:text-yellow-400">Products</a>
-        <a href="#" class="hover:text-yellow-400">Customers</a>
-        <a href="#" class="hover:text-yellow-400">Orders</a>
-        <a href="#" class="hover:text-yellow-400">Coupons</a>
-        <a href="#" class="hover:text-yellow-400">Category</a>
-        <a href="#" class="hover:text-yellow-400">Offers</a>
-        <a href="#" class="hover:text-yellow-400">Banner</a>
-        <a href="#" class="hover:text-yellow-400">Sales Report</a>
-        <a href="#" class="text-red-500 hover:text-red-600">Logout</a>
-      </aside>
+     <%-include('../partials/admin-sidebar')%>
 
       <!-- Main Section -->
       <main class="w-4/5 p-6">
@@ -119,19 +87,6 @@
     </div>
 
     <!-- Footer -->
-    <footer class="bg-blue-500 text-gray-100">
-      <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-6 p-6">
-        <div>
-          <h5 class="text-lg">Driven by <span class="font-bold">Excellence</span></h5>
-        </div>
-        <div>
-          <h6 class="font-bold">Support</h6>
-          <ul>
-            <li><a href="#" class="hover:text-yellow-400">Order Status</a></li>
-          </ul>
-        </div>
-        <!-- Similar sections for About and Contact -->
-      </div>
-    </footer>
+   <%-include('../partials/admin-footer')%>
   </body>
 </html>

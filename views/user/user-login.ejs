@@ -1,166 +1,42 @@
-<!doctype html >
+<!doctype html>
 <html lang="en">
   <head>
-    <!-- Required meta tags -->
     <meta charset="utf-8">
-    
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- Bootstrap CSS -->
-    
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
     <title>Hello, world!</title>
   </head>
-  <body >
-    <header >
- <nav class="navbar navbar-expand-lg bg-body-tertiary" >
-  <div class="container-fluid" style="background-color: #54aad4;">
-    <a class="navbar-brand" href="/"><img src="/images/logo.svg"></a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item">
-          <a class="nav-link active" aria-current="page" href="/">Home</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/shopAll">Shop</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#">About us</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#">Contact us</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="/login"><img src="/images/profileicon.svg"  width="30" height="24"></a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#"><img src="/images/carticon.svg" width="30" height="24"></a>
-        </li>
-        
-      </ul>
-      <form class="d-flex" role="search">
-        <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
-        <button class="btn btn-outline-success" type="submit">Search</button>
+  <body class="bg-gray-100">
+    <!-- Header -->
+   <%- include('../partials/user-header') %>
+
+    <!-- Login Section -->
+    <div class="max-w-sm mx-auto my-12 bg-white p-6 rounded-lg shadow-md">
+      <h3 class="text-center text-xl font-bold mb-4">Login</h3>
+      <form action="/login" method="POST">
+        <div class="mb-4">
+          <label for="email" class="block text-sm font-medium">Email</label>
+          <input type="email" id="email" name="email" placeholder="Enter email" class="w-full mt-1 p-2 border border-gray-300 rounded">
+        </div>
+        <div class="mb-4">
+          <label for="password" class="block text-sm font-medium">Password</label>
+          <input type="password" id="password" name="password" placeholder="Enter password" class="w-full mt-1 p-2 border border-gray-300 rounded">
+        </div>
+        <div class="flex justify-between mb-4 text-sm">
+          <a href="#" class="text-blue-500 hover:underline">Sign up</a>
+          <a href="#" class="text-blue-500 hover:underline">Forgot Password?</a>
+        </div>
+        <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600">Login</button>
       </form>
-    </div>
-  </div>
-</nav>
-</header>
- <style>
-    body {
-      background-color: #f8f9fa;
-    }
-    .navbar {
-      background-color: #00c8ff;
-    }
-    .navbar-brand {
-      font-weight: bold;
-      color: #000;
-    }
-    .login-container {
-      margin: 3rem auto;
-      max-width: 400px;
-      background-color: #eef6f9;
-      padding: 2rem;
-      border-radius: 8px;
-    }
-    footer {
-      background-color: #5c99a3;
-      color: #fff;
-      padding: 2rem 1rem;
-    }
-    footer a {
-      color: #fff;
-      text-decoration: none;
-    }
-  </style>
-
-  <!-- Login Section -->
-  <div class="login-container">
-    <h3 class="text-center">Login</h3>
-    <form action="/login" method="POST">
-      <div class="mb-3">
-        <label for="email" class="form-label">Email</label>
-        <input type="email" class="form-control" id="email" name="email" placeholder="Enter email">
-      </div>
-      <div class="mb-3">
-        <label for="password" class="form-label">Password</label>
-        <input type="password" class="form-control" id="password" name="password" placeholder="Enter password">
-      </div>
-      <div class="d-flex justify-content-between mb-3">
-        <a href="#">Sign up</a>
-        <a href="#">Forgot Password?</a>
-      </div>
-      <button type="submit" class="btn btn-primary w-100">Login</button>
-    </form>
-    <hr>
-    <div class="text-center">
-      <button class="btn btn-outline-dark w-100">
-        <i class="bi bi-google"></i> Continue with Google
-      </button>
-    </div>
-  </div>
-
- 
-    <footer class="footer" style="background-color: #54aad4;">
-  
-    <div class="row text-center text-md-start m-0 p-0">
-      <!-- Branding Section -->
-      <div class="col-12 col-md-4 mb-4">
-        <h5 class="text-dark">Driven by <span class="text-dark">Excellence.</span></h5>
-      </div>
-
-      <!-- Support Section -->
-      <div class="col-12 col-md-2 mb-4">
-        <h6 class="fw-bold">Support</h6>
-        <ul class="list-unstyled">
-          <li><a href="#" class="text-dark text-decoration-none">Order Status</a></li>
-          <li><a href="#" class="text-dark text-decoration-none">Product Support</a></li>
-          <li><a href="#" class="text-dark text-decoration-none">Shipping & Return Policy</a></li>
-          <li><a href="#" class="text-dark text-decoration-none">Complaint Registration</a></li>
-        </ul>
-      </div>
-
-      <!-- About Us Section -->
-      <div class="col-12 col-md-2 mb-4">
-        <h6 class="fw-bold">About Us</h6>
-        <ul class="list-unstyled">
-          <li><a href="#" class="text-dark text-decoration-none">Order Status</a></li>
-          <li><a href="#" class="text-dark text-decoration-none">Privacy Policy</a></li>
-          <li><a href="#" class="text-dark text-decoration-none">Terms of Use</a></li>
-          <li><a href="#" class="text-dark text-decoration-none">FAQ</a></li>
-        </ul>
-      </div>
-
-      <!-- Contact Section -->
-      <div class="col-12 col-md-4 mb-4">
-        <h6 class="fw-bold">Contact</h6>
-        <p class="mb-1">Email: <a href="mailto:carrymart@gmail.com" class="text-dark text-decoration-none">carrymart@gmail.com</a></p>
-        <p>Phone: +91 9999999999</p>
+      <hr class="my-4">
+      <div class="text-center">
+        <button class="w-full border border-gray-300 py-2 rounded flex items-center justify-center space-x-2 hover:bg-gray-100">
+          <i class="bi bi-google"></i> <span>Continue with Google</span>
+        </button>
       </div>
     </div>
 
-    <!-- Footer Disclaimer -->
-    <div class="row text-center mt-4">
-      <div class="col">
-        <p class="small text-muted">
-          *All product names, logos, and brands are property of their respective owners. Use of these names, logos, and brands does not imply endorsement.
-        </p>
-      </div>
-    </div>
-
-    <!-- Footer Bottom -->
-    <div class="row text-center mt-3">
-      <div class="col">
-        <p class="mb-0">&copy; 2024 Carry Mart. All rights reserved.</p>
-      </div>
-    </div>
-  
-</footer>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>   
+    <!-- Footer -->
+    <%- include('../partials/user-footer') %>
   </body>
 </html>

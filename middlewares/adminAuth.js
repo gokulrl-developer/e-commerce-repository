@@ -1,0 +1,19 @@
+module.exports={
+    checkSession:(req,res,next)=>{
+        if(req.session.admin){
+            req.admin=req.session.admin;
+            next();
+        }else{
+            res.redirect('/admin/login');
+        }
+    },
+    isLoggedIn:(req,res,next)=>{
+        if(req.session.admin){
+            req.user=req.session.user;
+            res.redirect('/admin/dashboard');
+            
+        }else{
+            next();  
+        }
+    }
+}

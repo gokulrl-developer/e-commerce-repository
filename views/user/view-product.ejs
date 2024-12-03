@@ -4,72 +4,99 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Product Details</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Updated TailwindCSS Version -->
+    <script src="https://cdn.tailwindcss.com"></script>
   </head>
-  <body class="bg-[#eaf8ff]">
+  <body class="bg-gray-100">
+    
+    <!-- Header Section -->
+      <%- include('../partials/user-header') %>
 
-    <div class="container mx-auto my-5">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-
-        <!-- Product Image Thumbnails -->
-        <div class="flex flex-col items-center gap-2" id="thumbnails">
-          <% productImageUrls.forEach((image, index) => { %>
-            <img src="<%= image.url %>" class="w-24 h-24 object-cover rounded-lg cursor-pointer hover:opacity-80" 
-                 id="<%= index %>" onclick="changeImage('<%= image.url %>')"/>
-          <% }); %>
-        </div>
-
-        <!-- Main Product Image -->
-        <div class="text-center col-span-1 md:col-span-1">
-          <img src="" class="w-full h-80 object-cover rounded-lg shadow-lg" id="main-image" />
-        </div>
-
-        <!-- Product Details -->
-        <div class="space-y-4">
-          <h3 class="font-bold text-xl">Product Name: Backpack XYZ</h3>
-          <p><strong>Brand Name:</strong> Brand ABC</p>
-          <p><strong>Price:</strong> $50</p>
-          <p><strong>Gender:</strong> Unisex</p>
-          <p><strong>Specifications:</strong> Lightweight, Durable, Waterproof</p>
+      <div class="container mx-auto my-5">
+        <div class="grid grid-cols-1 md:grid-cols-[1fr_2fr_2fr] gap-5">
           
-          <div class="flex gap-3 mt-4">
-            <button class="bg-[#007bff] text-white px-8 py-3 rounded-lg hover:bg-[#0056b3] w-full">Buy Now</button>
-            <button class="border border-[#007bff] text-[#007bff] px-8 py-3 rounded-lg hover:bg-[#007bff] hover:text-white w-full">Add to Cart</button>
+          <!-- Product Image Thumbnails -->
+          <div class="flex flex-col items-center gap-2" id="thumbnails">
+            <% product.imageUrl.forEach((image, index) => { %>
+              <img src="<%= image %>" 
+                   class="w-20 h-20 object-cover rounded-lg cursor-pointer hover:opacity-80" 
+                   id="<%= index %>" 
+                   onclick="changeImage('<%= image %>')" />
+            <% }); %>
+          </div>
+      
+          <!-- Main Product Image -->
+          <div class="text-center overflow-hidden" id="main-image-container">
+            <img src="" class=" w-full h-auto object-cover rounded-lg shadow-lg" id="main-image" />
+          </div>
+      
+          <!-- Product Details -->
+          <div class="space-y-4">
+            <h3 class="font-bold text-xl">Product Name: Backpack XYZ</h3>
+            <p><strong>Brand Name:</strong> Brand ABC</p>
+            <p><strong>Price:</strong> $50</p>
+            <p><strong>Gender:</strong> Unisex</p>
+            <p><strong>Specifications:</strong> Lightweight, Durable, Waterproof</p>
+            
+            <div class="flex gap-3 mt-4">
+              <button class="bg-blue-500 text-white px-8 py-3 rounded-lg hover:bg-blue-700 w-full">Buy Now</button>
+              <button class="border border-blue-500 text-blue-500 px-8 py-3 rounded-lg hover:bg-blue-500 hover:text-white w-full">Add to Cart</button>
+            </div>
+          </div>
+        </div>
+      
+        <!-- Related Products -->
+        <div class="mt-10">
+          <h4 class="text-center font-semibold text-xl mb-5">Related Products</h4>
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+            <% products.forEach((product) => { %>
+              <div class="text-center">
+                <img src="<%= product.imageUrl[0] %>" 
+                     alt="Related Product" 
+                     class="w-full h-40 object-cover rounded-lg shadow-sm mb-2">
+                <h6 class="font-medium"><%= product.productName %></h6>
+                <p class="text-lg"><%= product.price %></p>
+              </div>
+            <% }); %>
           </div>
         </div>
       </div>
+      
 
-      <!-- Related Products -->
-      <div class="mt-10">
-        <h4 class="text-center font-semibold text-xl mb-5">Related Products</h4>
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-          <% relatedProducts.forEach((product) => { %>
-            <div class="text-center">
-              <img src="<%= product.firstImageUrl %>" alt="Related Product" class="w-full h-40 object-cover rounded-lg shadow-sm mb-2">
-              <h6 class="font-medium"><%= product.name %></h6>
-              <p class="text-lg"><%= product.price %></p>
-            </div>
-          <% }); %>
-        </div>
-      </div>
-    </div>
+    <!-- Footer Section -->
+      <%- include('../partials/user-footer') %>
+    
 
     <script>
+
+/////////Zoom Main Image////////////////////////////////////////////////////////////////////////////////////////
+       document.getElementById('main-image').addEventListener('mouseover',(e)=>{
+      const mainImage=document.getElementById('main-image');
+       const rect=mainImage.getBoundingClientRect();
+       const x=e.clientX-rect.left;
+       const y=e.clientY-rect.top;
+
+       const zoomedWidth=rect.width*3;
+       const zoomedHeight=rect.height*3;
+       const offsetx=Math.min(Math.max(0,x-zoomedWidth/2),rect.width-zoomedWidth);
+       const offsety=Math.min(Math.max(0,y-zoomedHeight/2),rect.height-zoomedHeight);
+       mainImage.style.position = 'absolute';
+    mainImage.style.left = `-${offsetx}px`;
+    mainImage.style.top = `-${offsety}px`;
+    mainImage.style.transform = `scale(3)`;
+     })
+    /* mainImage.addEventListener('mouseleave', () => {
+  zoomModal.style.display = 'none';
+}); */ 
+
+      document.addEventListener("DOMContentLoaded", function () {
+        const mainImage = document.getElementById('0').src;
+        document.getElementById('main-image').src = mainImage;
+      });
+
       function changeImage(url) {
-        document.getElementById("main-image").src = url;
+        document.getElementById('main-image').src = url;
       }
     </script>
   </body>
 </html>
-<!-- <script>
-    document.addEventListener("DOMContentLoaded",function(){
-      const mainImage=document.getElementById('0').src;
-      console.log(mainImage);
-      document.getElementById('main-image').src=mainImage;
-    })
-    function changeImage(url){
-      document.getElementById('main-image').src=url;
-    }
-    
-  </script> -->
-  
