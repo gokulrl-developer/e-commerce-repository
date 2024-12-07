@@ -5,14 +5,14 @@ const bcrypt=require('bcryptjs')
 const userSchema=mongoose.Schema({
 name:{type:String,required:true},
 email:{type:String,required:true,unique:true},
-phone:{type:String},
+mobile:{type:String},
 password:{type:String,required:function(){
     return !this.googleId},  // Password is required if googleId is not present
 },
-/* googleId:{type:String,
-    required:true,
+ googleId:{type:String,
+    unique:true,
     sparse:true   //Allows for null values
-}, */
+}, 
 status:{
     type:String,
     enum:["Active","Blocked"],

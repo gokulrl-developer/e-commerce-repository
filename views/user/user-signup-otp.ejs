@@ -15,9 +15,11 @@
 
     <!-- Header Section -->
     <%- include('../partials/user-header') %>
+
     <!-- Main Content (OTP Verification) -->
     <div class="min-h-screen flex justify-center items-center">
         <div class="bg-[#f2f8fb] p-8 rounded-lg text-center w-full max-w-md">
+            <!-- Alert Box -->
             <h4 class="text-2xl font-semibold mb-6">Verify Your OTP</h4>
             <div class="flex justify-center space-x-2 mb-4">
                 <input type="text" maxlength="1" class="otp-input w-14 h-14 text-center text-xl border rounded-md" />
@@ -25,8 +27,8 @@
                 <input type="text" maxlength="1" class="otp-input w-14 h-14 text-center text-xl border rounded-md" />
                 <input type="text" maxlength="1" class="otp-input w-14 h-14 text-center text-xl border rounded-md" />
             </div>
-             
-            <div class="text-muted mb-3 mt-3 timer"></div>
+            <div class="text-muted mb-3 mt-3 timer hidden"></div>
+            <button class="bg-[#00008b] text-white px-4 py-2 rounded-md hidden" id="resend-otp" onclick="handleResendOtp(event)">Resend OTP</button>
             <button class="bg-[#00008b] text-white px-4 py-2 rounded-md" onclick="handleOtpVerification(event)">Submit</button>
         </div>
     </div>
@@ -43,7 +45,6 @@
       input.addEventListener("input",(event)=>{
         if(index<inputs.length-1&&event.target.value.length===1){
           inputs[index+1].focus();
-          console.log("helloworld")
         }
       });
       input.addEventListener("keydown",(event)=>{
@@ -69,6 +70,12 @@
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ otp }),
                 });
+                const data=await response.json();
+                if(response.ok){
+                    location.href = data.redirectUrl;
+                }else{
+                    window.alert(data.message);
+                }
             } catch (error) {
                 console.error("Error while verifying OTP: ", error);
             }
@@ -76,18 +83,22 @@
 
         // Handle Resend OTP
         async function handleResendOtp(event) {
-            const inputs = document.querySelectorAll(".otp-input");
-            let otp = "";
-            inputs.forEach((input) => {
-                otp += input.value;
-            });
+            
 
-            try {
+         try {
                 const response = await fetch('/resend-otp', {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ otp }),
+                   
                 });
+                const data=await response.json();
+                window.alert(data.Message);
+                console.log(response.status);
+                if(response.status==200){
+                    console.log(response.status);
+
+                    startTimer(60);
+                }
             } catch (error) {
                 console.error("Error while resending OTP: ", error);
             }
@@ -98,15 +109,18 @@
             let timeRemaining = duration;
             const timerDisplay = document.querySelector(".timer");
             
-
+            console.log('sdkf')
             const timer = setInterval(() => {
                 if (timeRemaining <= 0) {
                     clearInterval(timer);
-                    timerDisplay.textContent = "Resend the OTP.";
-                    //timerDisplay.addEventListener('click',handleResendOtp(event));
+                    timerDisplay.classList.add("hidden");
+                    document.getElementById('resend-otp').classList.remove("hidden");
                 } else {
                     timeRemaining--;
                     timerDisplay.textContent = `Resend OTP in ${timeRemaining} seconds.`;
+                    document.getElementById('resend-otp').classList.add("hidden");
+                    timerDisplay.classList.remove("hidden");
+
                     
 
                 }

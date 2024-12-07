@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CarryMart</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="font-sans bg-gray-50">
+
+ <!-- Header Section -->
+ <%- include('../partials/user-header') %>
+
+  <!-- Main Content -->
+  <main class="container mx-auto mb-8 mt-8 gap-3 px-4 flex flex-col md:flex-row">
+
+    <!-- Sidebar -->
+  <%- include('../partials/user-profile-sidebar') %>
+
+    <!-- Form Section -->
+     <section class="w-full md:w-4/5 bg-blue-100 text-lg shadow-lg rounded-lg p-6">
+        <h2>YOUR ADDRESSES</h2>
+        <div class="p-6">
+            <button id="openModal" class="bg-blue-500 text-white py-2 px-4 rounded">Add New Address</button>
+          </div>
+        <% if (addresses && addresses.length> 0) { %>
+            <div class="flex flex-wrap mt-4 mx-4">
+              <% addresses.forEach(address=> { %>
+                <div class="w-full md:w-1/2 px-4 mb-4">
+                  <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                    <p>
+                      <strong>Name:</strong>
+                      <%= address.Name %>
+                    </p>
+                    <p>
+                      <strong>House:</strong>
+                      <%= address.HouseName %>
+                    </p>
+                    <p>
+                      <strong>Street/Locality:</strong>
+                      <%= address.LocalityStreet %>
+                    </p>
+                    <p>
+                      <strong>Town/City:</strong>
+                      <%= address.TownCity %>
+                    </p>
+                    <p>
+                      <strong>State:</strong>
+                      <%= address.state %>
+                    </p>
+                    <p>
+                      <strong>Country:</strong>
+                      <%= address.country %>
+                    </p>
+                    <p>
+                      <strong>Pincode:</strong>
+                      <%= address.pincode %>
+                    </p>
+                    <p>
+                      <strong>Mobile:</strong>
+                      <%= address.MobileNumber %>
+                    </p>
+  
+                    <div class="mt-2 space-x-2">
+                      <button class="text-blue-500 hover:underline" onclick="openEditModal('<%= address._id %>')">
+                        Edit
+                      </button>
+  
+                      <a href="#" class="deleteAddress text-red-500 hover:underline"
+                        data-id="<%= address._id %>">Delete</a>
+                    </div>
+                  </div>
+                </div>
+                <% }); %>
+            </div>
+            <% } else { %>
+              <div class="bg-gray-100 p-4 rounded-lg">
+                <p>No addresses found.</p>
+              </div>
+              <% } %>
+        
+    </section>
+  </main>
+
+ <!-- Footer -->
+ <%- include('../partials/user-footer') %>
+
+
+ <!--Add Address Modal -->
+ <div id="modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+    <div class="bg-white shadow rounded-md p-6 w-full max-w-lg">
+      <!-- Modal Header -->
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold">Add New Address</h2>
+        <button id="closeModal" class="text-gray-500 hover:text-gray-800">&times;</button>
+      </div>
+
+      <!-- Form Content -->
+      <form class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label for="name" class="block text-sm font-medium">Name</label>
+          <input type="text" id="name" class="w-full p-2 border rounded" placeholder="Enter your full name" required minlength="3" maxlength="50">
+          
+        </div>
+        <div>
+          <label for="house" class="block text-sm font-medium">House Name</label>
+          <input type="text" id="house" class="w-full p-2 border rounded" placeholder="Enter house name or number" required minlength="3" maxlength="100">
+        </div>
+        <div>
+          <label for="street" class="block text-sm font-medium">Locality/Street</label>
+          <input type="text" id="street" class="w-full p-2 border rounded" placeholder="Enter street name or locality" required minlength="3" maxlength="100">
+        </div>
+        <div>
+          <label for="city" class="block text-sm font-medium">Town/City</label>
+          <input type="text" id="city" class="w-full p-2 border rounded" placeholder="Enter town or city" required minlength="3" maxlength="50">
+        </div>
+        <div>
+          <label for="state" class="block text-sm font-medium">State</label>
+          <input type="text" id="state" class="w-full p-2 border rounded" placeholder="Enter state" required minlength="3" maxlength="50">
+        </div>
+        <div>
+          <label for="country" class="block text-sm font-medium">Country</label>
+          <input type="text" id="country" class="w-full p-2 border rounded" placeholder="Enter country" required minlength="2" maxlength="50" >
+        </div>
+        <div>
+          <label for="mobile" class="block text-sm font-medium">Mobile Number</label>
+          <input type="text" id="mobile" class="w-full p-2 border rounded" placeholder="Enter 10-digit mobile number" required pattern="[0-9]{10}">       
+          </div>
+        <div>
+          <label for="pincode" class="block text-sm font-medium">Pincode</label>
+          <input type="text" id="pincode" class="w-full p-2 border rounded" placeholder="Enter 6-digit pincode" required pattern="[0-9]{6}" >
+        </div>
+        <button class="w-full md:col-span-2 bg-black text-white py-2 rounded">Save</button>
+      </form>
+    </div>
+  </div>
+
+</body>
+</html>
+<script>
+    const modal = document.getElementById("modal");
+    const openModalButton = document.getElementById("openModal");
+    const closeModalButton = document.getElementById("closeModal");
+
+    // Open modal
+    openModalButton.addEventListener("click", () => {
+      modal.classList.remove("hidden");
+    });
+
+    // Close modal
+    closeModalButton.addEventListener("click", () => {
+      modal.classList.add("hidden");
+    });
+
+    // Close modal when clicking outside the modal content
+    window.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        modal.classList.add("hidden");
+      }
+    });
+  </script>

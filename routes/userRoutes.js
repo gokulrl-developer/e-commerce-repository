@@ -3,6 +3,13 @@ const router=express.Router();
 const userController=require('../controllers/user/userController');
 const Product=require('../models/productModel');
 const userAuth=require('../middlewares/userAuth');
+const userProfileController = require("../controllers/user/userProfileAddressController");
+
+
+// GENERAL USERS
+router.get('/home',userController.getHome)
+
+
 
 ///Home
 router.get('/',userAuth.checkSession,userController.getHome);
@@ -12,27 +19,38 @@ router.get('/login',userAuth.isLoggedIn,userController.getLogin);
 router.post('/login',userAuth.isLoggedIn,userController.postLogin);
 router.get('/profile',userAuth.checkSession,userController.getProfile);
 
+////Logout 
+router.post("/logout", userController.logout);
+
 ///sign-up
 router.get('/sign-up',userAuth.isLoggedIn,userController.getSignUp);
 router.post('/sign-up',userAuth.isLoggedIn,userController.signUpPost);
+router.get('/verify-otp', (req, res) => {
+    res.render('user/user-signup-otp',{message:"OTP send to Email"})
+  });
 router.post('/resend-otp',userAuth.isLoggedIn,userController.resendOtp);
+router.post('/verify-otp',userAuth.isLoggedIn,userController.verifyOtp);
+
 
 router.get('/shopAll',userAuth.checkSession,userController.shopAll)
 
-router.get('/all-products',userAuth.checkSession,async(req,res)=>{
-    const products=await Product.find({}).lean();
-    products.forEach(product => {
-        product.firstImageUrl = product.imageUrl[0];
-    });   
-    res.render('user/all-products',{user:true,products})
-})
-router.get('/product',userAuth.checkSession,async(req,res)=>{
-    const product=await Product.findOne({}).lean();
-    const products=await Product.find({}).lean();
-    
-    res.render('user/view-product',{user:true,product,products})
-})
+router.get('/product/:id',userAuth.checkSession,userController.getProduct);
 
-router.post('/verify-otp',userAuth.isLoggedIn,userController.verifyOtp);
+
+
+//-------------------- Address info Dashboard --------------------
+// Add address
+//router.post("/address/add",userProfileController.addAddress);
+
+// Get all addresses
+router.get("/address/",userAuth.checkSession,userProfileController.getUserAddresses);
+
+// Update an address
+//router.get("/address/edit/:id", userProfileController.getEditAddress);
+//router.post("/address/edit/:id", userProfileController.updateAddress);
+
+// Delete an address
+//router.delete("/address/:id", userProfileController.deleteAddress);
+
 
 module.exports=router;

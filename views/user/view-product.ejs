@@ -8,7 +8,48 @@
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body class="bg-gray-100">
-    
+    <style>
+      #main-image {
+            width: 100%;
+            max-width: 1024px;
+            max-height: 1024px;
+            position: relative;
+            cursor: zoom-in;
+            overflow: hidden;
+        }
+        #main-image-container {
+            width: 100%;
+            max-width: 500px;
+            max-height: 500px;
+            
+        }
+     
+        #main-image img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+        }
+          #main-image-container::after {
+            content: '';
+            display: block;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-image: var(--url);
+            background-size: 200%;
+            background-position: var(--zoom-x) var(--zoom-y);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            cursor: zoom-in;
+
+        }
+
+        #main-image-container:hover::after {
+            opacity: 1;
+        }
+    </style>
     <!-- Header Section -->
       <%- include('../partials/user-header') %>
 
@@ -26,22 +67,50 @@
           </div>
       
           <!-- Main Product Image -->
-          <div class="text-center overflow-hidden" id="main-image-container">
+          <div class="text-center overflow-hidden relative" id="main-image-container">
             <img src="" class=" w-full h-auto object-cover rounded-lg shadow-lg" id="main-image" />
           </div>
       
-          <!-- Product Details -->
-          <div class="space-y-4">
-            <h3 class="font-bold text-xl">Product Name: Backpack XYZ</h3>
-            <p><strong>Brand Name:</strong> Brand ABC</p>
-            <p><strong>Price:</strong> $50</p>
-            <p><strong>Gender:</strong> Unisex</p>
-            <p><strong>Specifications:</strong> Lightweight, Durable, Waterproof</p>
-            
-            <div class="flex gap-3 mt-4">
-              <button class="bg-blue-500 text-white px-8 py-3 rounded-lg hover:bg-blue-700 w-full">Buy Now</button>
-              <button class="border border-blue-500 text-blue-500 px-8 py-3 rounded-lg hover:bg-blue-500 hover:text-white w-full">Add to Cart</button>
-            </div>
+            <!-- Product Details -->
+            <div class="md:w-1/2 p-6 flex flex-col justify-between">
+              <div>
+                  <h2 class="text-3xl text-gray-800 font-bold mb-2">
+                      <%= product.productName %>
+                  </h2>
+                  
+                  <div class="mb-6">
+                      <span class="text-white-800 text-3xl font-bold"><span class="text-red-600 font-bold">₹ </span><%= product.discountPrice %></span>
+                      <span class="text-gray-500 line-through ml-2">₹<%= product.price %></span>
+                      <span class="text-green-500 ml-2 text-sm font-semibold"><%= product.discount %>%
+                              OFF</span>
+                  </div>
+                  
+                  <p class="mb-2 <%= product.stock > 0 ? 'text-green-500' : 'text-red-500' %> text-black font-semibold">
+                    <% if (product.stock > 0) { %>
+                      <span class="text-xl text-red-600"><%= product.stock %></span><span class="text-yellow-500">  Pieces  </span> In Stock
+                    <% } else { %>
+                      Out of Stock
+                    <% } %>
+                  </p>
+                  
+                  <section class="">
+                      <h3 class="text-2xl font-bold mb-3">Description</h3>
+                      <p class="text-gray-600 text-sm mb-6">
+                        <%= product.description %>
+                    </p>
+                  </section>
+              </div>
+
+              <div class="flex gap-4">
+                  <button id="add-to-cart"
+                      class="flex-1 bg-yellow-600 text-black px-6 py-3 rounded-lg hover:bg-balck-600 transition-colors font-bold">
+                      Add to Cart
+                  </button>
+                  <button
+                      class="flex-1 bg-gray-700 text-black px-6 py-3 rounded-lg hover:bg-gray-600 transition-colors font-bold">
+                      Buy Now
+                  </button>
+              </div>
           </div>
         </div>
       
@@ -49,15 +118,20 @@
         <div class="mt-10">
           <h4 class="text-center font-semibold text-xl mb-5">Related Products</h4>
           <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-            <% products.forEach((product) => { %>
-              <div class="text-center">
-                <img src="<%= product.imageUrl[0] %>" 
-                     alt="Related Product" 
-                     class="w-full h-40 object-cover rounded-lg shadow-sm mb-2">
-                <h6 class="font-medium"><%= product.productName %></h6>
-                <p class="text-lg"><%= product.price %></p>
+            <% products.forEach(function(product) { %>
+              <div class="card p-4 border rounded shadow-md">
+                <div class="w-full ">
+                  <div class="w-full h-80">
+                  <img src="<%= product.imageUrl[0] %>" class="w-full h-full object-cover rounded" alt="Product Image">
+                </div>
               </div>
-            <% }); %>
+                <div class="text-center mt-3">
+                  <h6 class="text-lg font-semibold"><%= product.productName %></h6>
+                  <p class="text-gray-600"><%= product.price %></p>
+                  <a href="/product/<%= product._id %>" class="btn bg-blue-500 text-white rounded px-4 py-2 mt-2 inline-block">View Product</a>
+                </div>
+              </div>
+            <% }) %>
           </div>
         </div>
       </div>
@@ -70,32 +144,24 @@
     <script>
 
 /////////Zoom Main Image////////////////////////////////////////////////////////////////////////////////////////
-       document.getElementById('main-image').addEventListener('mouseover',(e)=>{
-      const mainImage=document.getElementById('main-image');
-       const rect=mainImage.getBoundingClientRect();
-       const x=e.clientX-rect.left;
-       const y=e.clientY-rect.top;
-
-       const zoomedWidth=rect.width*3;
-       const zoomedHeight=rect.height*3;
-       const offsetx=Math.min(Math.max(0,x-zoomedWidth/2),rect.width-zoomedWidth);
-       const offsety=Math.min(Math.max(0,y-zoomedHeight/2),rect.height-zoomedHeight);
-       mainImage.style.position = 'absolute';
-    mainImage.style.left = `-${offsetx}px`;
-    mainImage.style.top = `-${offsety}px`;
-    mainImage.style.transform = `scale(3)`;
+       document.getElementById('main-image-container').addEventListener('mousemove',(e)=>{
+      const mainImageContainer=document.getElementById('main-image-container');
+        const {left,top,width,height}=mainImageContainer.getBoundingClientRect();   
+       const x = ((e.clientX - left) / width) * 100;
+      const y = ((e.clientY - top) / height) * 100;
+      mainImageContainer.style.setProperty('--zoom-x', `${x}%`);
+      mainImageContainer.style.setProperty('--zoom-y', `${y}%`);
      })
-    /* mainImage.addEventListener('mouseleave', () => {
-  zoomModal.style.display = 'none';
-}); */ 
 
       document.addEventListener("DOMContentLoaded", function () {
         const mainImage = document.getElementById('0').src;
         document.getElementById('main-image').src = mainImage;
+        document.getElementById("main-image-container").style.setProperty('--url', `url(${mainImage})`);
       });
 
       function changeImage(url) {
         document.getElementById('main-image').src = url;
+        document.getElementById("main-image-container").style.setProperty('--url', `url(${url})`);
       }
     </script>
   </body>

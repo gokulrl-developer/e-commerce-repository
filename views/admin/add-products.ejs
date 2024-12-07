@@ -60,6 +60,16 @@
                   class="w-full bg-gray-700 text-white border border-gray-600 rounded p-2">
               </div>
               <div>
+                <label for="discount" class="block text-sm font-medium">Discount Percentage</label>
+                <input type="number" id="discount" name="discount" placeholder="Enter discount percentage"
+                  class="w-full bg-gray-700 text-white border border-gray-600 rounded p-2" step="0.01">
+              </div>
+              <div>
+                <label for="rating" class="block text-sm font-medium">Rating</label>
+                <input type="number" id="rating" name="rating" placeholder="Enter rating"
+                  class="w-full bg-gray-700 text-white border border-gray-600 rounded p-2" step="0.1" min="0" max="5">
+              </div>
+              <div>
                 <label for="description" class="block text-sm font-medium">Description</label>
                 <textarea id="description" name="description" rows="3" placeholder="Enter description"
                   class="w-full bg-gray-700 text-white border border-gray-600 rounded p-2"></textarea>
@@ -123,9 +133,7 @@
   
     let uploadedImages = [];
     let cropper;
-    let selectedFile;
-    
-    
+    let selectedFile;    
     function addImage() {
         const imageFileInput = document.getElementById("imageFile");
         const fileError = document.getElementById("fileError");
@@ -167,7 +175,7 @@
         };
         reader.readAsDataURL(file);
     
-        cropModal.show(); 
+        
     }
     
     function closeCropModal() {
@@ -176,7 +184,7 @@
             cropper.destroy();
             cropper = null;
         }
-        cropModal.hide();
+       
     }
     
     
@@ -205,7 +213,7 @@
     
                         const deleteButton = document.createElement("button");
                         deleteButton.className =
-                            "position-absolute top-0 end-0 bg-danger text-white rounded-circle w-25 h-25 d-flex align-items-center justify-content-center opacity-0 transition-opacity";
+                            "position-absolute top-0 end-0 bg-danger text-white rounded-circle w-25 h-25 d-flex align-items-center justify-content-center opacity-1 transition-opacity";
                         deleteButton.innerHTML = "×";
                         deleteButton.onclick = (e) => {
                             e.preventDefault();
@@ -231,9 +239,7 @@
     
     
     
-    document
-        .getElementById("productForm")
-        .addEventListener("submit", async function (e) {
+    document.getElementById("productForm").addEventListener("submit", async function (e) {
             e.preventDefault();
     
     
@@ -254,6 +260,8 @@
             formData.append("description", document.getElementById("description").value);
             formData.append("specifications", document.getElementById("specifications").value);
             formData.append("category", document.getElementById("category").value);
+            formData.append("discount", document.getElementById("discount").value);
+            formData.append("rating", document.getElementById("rating").value);
     
     
             uploadedImages.forEach((blob, index) => {
@@ -269,7 +277,7 @@
                 const result = await response.json();
     
                 if (response.ok) {
-                    window.location.href = `/admin/products/add/variant?productId=${result.productId}`;
+                    window.location.reload();
                 } else {
                     throw new Error(result.error || "Error adding product");
                 }

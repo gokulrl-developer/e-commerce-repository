@@ -19,19 +19,10 @@
       <!-- Main Content -->
       <div class="w-4/5 p-6">
         <div class="flex justify-between items-center mb-6">
-          <button class="bg-yellow-500 text-black px-4 py-2 rounded hover:bg-yellow-600">
+          <button class="bg-yellow-500 text-black px-4 py-2 rounded hover:bg-yellow-600" onclick="addProduct()">
             Add New Product
           </button>
-          <div class="flex w-1/2">
-            <input
-              type="text"
-              class="w-full px-4 py-2 text-gray-900 rounded-l"
-              placeholder="Search for products"
-            />
-            <button class="bg-gray-700 text-white px-4 py-2 rounded-r hover:bg-gray-600">
-              Search
-            </button>
-          </div>
+          
         </div>
 
         <div class="bg-gray-800 p-4 rounded">
@@ -71,14 +62,7 @@
             </tbody>
           </table>
 
-          <!-- Pagination -->
-          <div class="mt-4 flex justify-center space-x-2">
-            <a href="#" class="px-3 py-1 bg-gray-700 text-white rounded hover:bg-gray-600">Previous</a>
-            <a href="#" class="px-3 py-1 bg-gray-700 text-white rounded hover:bg-gray-600">1</a>
-            <a href="#" class="px-3 py-1 bg-gray-700 text-white rounded hover:bg-gray-600">2</a>
-            <a href="#" class="px-3 py-1 bg-gray-700 text-white rounded hover:bg-gray-600">3</a>
-            <a href="#" class="px-3 py-1 bg-gray-700 text-white rounded hover:bg-gray-600">Next</a>
-          </div>
+          
         </div>
       </div>
     </div>
@@ -91,11 +75,11 @@
 </html>
 <script>
     function edit(productId){
-   fetch(`/admin/products/edit/${productId}`, {
-  method: 'GET'})
+   window.location.href=`http://localhost:8000/admin/products/edit/${productId}`
     }
-    function remove(productId){
-    fetch(`/admin/products/remove/${productId}`, {
-  method: 'GET'})
-    }
+    
+    function addProduct(){
+      window.location.href = 'http://localhost:8000/admin/products/add';
+  }
   </script>
+ 

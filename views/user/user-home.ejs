@@ -11,49 +11,66 @@
   </head>
   <body class="bg-[#eaf8ff]">
     <!-- Header Section -->
-   <%- include('../partials/user-header') %>
-
+    <%- include('../partials/user-header') %>
     <!-- Hero Section -->
-    <section class="py-5 text-center bg-[#f0f8ff]">
-      <div class="container">
-        <img src="banner-image.jpg" alt="Hero Banner" class="img-fluid rounded">
+    <section class=" text-center bg-[#f0f8ff]">
+      <div class="w-full m-0">
+        <img src="images/banner.png" alt="Hero Banner" class="w-full h-auto">
       </div>
     </section>
+    
+
+    <!-- Top Selling Products Section -->
+    <section class="py-5">
+      <div class="container mx-auto max-w-screen-lg">
+        <h2 class="font-bold text-center my-8">Top Sale This Week</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <% topSoldProducts.forEach(function(product) { %>
+            <div class="card p-4 border rounded shadow-md">
+              <div class="w-full h-100">
+                <img src="<%= product.imageUrl[0] %>" class="w-full h-full object-cover rounded" alt="Product Image">
+              </div>
+              <div class="text-center mt-3">
+                <h6 class="text-lg font-semibold"><%= product.productName %></h6>
+                <p class="text-gray-600"><%= product.price %></p>
+                <a href="/product/<%= product._id %>" class="btn bg-blue-500 text-white rounded px-4 py-2 mt-2 inline-block">View Product</a>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- Banner section -->
+    <section class=" text-center bg-[#f0f8ff]">
+      <div class="w-full m-0">
+        <img src="images/banner.png" alt="Hero Banner" class="w-full h-auto">
+      </div>
+    </section>
+    
 
     <!-- New Arrivals Section -->
-    <section class="py-5">
-      <div class="container">
-        <h2 class="font-bold text-center my-8">New Arrivals</h2>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <!-- Product Cards -->
-          <% for(let i = 0; i < 4; i++) { %>
-          <div class="product-card text-center">
-            <img src="product<%= i + 1 %>.jpg" alt="Product <%= i + 1 %>" class="max-w-full h-auto rounded-lg">
-            <h6 class="mt-2">Product Name</h6>
-            <p>$50</p>
-          </div>
-          <% } %>
-        </div>
-      </div>
-    </section>
-
-    <!-- Featured Products Section -->
     <section class="py-5 bg-gray-100">
-      <div class="container">
-        <h2 class="font-bold text-center my-8">Featured Products</h2>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <!-- Product Cards -->
-          <% for(let i = 4; i < 8; i++) { %>
-          <div class="product-card text-center">
-            <img src="product<%= i + 1 %>.jpg" alt="Product <%= i + 1 %>" class="max-w-full h-auto rounded-lg">
-            <h6 class="mt-2">Product Name</h6>
-            <p>$50</p>
-          </div>
-          <% } %>
+      <div class="container mx-auto max-w-screen-lg">
+        <h2 class="font-bold text-center my-8">New Arrivals</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <% newProducts.forEach(function(product) { %>
+            <div class="card p-4 border rounded shadow-md">
+              <div class="w-full h-100">
+                <img src="<%= product.imageUrl[0] %>" class="w-full h-full object-cover rounded" alt="Product Image">
+              </div>
+              <div class="text-center mt-3">
+                <h6 class="text-lg font-semibold"><%= product.productName %></h6>
+                <p class="text-gray-600"><%= product.price %></p>
+                <a href="/product/<%= product._id %>" class="btn bg-blue-500 text-white rounded px-4 py-2 mt-2 inline-block">View Product</a>
+              </div>
+            </div>
+          <% }) %>
         </div>
       </div>
     </section>
-
+  
     <!-- Footer Section -->
     <%- include('../partials/user-footer') %>
   </body>
