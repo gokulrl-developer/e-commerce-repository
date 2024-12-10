@@ -26,14 +26,7 @@ async function getLogin(req, res) {
   }
 }
 
-async function getProfile(req, res) {
-  try {
-    res.render('user/user-profile');
-  } catch (error) {
-    res.status(500).json({ Message: "Error showing profile" });
-    console.error("Error on showing Profile page : ", error)
-  }
-}
+
 
 async function postLogin(req, res) {
   try {
@@ -178,7 +171,6 @@ module.exports = {
   getHome,
   postLogin,
   shopAll,
-  getProfile,
   getProduct,
   logout,
 }

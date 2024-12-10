@@ -4,6 +4,10 @@ const userController=require('../controllers/user/userController');
 const Product=require('../models/productModel');
 const userAuth=require('../middlewares/userAuth');
 const userProfileController = require("../controllers/user/userProfileAddressController");
+const cartController = require("../controllers/user/cartController");
+
+
+
 
 
 // GENERAL USERS
@@ -17,7 +21,6 @@ router.get('/',userAuth.checkSession,userController.getHome);
 ///Login&Profile
 router.get('/login',userAuth.isLoggedIn,userController.getLogin);
 router.post('/login',userAuth.isLoggedIn,userController.postLogin);
-router.get('/profile',userAuth.checkSession,userController.getProfile);
 
 ////Logout 
 router.post("/logout", userController.logout);
@@ -36,21 +39,35 @@ router.get('/shopAll',userAuth.checkSession,userController.shopAll)
 
 router.get('/product/:id',userAuth.checkSession,userController.getProduct);
 
+//User Dashboard 
+//-------------------- Personal info Dashboard --------------------
+router.get("/profile",userAuth.checkSession,userProfileController.getPersonalInformation);
+router.post("/profile",userAuth.checkSession,userProfileController.updatePersonalInformation)
 
 
 //-------------------- Address info Dashboard --------------------
 // Add address
-//router.post("/address/add",userProfileController.addAddress);
+router.post("/address/add",userAuth.checkSession,userProfileController.addAddress);
 
 // Get all addresses
 router.get("/address/",userAuth.checkSession,userProfileController.getUserAddresses);
 
 // Update an address
-//router.get("/address/edit/:id", userProfileController.getEditAddress);
-//router.post("/address/edit/:id", userProfileController.updateAddress);
+router.get("/address/edit/:id",userAuth.checkSession,userProfileController.getEditAddress);
+router.post("/address/edit/:id",userAuth.checkSession,userProfileController.updateAddress);
 
 // Delete an address
-//router.delete("/address/:id", userProfileController.deleteAddress);
+router.delete("/address/delete/:id",userAuth.checkSession,userProfileController.deleteAddress);
+
+//--------------------Cart----------------------------------------- 
+
+
+router.get("/cart", userAuth.checkSession, cartController.getCart);
+router.post("/cart/add",userAuth.checkSession,cartController.addToCart);
+router.delete("/cart/:id",userAuth.checkSession,cartController.deleteFromCart);
+router.put("/cart/:id",userAuth.checkSession,cartController.updateCartQuantity);
+
+
 
 
 module.exports=router;

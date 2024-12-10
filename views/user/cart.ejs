@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carry Mart</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.all.min.js"></script>
+
+</head>
+
+<body class="bg-gray-50">
+
+  <!-- Header Section -->
+  <%- include('../partials/user-header') %>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+      <h2 class="text-lg font-bold mb-4">My Cart</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Cart Table -->
+        <section class="col-span-2">
+          <div class="overflow-x-auto bg-blue-100 rounded-lg shadow-md p-4">
+            <table class="w-full border-collapse">
+              <thead class="bg-blue-500 text-white rounded-t-lg">
+                <tr>
+                  <th class="p-4 text-left font-semibold">Product</th>
+                  <th class="p-4 font-semibold">Price</th>
+                  <th class="p-4 font-semibold">Quantity</th>
+                  <th class="p-4 font-semibold">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Product Rows -->
+                <%cartItems.forEach((item)=>{%>
+
+                  <tr class="border-b border-gray-200" data-cart-item-id="<%= item._id %>">
+                    <%const product=item.product;%>
+                      <td class="p-4 flex space-x-4 items-start">
+                        <img src=<%=product.imageUrl[0]%> alt="Product" class="w-20 h-20 rounded-md">
+                        <div>
+                          <h3 class="font-semibold text-gray-800">
+                            <%=product.productName%>
+                          </h3>
+                          <a href="#" class="text-sm text-red-500 hover:underline"
+                            onclick="removeFromCart('<%= item._id %>')">Remove</a>
+                        </div>
+                      </td>
+                      <td class="p-4 text-center text-gray-800" data-cart-item-price-id="<%=item._id%>">
+                        <%=product.discountPrice%>
+                      </td>
+                      <td class="p-4 text-center">
+                        <div class="flex justify-center items-center space-x-2">
+                          <button class="w-8 h-8 bg-gray-200 text-gray-600 font-bold rounded"
+                            onclick="updateQuantity('<%= item._id %>', -1)">-</button>
+                          <span class="text-gray-800 font-medium" data-cart-item-quantity-id="<%=item._id%>">
+                            <%=item.quantity%>
+                          </span>
+                          <button class="w-8 h-8 bg-gray-200 text-gray-600 font-bold rounded"
+                            onclick="updateQuantity('<%= item._id %>', 1)">+</button>
+                        </div>
+                      </td>
+                      <td class="p-4 text-center text-gray-800 font-semibold" data-cart-item-total-price-id="<%=item._id%>">
+                        <%=item.totalPrice%>
+                      </td>
+                  </tr>
+                  <%})%>
+
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+
+        <!-- Order Summary -->
+        <section class="col-span-1">
+          <div class="p-6 border rounded-lg shadow bg-gray-50">
+            <h3 class="text-lg font-medium mb-4 text-gray-800">Order Summary</h3>
+            <div class="space-y-2">
+              <div class="flex justify-between text-gray-700">
+                <span>Item Sub Total</span>
+                <span id="totalDiscountPrice">
+                  <%=subtotal%>
+                </span>
+              </div>
+              <div class="flex justify-between text-gray-700">
+                <span>Shipping</span>
+                <span>Free</span>
+              </div>
+              <hr class="my-2 border-gray-300">
+              <div class="flex justify-between text-gray-800 font-semibold text-lg">
+                <span>Total</span>
+                <span id="totalPrice">
+                  <%=subtotal%>
+                </span>
+              </div>
+            </div>
+            <hr class="my-4 border-gray-300">
+            <div class="relative">
+              <label for="coupon" class="sr-only">Coupon Code</label>
+              <div class="flex items-center border border-gray-300 rounded px-2 py-1 bg-white">
+                <span class="text-gray-500">🎟️</span>
+                <select id="coupon" class="flex-1 ml-2 bg-transparent outline-none text-gray-700">
+                  <option value="" disabled selected>Coupon code</option>
+                  <option value="SAVE10">SAVE10</option>
+                  <option value="DISCOUNT20">DISCOUNT20</option>
+                </select>
+              </div>
+            </div>
+            <button
+              class="w-full mt-4 bg-black text-white py-3 rounded text-center font-bold text-sm hover:bg-gray-800">
+              CHECKOUT
+            </button>
+          </div>
+        </section>
+
+
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <%- include('../partials/user-footer') %>
+
+</body>
+
+</html>
+<script>
+  async function removeFromCart(cartItemId) {
+    // Show SweetAlert confirmation dialog
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Remove From Cart!",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const response = await axios.delete(`/cart/${cartItemId}`);
+        if (response.status === 200) {
+          await Swal.fire({
+            title: "Success!",
+            text: response.data.message || "Item removed from cart",
+            icon: "success",
+            confirmButtonText: "OK",
+          })
+
+
+          // Remove the item from the DOM
+          const cartItemElement = document.querySelector(
+            `[data-cart-item-id="${cartItemId}"]`
+          );
+          if (cartItemElement) {
+            cartItemElement.remove();
+          }
+
+          // Optionally, update the subtotal and total
+          updateCartTotals();
+        } else {
+
+          throw new Error(response.data.message || "Failed to remove Item from cart")
+        }
+      } catch (error) {
+        console.error("Error removing item from cart:", error);
+        await Swal.fire({
+          title: "Error",
+          text: error.message || "Failed to delete address.try again later",
+          icon: "error",
+          confirmButtonText: "OK",
+        });
+      }
+    }
+  }
+
+  function updateCartTotals() {
+    const cartItemElements = document.querySelectorAll(`[data-cart-item-id]`);
+    let subtotal = 0;
+    let totalDiscount = 0;
+
+    cartItemElements.forEach((item) => {
+      const id = item.dataset.cartItemId;
+      const perItemTotalPriceElement = document.querySelector(`[data-cart-item-total-price-id="${id}"]`)
+      console.log(perItemTotalPriceElement.textContent)
+
+      
+        subtotal += parseFloat(perItemTotalPriceElement.textContent);
+     
+    });
+console.log(subtotal)
+    // Update the subtotal and total in the DOM
+    document.getElementById(
+      "totalDiscountPrice"
+    ).textContent = `${subtotal}`;
+
+    document.getElementById(
+      "totalPrice"
+    ).textContent = `${subtotal}`;
+  }
+
+  async function updateQuantity(cartItemId, delta) {
+    try {
+      const cartItemElement = document.querySelector(
+        `[data-cart-item-id="${cartItemId}"]`
+      );
+
+      const quantityElement =
+        cartItemElement.querySelector(`[data-cart-item-quantity-id="${cartItemId}"]`);
+
+      const priceElement =
+        cartItemElement.querySelector(`[data-cart-item-price-id="${cartItemId}"]`);
+      const currentQuantity = parseInt(quantityElement.textContent);
+      const totalPriceElement= 
+             cartItemElement.querySelector(`[data-cart-item-total-price-id="${cartItemId}"]`);
+      const newQuantity = currentQuantity + delta;
+
+      if (newQuantity < 1) {
+        window.alert("Quantity must be at least 1")
+        return;
+      } else if (newQuantity > 5) {
+        window.alert("Maximum quantity of 5 is allowed");
+        return;
+      }
+
+      // Send the updated quantity to the server
+      const response = await axios.put(`/cart/${cartItemId}`, {
+        quantity: newQuantity,
+      });
+
+      if (response.status === 200) {
+        await Swal.fire({
+          title: "Success",
+          text: response.data.message || "Cart updated Successfully",
+          icon: "success",
+          confirmButtonText: "OK"
+        })
+
+        // Update the quantity in the DOM
+        quantityElement.textContent = newQuantity;
+
+        // Calculate the new price and update the DOM
+        const currentPrice =parseFloat(priceElement.textContent);
+        const newTotalPrice = currentPrice * newQuantity;
+        totalPriceElement.textContent = `${newTotalPrice}`;
+
+        // Update the subtotal and total
+        updateCartTotals();
+      } else {
+        throw new Error(response.data.message || "Error updating cart quantity.try again later")
+        console.error("Failed to update cart:", response.data.message);
+      }
+    } catch (error) {
+      await Swal.fire({
+        title: "Error",
+        text: error.message || "Error updating cart quantity.try again later",
+        icon: "error",
+        confirmButtonText: "OK"
+      })
+
+      console.error("Error updating cart:", error);
+    }
+  }
+
+
+
+</script>

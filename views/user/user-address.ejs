@@ -4,7 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CarryMart</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.all.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
 <body class="font-sans bg-gray-50">
 
@@ -21,7 +24,7 @@
      <section class="w-full md:w-4/5 bg-blue-100 text-lg shadow-lg rounded-lg p-6">
         <h2>YOUR ADDRESSES</h2>
         <div class="p-6">
-            <button id="openModal" class="bg-blue-500 text-white py-2 px-4 rounded">Add New Address</button>
+            <button id="openAddAddressModalButton" class="bg-blue-500 text-white py-2 px-4 rounded">Add New Address</button>
           </div>
         <% if (addresses && addresses.length> 0) { %>
             <div class="flex flex-wrap mt-4 mx-4">
@@ -87,16 +90,16 @@
 
 
  <!--Add Address Modal -->
- <div id="modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+ <div id="addAddressmodal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
     <div class="bg-white shadow rounded-md p-6 w-full max-w-lg">
       <!-- Modal Header -->
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-xl font-bold">Add New Address</h2>
-        <button id="closeModal" class="text-gray-500 hover:text-gray-800">&times;</button>
+        <button id="closeAddAddressModalButton" class="text-gray-500 hover:text-gray-800">&times;</button>
       </div>
 
       <!-- Form Content -->
-      <form class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <form id="addAddressForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label for="name" class="block text-sm font-medium">Name</label>
           <input type="text" id="name" class="w-full p-2 border rounded" placeholder="Enter your full name" required minlength="3" maxlength="50">
@@ -135,27 +138,273 @@
     </div>
   </div>
 
+
+  <!--Edit Address Modal -->
+ <div id="editAddressModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+  <div class="bg-white shadow rounded-md p-6 w-full max-w-lg">
+    <!-- Modal Header -->
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-bold">Edit Address</h2>
+      <button id="closeeditAddressModalButton" class="text-gray-500 hover:text-gray-800" onclick="closeEditModal()">&times;</button>
+    </div>
+
+    <!-- Form Content -->
+    <form id="editAddressForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <input type="hidden" id="editAddressId" />
+      <div>
+        <label for="edit-name" class="block text-sm font-medium">Name</label>
+        <input type="text" id="edit-name" class="w-full p-2 border rounded" placeholder="Enter your full name" required minlength="3" maxlength="50">
+        
+      </div>
+      <div>
+        <label for="edit-house" class="block text-sm font-medium">House Name</label>
+        <input type="text" id="edit-house" class="w-full p-2 border rounded" placeholder="Enter house name or number" required minlength="3" maxlength="100">
+      </div>
+      <div>
+        <label for="edit-street" class="block text-sm font-medium">Locality/Street</label>
+        <input type="text" id="edit-street" class="w-full p-2 border rounded" placeholder="Enter street name or locality" required minlength="3" maxlength="100">
+      </div>
+      <div>
+        <label for="edit-city" class="block text-sm font-medium">Town/City</label>
+        <input type="text" id="edit-city" class="w-full p-2 border rounded" placeholder="Enter town or city" required minlength="3" maxlength="50">
+      </div>
+      <div>
+        <label for="edit-state" class="block text-sm font-medium">State</label>
+        <input type="text" id="edit-state" class="w-full p-2 border rounded" placeholder="Enter state" required minlength="3" maxlength="50">
+      </div>
+      <div>
+        <label for="edit-country" class="block text-sm font-medium">Country</label>
+        <input type="text" id="edit-country" class="w-full p-2 border rounded" placeholder="Enter country" required minlength="2" maxlength="50" >
+      </div>
+      <div>
+        <label for="edit-mobile" class="block text-sm font-medium">Mobile Number</label>
+        <input type="text" id="edit-mobile" class="w-full p-2 border rounded" placeholder="Enter 10-digit mobile number" required pattern="[0-9]{10}">       
+        </div>
+      <div>
+        <label for="edit-pincode" class="block text-sm font-medium">Pincode</label>
+        <input type="text" id="edit-pincode" class="w-full p-2 border rounded" placeholder="Enter 6-digit pincode" required pattern="[0-9]{6}" >
+      </div>
+      <button class="w-full md:col-span-2 bg-black text-white py-2 rounded">Save</button>
+    </form>
+  </div>
+</div>
+
+
 </body>
 </html>
 <script>
-    const modal = document.getElementById("modal");
-    const openModalButton = document.getElementById("openModal");
-    const closeModalButton = document.getElementById("closeModal");
+  addEventListener("DOMContentLoaded", () => {
+  const error = <%= JSON.stringify(error) %>;
+  if (error) {
+    Swal.fire({
+              title: "Error",
+              text: error,
+              icon: "error",
+              confirmButtonText: "OK",
+            });
+    window.alert(error);
+  }
+});
+
+
+    const addAddressmodal = document.getElementById("addAddressmodal");
+    const openAddAddressModalButton = document.getElementById("openAddAddressModalButton");
+    const closeAddAddressModalButton = document.getElementById("closeAddAddressModalButton");
 
     // Open modal
-    openModalButton.addEventListener("click", () => {
-      modal.classList.remove("hidden");
+    openAddAddressModalButton.addEventListener("click", () => {
+      addAddressmodal.classList.remove("hidden");
     });
 
     // Close modal
-    closeModalButton.addEventListener("click", () => {
-      modal.classList.add("hidden");
+    closeAddAddressModalButton.addEventListener("click", () => {
+      addAddressmodal.classList.add("hidden");
     });
 
-    // Close modal when clicking outside the modal content
-    window.addEventListener("click", (e) => {
-      if (e.target === modal) {
-        modal.classList.add("hidden");
+
+
+     // Form validation and submission handling For Adding Address
+      document
+        .getElementById("addAddressForm")
+        .addEventListener("submit", async function (e) {
+          e.preventDefault();
+
+          // Prepare form data
+          const formData = {
+            Name: document.getElementById("name").value.trim(),
+            HouseName: document.getElementById("house").value.trim(),
+            LocalityStreet: document
+              .getElementById("street")
+              .value.trim(),
+            TownCity: document.getElementById("city").value.trim(),
+            MobileNumber: document.getElementById("mobile").value.trim(),
+            state: document.getElementById("state").value.trim(),
+            country: document.getElementById("country").value.trim(),
+            pincode: document.getElementById("pincode").value.trim(),
+          };
+          try {
+            const response = await axios.post("/address/add", formData);
+
+            if (response.status === 201) {
+              Swal.fire({
+                title: "Success!",
+                text: "Address added successfully",
+                icon: "success",
+                confirmButtonText: "OK",
+              }).then(async (result) => {
+                // Hide the form
+                document
+                  .getElementById("addAddressmodal")
+                  .classList.add("hidden");
+
+                window.location.reload();
+              });
+            }
+          } catch (error) {
+            console.error("Error adding address:", error);
+            Swal.fire({
+              title: "Error",
+              text: error || "Failed to add address. Please try again later.",
+              icon: "error",
+              confirmButtonText: "OK",
+            });
+          }
+        });
+
+
+     //---------------Edit Address
+
+     async function openEditModal(addressId) {
+      try {
+        const response = await axios.get(`/address/edit/${addressId}`);
+        const data = response.data;
+            // Populate modal fields
+            document.getElementById("editAddressId").value = addressId;
+            document.getElementById("edit-name").value = data.Name;
+            (document.getElementById("edit-house").value = data.HouseName),
+              (document.getElementById("edit-street").value =
+              data.LocalityStreet),
+              (document.getElementById("edit-city").value = data.TownCity),
+              (document.getElementById("edit-mobile").value =
+              data.MobileNumber),
+              (document.getElementById("edit-state").value = data.state),
+              (document.getElementById("edit-country").value = data.country),
+              (document.getElementById("edit-pincode").value = data.pincode),
+              // Show the modal
+              document
+                .getElementById("editAddressModal")
+                .classList.remove("hidden");
+  
+        } catch (error) {
+            console.error("Error adding address:", error);
+            Swal.fire({
+              title: "Error",
+              text: "Failed to bring Edit address form.",
+              icon: "error",
+              confirmButtonText: "OK",
+            });
+          }
+          
       }
-    });
+/////close edit modal////
+      function closeEditModal() {
+        document.getElementById("editAddressModal").classList.add("hidden");
+      }
+////////////edit address form handling///
+      document
+        .getElementById("editAddressForm")
+        .addEventListener("submit",async function (e) {
+          e.preventDefault();
+
+          const addressId = document.getElementById("editAddressId").value;
+          const updatedData = {
+            //Name: document.getElementById('editName').value,
+            Name: document.getElementById("edit-name").value.trim(),
+            HouseName: document.getElementById("edit-house").value.trim(),
+            LocalityStreet: document
+              .getElementById("edit-street")
+              .value.trim(),
+            TownCity: document.getElementById("edit-city").value.trim(),
+            MobileNumber: document
+              .getElementById("edit-mobile")
+              .value.trim(),
+            state: document.getElementById("edit-state").value.trim(),
+            country: document.getElementById("edit-country").value.trim(),
+            pincode: document.getElementById("edit-pincode").value.trim(),
+            // Include other fields here
+          };
+          try {
+            const response = await axios.post(`/address/edit/${addressId}`, updatedData);
+          
+            if (response.status === 200) {
+              Swal.fire({
+                title: "Success!",
+                text: response.message,
+                icon: "success",
+                confirmButtonText: "OK",
+              }).then(async (result) => {
+                // Hide the form
+                closeEditModal();
+
+                window.location.reload();
+              });
+            }
+          } catch (error) {
+            console.error("Error adding address:", error);
+            Swal.fire({
+              title: "Error",
+              text:error || "Failed to edit address. Please try again later.",
+              icon: "error",
+              confirmButtonText: "OK",
+            });
+          }
+        });
+
+//////////DELETION HANDLING///////////////////////////////////////////////////////////////////////////////////////////////////
+        document.addEventListener("DOMContentLoaded", () => {
+        const deleteButtons = document.querySelectorAll(".deleteAddress");
+
+        deleteButtons.forEach((button) => {
+          button.addEventListener("click", (e) => {
+            e.preventDefault();
+            const addressId = button.getAttribute("data-id");
+
+            Swal.fire({
+              title: "Are you sure?",
+              text: "You won't be able to revert this!",
+              icon: "warning",
+              showCancelButton: true,
+              confirmButtonColor: "#3085d6",
+              cancelButtonColor: "#d33",
+              confirmButtonText: "Yes, delete it!",
+            }).then((result) => {
+              if (result.isConfirmed) {
+    axios.delete(`/address/delete/${addressId}`)                
+          .then((response)=>{
+              if (response.status === 200) {
+              Swal.fire({
+                title: "Success!",
+                text: response.data.message,
+                icon: "success",
+                confirmButtonText: "OK",
+              }).then(() => {
+  window.location.reload();
+});
+            }              
+            }).catch((error)=>{
+              console.error("Error adding address:", error);
+            Swal.fire({
+              title: "Error",
+              text: error.error || "Failed to delete address.try again later",
+              icon: "error",
+              confirmButtonText: "OK",
+            });
+            }
+          )
+          } })
+          });
+        });
+      });
+    
+
   </script>
