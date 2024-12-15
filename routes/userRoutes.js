@@ -5,6 +5,8 @@ const Product=require('../models/productModel');
 const userAuth=require('../middlewares/userAuth');
 const userProfileController = require("../controllers/user/userProfileAddressController");
 const cartController = require("../controllers/user/cartController");
+const checkoutController = require("../controllers/user/checkoutController");
+const orderController = require("../controllers/user/orderController");
 
 
 
@@ -34,8 +36,16 @@ router.get('/verify-otp', (req, res) => {
 router.post('/resend-otp',userAuth.isLoggedIn,userController.resendOtp);
 router.post('/verify-otp',userAuth.isLoggedIn,userController.verifyOtp);
 
+//----------------------Forgot-Password--------------------------------------------
+router.get('/forgot-password-email', userController.getForgotPasswordEmail);
+router.post('/forgot-password-email', userController.postForgotPasswordEmail);
+router.get('/forgot-password-otp',userController.getForgotPasswordOtp);
+router.post('/forgot-password-otp',userController.postForgotPasswordOtp);
+router.get('/change-password',userController.getChangePassword);
+router.post('/change-password',userController.postChangePassword);
 
-router.get('/shopAll',userAuth.checkSession,userController.shopAll)
+router.get('/shopAll',userAuth.checkSession,userController.shopAll);
+router.post('/filter',userAuth.checkSession,userController.filterProducts)
 
 router.get('/product/:id',userAuth.checkSession,userController.getProduct);
 
@@ -65,9 +75,21 @@ router.delete("/address/delete/:id",userAuth.checkSession,userProfileController.
 router.get("/cart", userAuth.checkSession, cartController.getCart);
 router.post("/cart/add",userAuth.checkSession,cartController.addToCart);
 router.delete("/cart/:id",userAuth.checkSession,cartController.deleteFromCart);
-router.put("/cart/:id",userAuth.checkSession,cartController.updateCartQuantity);
+router.put("/cart/update",userAuth.checkSession,cartController.updateCartQuantity);
 
 
 
+//--------------------Checkout------------------------------------------
+router.get('/checkout',userAuth.checkSession,checkoutController.getCheckout)
+
+
+//--------------------Orders----------------------------------------------
+router.post('/checkout', userAuth.checkSession, checkoutController.placeOrder);
+router.get('/order/confirmation/:orderId', userAuth.checkSession, orderController.getOrderConfirmation);
+
+router.get('/orders',  userAuth.checkSession, orderController.getUserOrders);
+router.get('/order/details/:orderId', userAuth.checkSession, orderController.getOrderDetails);
+router.post('/order/cancel/:orderId', userAuth.checkSession, orderController.cancelOrder); 
+  
 
 module.exports=router;

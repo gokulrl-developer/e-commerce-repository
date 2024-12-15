@@ -7,8 +7,8 @@
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <title>Hello, world!</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <title>Shop All</title>
   </head>
   <body>
    <!-- Header Section -->
@@ -30,23 +30,22 @@
           <div class="filter-section">
             <h4 class="text-lg font-semibold">Categories</h4>
             <ul class="space-y-2">
-              <li><input type="checkbox" id="backpacks"> <label for="backpacks">Backpacks</label></li>
-              <li><input type="checkbox" id="handbags"> <label for="handbags">Hand Bags</label></li>
-              <li><input type="checkbox" id="slingbags"> <label for="slingbags">Sling Bags</label></li>
-              <li><input type="checkbox" id="trolleybags"> <label for="trolleybags">Trolley Bags</label></li>
-              <li><input type="checkbox" id="wallets"> <label for="wallets">Wallets</label></li>
+              <%if(categories){categories.forEach((category)=>{%>
+              <li><input type="checkbox" oninput="applyFilters()" name="category" value="<%=category._id%>" id="<%=category.categoryName%>"> <label for="<%=category.categoryName%>"><%=category.categoryName%></label></li>
+              <%})}%>
             </ul>
             <h4 class="text-lg font-semibold mt-4">Filter</h4>
             <p class="text-sm">Gender</p>
             <ul class="space-y-2">
-              <li><input type="radio" name="gender" id="men"> <label for="men">Men</label></li>
-              <li><input type="radio" name="gender" id="women"> <label for="women">Women</label></li>
-              <li><input type="radio" name="gender" id="unisex"> <label for="unisex">Unisex</label></li>
+              <li><input type="radio" value="Men" oninput="applyFilters()" name="gender" id="men"> <label for="men">Men</label></li>
+              <li><input type="radio" value="Women" oninput="applyFilters()" name="gender" id="women"> <label for="women">Women</label></li>
+              <li><input type="radio" value="Unisex" oninput="applyFilters()" name="gender" id="unisex"> <label for="unisex">Unisex</label></li>
             </ul>
             <p class="text-sm mt-4">Price</p>
             <div class="flex space-x-2">
-              <input type="number" class="form-input rounded px-3 py-1 w-1/2" placeholder="Min">
-              <input type="number" class="form-input rounded px-3 py-1 w-1/2" placeholder="Max">
+              <input type="number" id="min-price" name="min-price" class="form-input rounded px-3 py-1 w-1/2" placeholder="Min">
+              <input type="number" id="max-price" name="max-price" class="form-input rounded px-3 py-1 w-1/2" placeholder="Max"><br>
+              <button onclick="applyFilters()">Apply</button> 
             </div>
           </div>
         </aside>
@@ -55,17 +54,23 @@
         <main class="w-full lg:w-4/5">
           <div class="flex justify-between items-center mb-4">
             <h2 class="text-xl font-semibold">Our Collection</h2>
-            <select class="bg-white text-black border-2 border-gray-300 rounded px-4 py-2">
-              <option selected>Sort</option>
-              <option value="price-low-high">Price: Low to High</option>
-              <option value="price-high-low">Price: High to Low</option>
-              <option value="popular">Most Popular</option>
+            <select name="sort" id="sort" onchange="applyFilters()" class="bg-white text-black border-2 border-gray-300 rounded px-4 py-2">
+              <option  value="" disabled selected>Sort by</option>
+              <option value="rating">Average Ratings</option>
+              <option  disabled value="popularity">Popularity</option>
+              <option disabled value="featured">Featured Products</option>
+              <option value="latest">Latest Arrivals</option>
+              <option value="priceAsc">Price: Low to High</option>
+              <option value="priceDesc">Price: High to Low</option>
+              <option value="nameAsc">Aa-Zz</option>
+              <option value="nameDesc">Zz-Aa</option>
             </select>
           </div>
           <div class="mb-4">
-            <input type="text" class="form-input rounded px-4 py-2 w-full" placeholder="Search an item">
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <input type="text" id="search" name="search" class="form-input rounded px-4 py-2 w-[90%]" placeholder="Search an item">
+            <button onclick="applyFilters()">Search</button>
+         </div>
+          <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <!-- Product Card -->
               <% products.forEach(function(product) { %>
                 <div class="card p-4 border rounded shadow-md">
@@ -91,7 +96,67 @@
       </div>
     </div>
 
+     
     <!-- Footer Section -->
      <%- include('../partials/user-footer') %>
   </body>
 </html>
+<script>
+
+async function applyFilters(){
+  try{
+  const categories= Array.from(document.querySelectorAll('input[name="category"]:checked'))
+                     .map((checkbox)=>checkbox.value);
+  const filters={};
+  const gender = document.querySelector('input[name="gender"]:checked')?.value;
+  const maxPrice=document.getElementById('max-price').value;
+  const minPrice=document.getElementById('min-price').value;
+  const search=document.getElementById('search').value.trim();
+  if(gender){filters.gender=gender};
+   if(maxPrice){filters.maxPrice=maxPrice};
+   if(minPrice){filters.minPrice=minPrice};
+   if(search){filters.search=search}; 
+   const sort=document.getElementById('sort').value;
+  const response=await fetch('/filter',{
+    method:"POST",
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      categories:categories,
+      filters:filters,
+      sort
+    })
+  });
+  if(response.ok){
+    const data=await response.json();
+    console.log(data.products)
+    if(!data.products || data.products.length===0){
+      document.getElementById('product-grid').innerHTML=`
+      <div>No Products Matches Your Query</div>`
+    }else{document.getElementById("product-grid").innerHTML
+    =data.products.map((product)=>{
+    return `<div class="card p-4 border rounded shadow-md">
+                  <div class="w-full ">
+                    <div class="w-full h-100">
+                    <img src="${product.imageUrl[0]}" class="w-full h-full object-cover rounded" alt="Product Image">
+                  </div>
+                </div>
+                  <div class="text-center mt-3">
+                    <h6 class="text-lg font-semibold">${product.productName}</h6>
+                    <p class="text-gray-600">${product.price}</p>
+                    <a href="/product/${product._id }" class="btn bg-blue-500 text-white rounded px-4 py-2 mt-2 inline-block">View Product</a>
+                  </div>
+                </div>`;
+              }).join('');
+
+     
+    }
+  }
+
+  }catch(error){
+    console.error("error applying filters",error);
+   Swal.fire("Error",error.message || "Error In Filtering Products" ,"error"); 
+  }
+  }
+
+
+</script>

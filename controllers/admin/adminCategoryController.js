@@ -8,14 +8,15 @@ exports.getCategories = async (req, res) => {
       Category.find().lean().sort({ createdAt: -1 }).skip(skip).limit(limit),
       Category.countDocuments(),
     ]);
-    categories.forEach((category,i)=>{category.index=i;
-        const date = category.createdAt;
-const formattedDate = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
-       category.createdDate=formattedDate;
+    categories.forEach((category, i) => {
+      category.index = i;
+      const date = category.createdAt;
+      const formattedDate = `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+      category.createdDate = formattedDate;
     })
     const totalPages = Math.ceil(totalCategories / limit);
-    
-    res.render('admin/view-categories', { categories,currentPage,totalPages });
+
+    res.render('admin/view-categories', { categories, currentPage, totalPages });
   } catch (error) {
     console.error('Error fetching categories:', error);
     res.status(500).send('Internal Server Error');
@@ -59,9 +60,9 @@ exports.editCategory = async (req, res) => {
       return res.status(404).json({ success: false, message: "Category not found" });
     }
 
-    const categoryExists = await Category.findOne({ 
+    const categoryExists = await Category.findOne({
       _id: { $ne: id },
-      name: { $regex: new RegExp(`^${categoryName}$`, 'i') }
+      categoryName: { $regex: new RegExp(`^${categoryName}$`, 'i') }
     });
     if (categoryExists) {
       return res.status(400).json({ success: false, message: "Category name already exists" });

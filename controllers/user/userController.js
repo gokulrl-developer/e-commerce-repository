@@ -1,5 +1,6 @@
 const User = require('../../models/userModel');
 const Product = require('../../models/productModel');
+const Category = require('../../models/categoryModel');
 const { generateOtp, sendOtpEmail } = require('../../utils/sendOtpUtil');
 const { saveOtp, Otp } = require('../../models/otpModel');
 const bcrypt = require("bcryptjs");
@@ -7,7 +8,6 @@ const mongoose = require("mongoose");
 
 async function getHome(req, res) {
   try {
-    console.log("fdsakjfkjl")
     const newProducts = await Product.find({}).limit(8).lean();
     const topSoldProducts = await Product.find({}).limit(4).lean();
 
@@ -30,19 +30,18 @@ async function getLogin(req, res) {
 
 async function postLogin(req, res) {
   try {
-    console.log("dfsa")
     const { email, password } = req.body;
     const matchedUser = await User.findOne({ email }).lean();
     if (!matchedUser) {
+      return res.render('user/user-error',{statusCode:401,message:"invalidCredentials"}) }
 
-      return res.status(401).json({ Message: "Invalid credentials" });
-    }
+    console.log(matchedUser);
+    if(matchedUser.status==='Blocked'){
+     return res.render('user/user-error',{statusCode:401,message:"User is blocked"}) }
     const isMatch = await bcrypt.compare(password, matchedUser.password);
     if (!isMatch) {
-
-      return res.status(401).json({ Message: "Invalid credentials" });
+      return res.render('user/user-error',{statusCode:401,message:"Invalid Credentials"}) 
     } else {
-      console.log("dsfkdjl")
 
       req.session.user = matchedUser;
       res.status(200).json({ redirectUrl: "/" });
@@ -50,7 +49,7 @@ async function postLogin(req, res) {
     }
 
   } catch (error) {
-    res.status(500).json({ Message: "Error on Login" });
+    res.status(500).json({ message: error.message || "Error on Login" });
     console.error("Error on Login : ", err)
   }
 }
@@ -86,11 +85,60 @@ async function signUpPost(req, res) {
 
 async function shopAll(req, res) {
   const products = await Product.find({}).lean();
+  const categories = await Category.find({}).lean();
   products.forEach(product => {
     product.firstImageUrl = product.imageUrl[0];
   });
-  res.render('user/all-products', { products })
+  res.render('user/all-products', { products, categories })
 };
+
+
+async function filterProducts(req, res) {
+  try {
+    const { categories, filters, sort } = req.body;
+    console.log(req.body);
+    if (categories.length === 0 && filters.length === 0 && !sort) { return res.redirect('/shopAll') }
+    const filter = [];
+    if (categories.length !== 0) { filter.push({ category: { $in: [...categories] } }) };
+    if (filters.gender) { filter.push({ gender: filters.gender }) };
+    if (filters.minPrice) { filter.push({ price: { $gte: filters.minPrice } }) };
+    if (filters.maxPrice) { filter.push({ price: { $lte: filters.maxPrice } }) };
+    if (filters.search) {
+      const regex = new RegExp("^"+filters.search, "i");
+      filter.push({ productName: { $regex: regex } })
+    };
+    let sortObj = {};
+    if (sort === 'rating') {
+      sortObj.rating = 1;
+    } else if (sort === 'priceDesc') {
+      sortObj.price = -1;
+    } else if (sort === 'priceAsc') {
+      sortObj.price = 1;
+    } else if (sort === 'latest') {
+      sortObj.createdAt = -1;
+    } else if (sort === 'priceDesc') {
+      sortObj.price = -1;
+    } else if (sort === 'priceDesc') {
+      sortObj.price = -1;
+    } else if (sort === 'priceDesc') {
+      sortObj.price = -1;
+    } else if (sort === 'nameAsc') {
+      sortObj.productName = 1;
+    } else if (sort === 'nameDesc') {
+      sortObj.productName = -1;
+    }
+
+    const products = await Product.find({ $and: filter }).sort(sortObj);
+    /* if (products.length === 0) {
+      return res.status(404).json({ message: 'No products found' });
+    } */
+
+    res.status(200).json({ products });
+  } catch (error) {
+    console.error('Error filtering products:', error);
+    res.status(500).json({ message: 'Error filtering products' });
+  }
+}
 
 async function verifyOtp(req, res) {
   try {
@@ -113,30 +161,128 @@ async function verifyOtp(req, res) {
   }
 }
 
+// Render Forgot Password Page
+async function getForgotPasswordEmail(req, res) {
+  res.render('user/user-forgot-password');
+};
+
+// Handle Forgot Password Request (Generate OTP)
+
+async function postForgotPasswordEmail(req, res) {
+  const { email } = req.body;
+
+  try {
+    const matchedUser = await User.findOne({ email });
+    if (!matchedUser) {
+      return res.status(401).json({ Message: "Email not registered" })
+    } else {
+      const otp = generateOtp();
+      await sendOtpEmail(email, otp)
+      await saveOtp(email, otp);
+      req.session.tempEmail = email;
+      return res.status(200).json({
+        redirectUrl: "/forgot-password-otp",
+      });
+    }
+  } catch (err) {
+    res.status(500).json({ Message: "Error on verifying email" });
+    console.error("Error on verifying Email : ", err)
+  }
+}
+async function getForgotPasswordOtp(req, res) {
+  try {
+    res.render('user/user-forgot-password-otp');
+
+  } catch (error) {
+    res.status(500).json({ message: "Error on showing the otp recieving page" })
+  }
+}
+async function postForgotPasswordOtp(req, res) {
+  try {
+    const { otp } = req.body;
+    const email = req.session.tempEmail;
+    const otpRecord = await Otp.findOne({ email });
+    if (!otpRecord) {
+      return res.status(400).json({ message: "Invalid OTP", otp });
+    }
+    req.session.isForgotPasswordVerified = true;
+    await Otp.deleteOne({ email });
+    return res.status(200).json({
+      redirectUrl: "/change-password",
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+
+  }
+}
+
+async function resendForgotPasswordOtp(req, res) {
+  try {
+    const email = req.session.tempEmail;
+    const otp = generateOtp();
+    await sendOtpEmail(email, otp)
+    await saveOtp(email, otp);
+    return res.status(200).json({
+      Message: "OTP resend successfully"
+    });
+  } catch (error) {
+    res.status(500).json({ Message: "Server error on resending OTP" });
+  }
+};
+
+async function getChangePassword(req, res) {
+  res.render('user/user-change-password');
+};
+async function postChangePassword(req, res) {
+  try {
+    let password = req.body.password;
+    const email = req.session.tempEmail;
+    const isVerified = req.session.isForgotPasswordVerified;
+    if (!isVerified || isVerified !== true) {
+      return res.status(401).json({ message: "Please verify your email" })
+    }
+    const salt = await bcrypt.genSalt(10);
+    password = await bcrypt.hash(password, salt);
+    const user = await User.findOneAndUpdate({ email }, { password }, { new: true });
+    if (!user) {
+      return res.status(401).json({ message: "The user is not found" })
+    }
+    req.session.user = user;
+    req.session.tempEmail = null;
+    req.session.isForgotPasswordVerified = null;
+    return res.status(200).json({
+      redirectUrl: "/home",
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error on changing password" });
+
+  }
+}
+
 
 async function getProduct(req, res) {
   try {
     const productId = req.params.id;
 
     if (!mongoose.Types.ObjectId.isValid(productId)) {
-      return res.status(400).json({ message: "Invalid Product ID" });
+      return res.render('user/user-error',{statusCode:400,message:"invalid Product Id"})
     }
 
     const product = await Product.findOne({ _id: productId });
     const products = await Product.find({}).lean();
 
     if (!product) {
-      return res.status(404).json({ message: "Product not found" });
+      return res.render('user/user-error',{statusCode:404,message:"No product found"})
     }
     res.render("user/view-product", { product, products });
   } catch (err) {
     console.error("Error fetching product:", err.message);
-    res.status(500).json({ message: "Server Error" });
+    return res.render('user/user-error',{statusCode:500,message:"Server error while retrieving the product"});
   }
 };
 async function resendOtp(req, res) {
   try {
-    const user = req.session.userData;  
+    const user = req.session.userData;
     const otp = generateOtp();
     await sendOtpEmail(user.email, otp)
     await saveOtp(user.email, otp);
@@ -173,4 +319,12 @@ module.exports = {
   shopAll,
   getProduct,
   logout,
+  filterProducts,
+  getForgotPasswordEmail,
+  postForgotPasswordEmail,
+  getForgotPasswordOtp,
+  postForgotPasswordOtp,
+  resendForgotPasswordOtp,
+  getChangePassword,
+  postChangePassword
 }

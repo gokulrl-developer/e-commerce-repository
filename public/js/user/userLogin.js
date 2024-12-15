@@ -54,8 +54,7 @@ function validateEmail() {
   
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
-
-  
+console.log(password);
     try {
       const response = await fetch("/login", {
         method: "POST",
@@ -64,20 +63,14 @@ function validateEmail() {
         },
         body: JSON.stringify({email, password}),
       });
-  
       const data = await response.json();
-      console.log(data);
-      if (response.status == 200) {
-        console.log(data.Message);
+      if (response.ok) {
           location.href = data.redirectUrl;
-         console.log("dskaj")
       } else {
-        window.alert(data.Message);
-        console.log("dskaj")
-
+        window.alert(data.message);
       }
     } catch (error) {
-      console.log('error')
+      console.log('error');
     }
   }
   

@@ -7,7 +7,7 @@ const adminCategoryController = require('../controllers/admin/adminCategoryContr
 const adminProductController = require('../controllers/admin/adminProductController');
 const adminUserController = require('../controllers/admin/adminUserController');
 const adminAuth = require('../middlewares/adminAuth');
-
+const adminOrderController = require('../controllers/admin/adminOrderController');
 
 
 router.get('/login', adminAuth.isLoggedIn, (req, res) => {
@@ -21,14 +21,17 @@ router.get('/dashboard', adminAuth.checkSession, (req, res) => {
 router.post("/logout", adminController.logout);
 
 
-router.get('/products', adminAuth.checkSession, adminProductController.filterProducts, adminProductController.viewProducts)
+router.get('/products', adminAuth.checkSession,paginate,adminProductController.filterProducts, adminProductController.viewProducts)
 router.get('/products/add', adminAuth.checkSession, adminProductController.getAddProduct);
 router.get('/products/edit/:id', adminAuth.checkSession, adminProductController.getEditProduct);
 router.put('/products/edit/:id', adminAuth.checkSession, uploadMiddleware, adminProductController.putEditProduct);
-router.post('/products/add', adminAuth.checkSession, uploadMiddleware, adminProductController.postAddProduct)
+router.post('/products/add', adminAuth.checkSession, uploadMiddleware, adminProductController.postAddProduct);
+router.put('/products/status/:action/:id',adminAuth.checkSession,adminProductController.updateProductStatus);
 
 
 router.get('/users', adminAuth.checkSession, paginate, adminUserController.getUsers)
+router.put('/users/block/:id', adminAuth.checkSession, adminUserController.blockUser)
+router.put('/users/unblock/:id', adminAuth.checkSession, adminUserController.unBlockUser)
 
 
 
@@ -39,4 +42,9 @@ router.post("/categories/add", adminAuth.checkSession, adminCategoryController.a
 router.put("/categories/edit/:id", adminAuth.checkSession, adminCategoryController.editCategory); // Edit category route
 router.delete('/categories/delete/:id', adminAuth.checkSession, adminCategoryController.softDeleteCategory);
 
+
+//----------------------------------Orders------------------------------------------------------------
+router.get("/orders",adminAuth.checkSession,paginate,adminOrderController.getOrders);
+router.get("/order/details/:id",adminAuth.checkSession,adminOrderController.getDetails);
+router.patch("/order/edit/:id",adminAuth.checkSession,adminOrderController.updateOrderStatus)
 module.exports = router;

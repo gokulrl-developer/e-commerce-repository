@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orders</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body class="bg-gray-100">
+
+  <!-- Header Section -->
+  <%- include('../partials/user-header') %>
+
+    <!-- Main Content -->
+    <main class="container mx-auto mb-8 mt-8 gap-3 px-4 flex flex-col md:flex-row">
+
+      <!-- Sidebar -->
+      <%- include('../partials/user-profile-sidebar') %>
+
+        <!-- Orders Section -->
+        <div class="w-full md:w-4/5 bg-white shadow-md rounded-md p-4">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-semibold">My Orders</h2>
+            <!--  <select class="border border-gray-300 rounded px-3 py-1">
+            <option>Last 6 months</option>
+            <option>Last Year</option>
+          </select> -->
+          </div>
+
+          <!-- Orders Table -->
+          <div class="overflow-x-auto">
+            <table class="table-auto w-full border border-gray-300">
+              <thead class="bg-gray-100">
+                <tr>
+                  <% if (orders.length===0) { %>
+                    <p class="text-gray-400">You haven't placed any orders yet.</p>
+                    <% } else {orders.forEach((order)=>{%>
+                      <th class="px-4 py-2 text-left border">Order Id& Date</th>
+                      <th class="px-4 py-2 text-left border">Order Details</th>
+                      <th class="px-4 py-2 text-left border">Order Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="px-4 py-2 border">
+                    Id : #<%=order._id.toString().slice(-6)%><br>
+                      Date : <%= order.formattedDate %>
+                  </td>
+                  <td class="px-4 py-2 border">
+                    Total items : <%=order.orderItems.length%><br>
+                      Total price : <%=order.payment.totalFinalPrice%><br>
+                        Total Discount : <%=order.payment.subTotalPrice-order.payment.totalFinalPrice%><br>
+                          Order status : <%=order.orderStatus%><br>
+                            Payment method : <%=order.payment.paymentMethod%><br>
+                              Payment Status : <%=order.payment.paymentStatus%><br>
+                  </td>
+                  <td class="px-4 py-2 border">
+                    <button onclick="viewDetails('<%= order._id %>')"
+                      class="bg-blue-500 text-white px-3 py-2 m-2 rounded hover:bg-blue-600">
+                      View Details
+                    </button><br>
+                    <% if (order.orderStatus==='Pending' || order.orderStatus==='Processing' ) { %>
+                      <button class="bg-red-500 text-white px-3 py-2 m-2 rounded hover:bg-red-600"
+                        onclick="cancelOrder('<%= order._id %>')">
+                        Cancel Order
+                      </button>
+                      <% } %>
+
+                  </td>
+                </tr>
+                <%})}%>
+
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <%- include('../partials/user-footer') %>
+
+      <!-- View Details Modal -->
+      <div id="detailsModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center hidden">
+        <div class="bg-blue-200 text-black rounded-lg w-4/5 max-w-3xl p-6 max-h-[90vh] overflow-y-auto">
+          <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-4">
+            <h2 class="text-xl font-bold text-gold">Order Details</h2>
+            <button onclick="closeModal()" class="text-gray-400 hover:text-white">✕</button>
+          </div>
+
+          <!-- Order Information -->
+          <div class="mb-6">
+            <h3 class="font-bold text-lg mb-2 text-gold">Order Information</h3>
+            <p><strong>Order ID:</strong> <span id="orderId"></span></p>
+            <p><strong>Order Date:</strong> <span id="orderDate"></span></p>
+            <p><strong>Order Status:</strong> <span id="orderStatus"></span></p>
+          </div>
+
+          <!-- Customer Details -->
+          <div class="mb-6">
+            <h3 class="font-bold text-lg mb-2 text-gold">Customer Details</h3>
+            <p><strong>Name:</strong> <span id="customerName"></span></p>
+            <p><strong>Email:</strong> <span id="customerEmail"></span></p>
+          </div>
+
+          <!-- Shipping Address -->
+          <div class="mb-6">
+            <h3 class="font-bold text-lg mb-2 text-gold">Shipping Address</h3>
+            <p id="shippingAddress"></p>
+          </div>
+
+          <!-- Product Details -->
+          <div class="mb-6">
+            <h3 class="font-bold text-lg mb-2 text-black">Products</h3>
+            <div id="productList" class="space-y-4"></div>
+          </div>
+
+          <!-- Payment Details -->
+          <div class="mb-6">
+            <h3 class="font-bold text-lg mb-2 text-gold">Payment Details</h3>
+            <p><strong>Payment Method:</strong> <span id="paymentMethod"></span></p>
+            <p><strong>Payment Status:</strong> <span id="paymentStatus"></span></p>
+            <p><strong>Subtotal:</strong> ₹<span id="subtotal"></span></p>
+            <p><strong>Discount:</strong> ₹<span id="discount"></span></p>
+            <p><strong>Total:</strong> ₹<span id="total"></span></p>
+          </div>
+
+          <!-- Cancel Order Button -->
+          <div id="cancelOrderContainer" class="mt-6"></div>
+        </div>
+      </div>
+
+</body>
+
+</html>
+<script>
+  async function viewDetails(orderId){
+    try{
+      const response = await fetch(`/order/details/${orderId}`);
+      const data = await response.json();
+      if (response.ok){
+        // Populate order information
+        document.getElementById('orderId').textContent = `#${data.order._id.toString().slice(-6)}`;
+        document.getElementById('orderDate').textContent = data.formattedDate;
+        document.getElementById('orderStatus').textContent = data.order.orderStatus;
+
+        // Populate customer details
+        document.getElementById('customerName').textContent = data.order.user.customerName;
+        document.getElementById('customerEmail').textContent = data.order.user.customerEmail;
+
+        // Populate shipping address
+        const address = data.order.user.shippingAddress;
+        document.getElementById('shippingAddress').textContent =
+          `${address.Name}, ${address.HouseName}, ${address.LocalityStreet}, ${address.TownCity}, ${address.state}, ${address.country}, ${address.pincode}, ${address.MobileNumber}`;
+
+        // Populate product details
+        const productList = document.getElementById('productList');
+        productList.innerHTML = ''; // Clear previous data
+        data.order.orderItems.forEach((item) =>{
+          const productElement = document.createElement('div');
+          productElement.classList.add('flex', 'gap-4', 'border-b', 'border-gray-700', 'pb-4', 'last:border-b-0');
+
+
+          productElement.innerHTML = `
+                            <img src="${item.product.imageUrl[0]}" alt="${item.product.productName}" class="w-20 h-20 object-contain">
+                            <div>
+                                <h4 class="font-bold text-black">${item.product.productName}</h4>
+                                <p >Price: ₹${Number(item.price).toFixed(2)}</p>
+                                <p >Quantity: ${item.quantity}</p>
+                                <p >Subtotal: ₹${Number(item.price*item.quantity).toFixed(2)}</p>
+                                <p >Final price: ₹${(item.price*item.quantity-
+                                  item.quantity*item.price*item.discount/100
+                                ).toFixed(2)}</p>
+
+                            </div>
+                        `;
+          productList.appendChild(productElement);
+                          });
+        // Populate payment details
+        document.getElementById('paymentMethod').textContent = data.order.payment.paymentMethod;
+        document.getElementById('paymentStatus').textContent = data.order.payment.paymentStatus;
+        document.getElementById('subtotal').textContent =Number(data.order.payment.subTotalPrice).toFixed(2);
+        document.getElementById('discount').textContent = (Number(data.order.payment.subTotalPrice) - 
+                                                                         Number(data.order.payment.totalFinalPrice)).toFixed(2);
+        document.getElementById('total').textContent =Number(data.order.payment.totalFinalPrice).toFixed(2);
+      
+        // Add cancel button if order is cancellable
+        const cancelOrderContainer = document.getElementById('cancelOrderContainer');
+        if (data.order.orderStatus === 'Pending' || data.order.orderStatus === 'Processing') {
+          cancelOrderContainer.innerHTML = `
+                            <button 
+                                onclick="cancelOrder('${data.order._id}')" 
+                                class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 w-full">
+                                Cancel Order
+                            </button>
+                        `;
+        } else {
+          cancelOrderContainer.innerHTML = '';
+        }
+
+        // Show modal
+        document.getElementById('detailsModal').classList.remove('hidden');
+      }else {
+        Swal.fire('Error', data.message || 'Failed to fetch order details', 'error');
+      }
+    }catch (error) {
+      console.error('Error fetching order details:', error);
+      Swal.fire('Error', 'An error occurred while fetching order details', 'error');
+    }
+    }
+  
+  function closeModal() {
+    document.getElementById('detailsModal').classList.add('hidden');
+  }
+
+  async function cancelOrder(orderId) {
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, cancel it!'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const response = await fetch(`/order/cancel/${orderId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          await Swal.fire('Cancelled!', data.message, 'success');
+          location.reload();
+        } else {
+          Swal.fire('Error!', data.message || 'Failed to cancel order', 'error');
+        }
+      } catch (error) {
+        console.error('Error cancelling order:', error);
+        Swal.fire('Error!', 'An error occurred while cancelling the order', 'error');
+      }
+    }
+  }
+</script>

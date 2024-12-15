@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Carry Mart</title>
+  <title>Cart</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.all.min.js"></script>
@@ -34,7 +34,7 @@
               </thead>
               <tbody>
                 <!-- Product Rows -->
-                <%cartItems.forEach((item)=>{%>
+                <%if(cartItems && cartItems.length>0){cartItems.forEach((item)=>{%>
 
                   <tr class="border-b border-gray-200" data-cart-item-id="<%= item._id %>">
                     <%const product=item.product;%>
@@ -62,11 +62,12 @@
                             onclick="updateQuantity('<%= item._id %>', 1)">+</button>
                         </div>
                       </td>
-                      <td class="p-4 text-center text-gray-800 font-semibold" data-cart-item-total-price-id="<%=item._id%>">
+                      <td class="p-4 text-center text-gray-800 font-semibold"
+                        data-cart-item-total-price-id="<%=item._id%>">
                         <%=item.totalPrice%>
                       </td>
                   </tr>
-                  <%})%>
+                  <%})}%>
 
               </tbody>
             </table>
@@ -110,7 +111,8 @@
               </div>
             </div>
             <button
-              class="w-full mt-4 bg-black text-white py-3 rounded text-center font-bold text-sm hover:bg-gray-800">
+              class="w-full mt-4 bg-black text-white py-3 rounded text-center font-bold text-sm hover:bg-gray-800"
+              onclick="proceedToCheckout()">
               CHECKOUT
             </button>
           </div>
@@ -186,11 +188,10 @@
       const perItemTotalPriceElement = document.querySelector(`[data-cart-item-total-price-id="${id}"]`)
       console.log(perItemTotalPriceElement.textContent)
 
-      
-        subtotal += parseFloat(perItemTotalPriceElement.textContent);
-     
+
+      subtotal += parseFloat(perItemTotalPriceElement.textContent);
+
     });
-console.log(subtotal)
     // Update the subtotal and total in the DOM
     document.getElementById(
       "totalDiscountPrice"
@@ -213,8 +214,8 @@ console.log(subtotal)
       const priceElement =
         cartItemElement.querySelector(`[data-cart-item-price-id="${cartItemId}"]`);
       const currentQuantity = parseInt(quantityElement.textContent);
-      const totalPriceElement= 
-             cartItemElement.querySelector(`[data-cart-item-total-price-id="${cartItemId}"]`);
+      const totalPriceElement =
+        cartItemElement.querySelector(`[data-cart-item-total-price-id="${cartItemId}"]`);
       const newQuantity = currentQuantity + delta;
 
       if (newQuantity < 1) {
@@ -226,8 +227,9 @@ console.log(subtotal)
       }
 
       // Send the updated quantity to the server
-      const response = await axios.put(`/cart/${cartItemId}`, {
+      const response = await axios.put('/cart/update', {
         quantity: newQuantity,
+        productId: cartItemId,
       });
 
       if (response.status === 200) {
@@ -242,7 +244,7 @@ console.log(subtotal)
         quantityElement.textContent = newQuantity;
 
         // Calculate the new price and update the DOM
-        const currentPrice =parseFloat(priceElement.textContent);
+        const currentPrice = parseFloat(priceElement.textContent);
         const newTotalPrice = currentPrice * newQuantity;
         totalPriceElement.textContent = `${newTotalPrice}`;
 
@@ -264,6 +266,8 @@ console.log(subtotal)
     }
   }
 
-
+  function proceedToCheckout() {
+    window.location.href = '/checkout';
+  }
 
 </script>

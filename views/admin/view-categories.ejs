@@ -22,7 +22,7 @@
         <main class="flex-grow p-6">
           <div class="flex justify-between items-center mb-4">
             <h4 class="text-xl font-semibold">Categories</h4>
-            
+
           </div>
 
           <div class="bg-gray-700 text-white rounded p-4">
@@ -57,6 +57,7 @@
                         Edit
                       </button>
                       <button class="bg-red-500 text-white py-1 px-2 rounded hover:bg-red-600"
+                      <%if(category.status==='Inactive'){%>hidden<%}%>
                         onclick="deleteCategory('<%= category._id %>')">
                         Remove
                       </button>
@@ -75,6 +76,25 @@
         </main>
     </div>
 
+    <!-- Pagination -->
+    <div class="mt-4 flex justify-center">
+      <nav class="inline-flex">
+        <% if (currentPage> 1) { %>
+          <a href="/admin/categories?page=<%= currentPage - 1 %>"
+            class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-orange-500">Previous</a>
+          <% } %>
+            <% for (let i=1; i <=totalPages; i++) { %>
+              <a href="/admin/categories?page=<%= i %>"
+                class="<%= currentPage === i ? 'bg-orange-500' : 'bg-[#222]' %> text-white px-3 py-1 mx-1 rounded-md hover:bg-orange-500">
+                <%= i %>
+              </a>
+              <% } %>
+                <% if (currentPage < totalPages) { %>
+                  <a href="/admin/categories?page=<%= currentPage + 1 %>"
+                    class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-orange-500">Next</a>
+                  <% } %>
+      </nav>
+    </div>
     <!-- Modals -->
     <!-- Add Category Modal -->
     <div id="addCategoryModal" class="hidden fixed z-10 inset-0 flex items-center justify-center bg-black/50 ">
@@ -119,7 +139,7 @@
           &times;
         </button>
         <h2 class="text-lg font-bold mb-4">Edit Category</h2>
-        <form id="editCategoryForm" class="text-black" >
+        <form id="editCategoryForm" class="text-black">
           <div class="mb-4">
             <label for="categoryName" class="block text-sm font-medium">Category Name</label>
             <input type="text" id="editCategoryName" name="categoryName" placeholder="Edit category name"
@@ -228,7 +248,7 @@
         Swal.fire({
           icon: 'error',
           title: 'Error',
-          text: result.message,
+          text: result.message || 'Error adding category',
         });
       }
     } catch (error) {
@@ -236,7 +256,7 @@
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: 'An unexpected error occurred. Please try again.',
+        text: result.message || 'An unexpected error occurred. Please try again.',
       });
     }
 
@@ -249,7 +269,7 @@
   /* Close Edit Category Modal */
   function closeEditCategoryModal() {
     document.getElementById("editCategoryModal").classList.add("hidden");
-    
+
   }
 
   /* Setting Edit category modal */
@@ -295,7 +315,7 @@
         Swal.fire({
           icon: 'error',
           title: 'Error',
-          text: result.message,
+          text: result.message || 'Error on editing category',
         });
       }
     } catch (error) {
@@ -303,7 +323,7 @@
       Swal.fire({
         icon: 'error',
         title: 'Error',
-        text: 'An unexpected error occurred. Please try again.',
+        text: result.message || 'An unexpected error occurred. Please try again.',
       });
     }
   });
@@ -345,7 +365,7 @@
           } else {
             Swal.fire(
               'Error!',
-              result.message,
+              result.message || "Error on deleting category",
               'error'
             );
           }
@@ -353,7 +373,7 @@
           console.error('Error:', error);
           Swal.fire(
             'Error!',
-            'An unexpected error occurred.',
+            result.message || 'An unexpected error occurred.',
             'error'
           );
         }

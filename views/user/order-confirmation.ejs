@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>confirm order</title>
+  </head>
+  <body class="bg-gray-100">
+    <!-- Header -->
+   <%- include('../partials/user-header') %>
+
+   <main class="container mx-auto px-4 py-8">
+    <div class="max-w-2xl mx-auto bg-gray-400 rounded-lg shadow-md p-8">
+        <h1 class="text-3xl font-bold mb-6 text-center">Order Confirmed!</h1>
+
+        <div class="text-center mb-6">
+            <p class="text-xl">Thank you for your order.</p>
+            <p class="text-black-400">Order #<%= order._id.toString().slice(-6) %></p>
+        </div>
+
+        <div class="mb-6">
+            <h2 class="text-xl font-semibold mb-2">Order Summary</h2>
+            <div class="space-y-2">
+                <% order.orderItems.forEach(item => { %>
+                    <div class="flex justify-between items-center">
+                        <span><%= item.product.productName %> x <%= item.quantity %></span>
+                        <span>₹<%= (item.product.discountPrice*item.quantity).toFixed(2) %></span>
+                    </div>
+                <% }) %>
+            </div>
+        </div>
+
+        <div class="border-t border-gray-700 pt-4 mb-6">
+            <div class="flex justify-between items-center mb-2">
+                <span>Subtotal</span>
+                <span>₹<%= order.payment.subTotalPrice.toFixed(2) %></span>
+            </div>
+            <div class="flex justify-between items-center mb-2">
+                <span>Discount</span>
+                <span class="text-black">-₹<%= (order.payment.subTotalPrice-order.payment.totalFinalPrice).toFixed(2) %></span>
+            </div>
+            <div class="flex justify-between items-center font-semibold">
+                <span>Total</span>
+                <span>₹<%= order.payment.totalFinalPrice.toFixed(2) %></span>
+            </div>
+        </div>
+
+        <div class="mb-6">
+            <h2 class="text-xl font-semibold mb-2">Shipping Address</h2>
+            <p><%= order.user.customerName %></p>
+            <p><%= order.user.shippingAddress.HouseName %></p>
+            <p><%= order.user.shippingAddress.LocalityStreet %></p>
+            <p><%= order.user.shippingAddress.TownCity %>, <%= order.user.shippingAddress.state %> <%= order.user.shippingAddress.pincode %></p>
+            <p><%= order.user.shippingAddress.country %></p>
+            <p>Phone: <%= order.user.shippingAddress.MobileNumber %></p>
+        </div>
+
+        <div class="text-center">
+            <a href="/orders" class="inline-block bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors">View All Orders</a>
+        </div>
+    </div>
+</main>
+    <!-- Footer -->
+    <%- include('../partials/user-footer') %>
+    <script src="js/user/userLogin.js"></script>
+  </body>
+</html>
+
+

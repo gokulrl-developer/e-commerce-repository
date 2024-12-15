@@ -6,13 +6,14 @@ exports.postLogin = (req, res) => {
     req.session.admin = true;
     res.redirect("/admin/dashboard");
   } else {
-    return res.render("admin/admin-login", {
-      error: "Wrong Admin email or password",
+    return res.render("admin/admin-error", {
+      statusCode: 401,
+      message: "Wrong Admin email or password",
     });
   }
 };
 
-exports.logout=(req, res)=>{
+exports.logout = (req, res) => {
   try {
     req.session.destroy((err) => {
       if (err) {

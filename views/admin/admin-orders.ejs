@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orders</title>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-900 text-white">
+
+  <!-- Header section -->
+  <%-include('../partials/admin-header')%>
+    <div class="flex">
+      <!-- Sidebar -->
+      <%-include('../partials/admin-sidebar')%>
+
+        <!-- Main Content -->
+        <main class="flex-grow p-6 md:w-4/5">
+          <div class="flex justify-between items-center mb-4">
+            <h4 class="text-xl font-semibold">Orders</h4>
+
+          </div>
+
+          <div class="bg-gray-700 text-white rounded p-4">
+            <table class="w-full border-collapse table-fixed">
+              <thead>
+                <tr class="text-left border-b">
+                  <th class="p-2 w-1/9">Sl. No</th>
+                  <th class="p-2 w-1/9">Order Id</th>
+                  <th class="p-2 w-1/9"> Order<br>status</th>
+                  <th class="p-2 w-2/9">Customer<br>Details</th>
+                  <th class="p-2 w-2/9">Payment<br>Details</th>
+                  <th class="p-2 w-2/9">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% if(orders && orders.length>0){%>
+                  <% orders.forEach((order, index)=> { %>
+                    <tr class="hover:bg-gray-600">
+                      <td class="p-2 break-words">
+                        <%= index + 1 %>
+                      </td>
+                      <td class="p-2 break-words">
+                        <%= `${order._id.toString().slice(-6)}` %>
+                      </td>
+                      <td class="p-2 break-words">
+                        <%= order.orderStatus %>
+                      </td>
+                      <td class="p-2 break-words">
+                        Name : <%= order.user.customerName %><br>
+                          Email : <%= order.user.customerEmail %>
+                      </td>
+                      <td class="p-2 break-words">
+                        Payment status : <%= order.payment.paymentStatus %><br>
+                          Total price : <%= order.payment.totalFinalPrice %><br>
+                            Payment method : <%= order.payment.paymentMethod %><br>
+                      </td>
+                      <td class="p-2 break-words">
+                        <button class="bg-green-500 text-white py-1 px-2 rounded hover:bg-green-600"
+                          onclick="viewDetailsModal('<%= order._id %>')">
+                          View
+                        </button>
+                      </td>
+                    </tr>
+                    <% }) %>
+                      <%}%>
+              </tbody>
+            </table>
+          </div>
+        </main>
+    </div>
+
+    <!-- Pagination -->
+    <div class="mt-4 flex justify-center">
+      <nav class="inline-flex">
+        <% if (currentPage> 1) { %>
+          <a href="/admin/orders?page=<%= currentPage - 1 %>"
+            class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-orange-500">Previous</a>
+          <% } %>
+            <% for (let i=1; i <=totalPages; i++) { %>
+              <a href="/admin/orders?page=<%= i %>"
+                class="<%= currentPage === i ? 'bg-orange-500' : 'bg-[#222]' %> text-white px-3 py-1 mx-1 rounded-md hover:bg-orange-500">
+                <%= i %>
+              </a>
+              <% } %>
+                <% if (currentPage < totalPages) { %>
+                  <a href="/admin/orders?page=<%= currentPage + 1 %>"
+                    class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-orange-500">Next</a>
+                  <% } %>
+      </nav>
+    </div>
+
+    <!--  Details Modal -->
+    <div id="detailsModal" class="hidden fixed z-10 inset-0 flex items-center justify-center bg-black/50  ">
+      <div class="bg-black p-6 rounded shadow-lg max-w-4xl w-full relative overflow-y-auto max-h-[80vh] ">
+        <button
+          class="absolute top-2 right-2 text-gray-600 hover:text-gray-900 text-2xl font-bold w-8 h-8 flex items-center justify-center"
+          onclick="closeDetailsModal()">
+          &times;
+        </button>
+        <h2 class="text-lg font-bold mb-4">Order Details</h2>
+        <!-- Order Information -->
+        <div class="mb-6">
+          <h3 class="font-bold text-lg mb-2 text-gold">Order Information</h3>
+          <p><strong>Order ID:</strong> <span id="orderId"></span>
+            <strong>Order Status:</strong> <span id="orderStatus"></span>
+            <strong>Order Date:</strong> <span id="orderDate"></span>
+          </p>
+          <div id="edit-status"></div>
+        </div>
+
+        <!-- Customer Details -->
+        <div class="mb-6">
+          <h3 class="font-bold text-lg mb-2 text-gold">Customer Details</h3>
+          <p><strong>Name:</strong> <span id="customerName"></span>
+            <strong>Email:</strong> <span id="customerEmail"></span>
+          </p>
+        </div>
+
+        <!-- Shipping Address -->
+        <div class="mb-6">
+          <h3 class="font-bold text-lg mb-2 text-gold">Shipping Address</h3>
+          <p id="shippingAddress"></p>
+        </div>
+
+        <!-- Product Details -->
+        <div class="mb-6">
+          <h3 class="font-bold text-lg mb-2 text-black">Products</h3>
+          <div id="productList" class="space-y-4"></div>
+        </div>
+
+        <!-- Payment Details -->
+        <div class="mb-6">
+          <h3 class="font-bold text-lg mb-2 text-gold">Payment Details</h3>
+          <p><strong>Payment Method:</strong> <span id="paymentMethod"></span>
+            <strong>Payment Status:</strong> <span id="paymentStatus"></span>
+            <strong>Total Amount :</strong> ₹<span id="total"></span>
+          </p>
+        </div>
+
+        <!-- Cancel Order Button -->
+        <div id="cancelOrderContainer" class="mt-6"></div>
+      </div>
+    </div>
+    </div>
+
+    <!-- Footer Section -->
+    <%-include('../partials/admin-footer')%>
+
+</body>
+
+</html>
+<script>
+  async function viewDetailsModal(orderId) {
+    try {
+      const response = await fetch(`/admin/order/details/${orderId}`)
+      const data = await response.json();
+      if (response.ok) {
+        // Populate order information
+        document.getElementById('orderId').textContent = `#${data.order._id.toString().slice(-6)}`;
+        document.getElementById('orderDate').textContent = data.formattedDate;
+        document.getElementById('orderStatus').textContent = data.order.orderStatus;
+        if (data.order.orderStatus === "Pending" || data.order.orderStatus === "Processing") {
+          document.getElementById("edit-status").innerHTML = `
+        <h2 class="text-lg font-bold mb-4 ">Edit Order Status</h2>
+          <select class="border border-gray-300 rounded px-3 py-1 bg-red-500 hover:bg-red-800" id="edited-status">
+            <option value="" selected disabled>Edit Status</option>
+            <option value="Pending">Pending</option>
+            <option value="Processing">Processing</option>
+            <option value="Shipped">Shipped</option>
+            <option value="Cancelled">Cancelled</option>
+            <option value="Delivered">Delivered</option>
+          </select>
+          <button class="bg-green-500 text-white py-1 px-2 rounded hover:bg-green-600"
+                        onclick="editStatus('${orderId}')">
+                        Edit Status
+                      </button>`
+        } else {
+          document.getElementById("edit-status").innerHTML = ""
+        }
+        // Populate customer details
+        document.getElementById('customerName').textContent = data.order.user.customerName;
+        document.getElementById('customerEmail').textContent = data.order.user.customerEmail;
+        // Populate shipping address
+        const address = data.order.user.shippingAddress;
+        document.getElementById('shippingAddress').textContent =
+          `${address.Name}, ${address.HouseName}, ${address.LocalityStreet}, ${address.TownCity}, ${address.state}, ${address.country}, ${address.pincode}, ${address.MobileNumber}`;
+
+        // Populate product details
+        const productList = document.getElementById('productList');
+        productList.innerHTML = ''; // Clear previous data
+        data.order.orderItems.forEach((item) => {
+          const productElement = document.createElement('div');
+          productElement.classList.add('flex', 'gap-4', 'border-b', 'border-gray-700', 'pb-4', 'last:border-b-0');
+
+
+          productElement.innerHTML = `
+                            <img src="${item.product.imageUrl[0]}" alt="${item.product.productName}" class="w-20 h-20 object-contain">
+                            <div>
+                                <h4 class="font-bold text-black">${item.product.productName}</h4>
+                                <p >Price: ₹${Number(item.price).toFixed(2)}</p>
+                                <p >Quantity: ${item.quantity}</p>
+                                <p >Subtotal: ₹${Number(item.price * item.quantity).toFixed(2)}</p>
+                                <p >Final price: ₹${(item.price * item.quantity -
+              item.quantity * item.price * item.discount / 100
+            ).toFixed(2)}</p>
+
+                            </div>
+                        `;
+          productList.appendChild(productElement);
+        });
+        // Populate payment details
+        document.getElementById('paymentMethod').textContent = data.order.payment.paymentMethod;
+        document.getElementById('paymentStatus').textContent = data.order.payment.paymentStatus;
+        document.getElementById('total').textContent = Number(data.order.payment.totalFinalPrice).toFixed(2);
+
+
+
+        // Show modal
+        document.getElementById('detailsModal').classList.remove('hidden');
+      } else {
+        Swal.fire('Error', data.message || 'Failed to fetch order details', 'error');
+      }
+
+    } catch (error) {
+      console.error('Error fetching order details:', error);
+      Swal.fire('Error', 'An error occurred while fetching order details', 'error');
+    }
+  }
+  async function closeDetailsModal() {
+    document.getElementById("detailsModal").classList.add("hidden");
+  }
+  async function editStatus(orderId) {
+    try {
+      console.log(orderId)
+      const editedStatus = document.getElementById("edited-status").value;
+      if (!editedStatus) {
+        throw new Error("No status selected");
+      }
+      const response = await fetch(`/admin/order/edit/${orderId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          editedStatus: editedStatus
+        })
+      });
+      if (response.ok) {
+        const data = await response.json();
+
+        Swal.fire('Status Edited!', data.message, 'success');
+        location.reload();
+      } else {
+        const data = await response.json();
+        throw new Error(data.message || 'Failed to edit order status');
+      }
+    } catch (error) {
+      console.error('Error cancelling order:', error);
+      Swal.fire('Error!', error.message || 'An error occurred while editing the order status', 'error');
+    }
+  }
+
+</script>

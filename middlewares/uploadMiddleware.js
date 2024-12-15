@@ -83,9 +83,8 @@ const uploadMiddleware = async (req, res, next) => {
       }
 
       if (!req.files || req.files.length === 0) {
-        console.error("No files uploaded");
-        
-        return res.status(400).json({ error: "No files uploaded" });
+        req.body.imageUrls='';
+        return next();
       }
 
       console.log("Uploaded Files Details:", req.files.map(file => ({

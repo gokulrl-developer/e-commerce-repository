@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://cdn.tailwindcss.com"></script>
-    <title>Hello, world!</title>
+    <title>Login</title>
   </head>
   <body class="bg-gray-100">
     <!-- Header -->
@@ -24,7 +24,7 @@
         </div>
         <div class="flex justify-between mb-4 text-sm">
           <a href="http://localhost:8000/sign-up" class="text-blue-500 hover:underline">Sign up</a>
-          <a href="#" class="text-blue-500 hover:underline">Forgot Password?</a>
+          <a href="/forgot-password-email" class="text-blue-500 hover:underline">Forgot Password?</a>
         </div>
         <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600" >Login</button>
       </form>
@@ -40,6 +40,7 @@
 
     <!-- Footer -->
     <%- include('../partials/user-footer') %>
+
     <script src="js/user/userLogin.js"></script>
   </body>
 </html>

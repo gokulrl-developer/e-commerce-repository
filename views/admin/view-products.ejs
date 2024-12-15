@@ -1,85 +1,173 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <title>Hello, World!</title>
-  </head>
-  <body class="bg-gray-900 text-white">
-    
 
-    <!-- Header Section -->
-      <%-include('../partials/admin-header') %>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <title>Hello, World!</title>
+</head>
+
+<body class="bg-gray-900 text-white">
+
+
+  <!-- Header Section -->
+  <%-include('../partials/admin-header') %>
 
     <div class="flex">
       <!-- Sidebar -->
       <%-include('../partials/admin-sidebar') %>
 
-      <!-- Main Content -->
-      <div class="w-4/5 p-6">
-        <div class="flex justify-between items-center mb-6">
-          <button class="bg-yellow-500 text-black px-4 py-2 rounded hover:bg-yellow-600" onclick="addProduct()">
-            Add New Product
-          </button>
-          
-        </div>
+        <!-- Main Content -->
+        <div class="w-4/5 p-6">
+          <div class="flex justify-between items-center mb-6">
+            <button class="bg-yellow-500 text-black px-4 py-2 rounded hover:bg-yellow-600" onclick="addProduct()">
+              Add New Product
+            </button>
 
-        <div class="bg-gray-800 p-4 rounded">
-          <table class="w-full text-left text-gray-300">
-            <thead>
-              <tr>
-                <th class="border-b border-gray-700 py-2">Product</th>
-                <th class="border-b border-gray-700 py-2">Price</th>
-                <th class="border-b border-gray-700 py-2">Stock</th>
-                <th class="border-b border-gray-700 py-2">Category</th>
-                <th class="border-b border-gray-700 py-2">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% products.forEach(product => { %>
-              <tr>
-                <td class="py-2"><%= product.productName %></td>
-                <td class="py-2"><%= product.price %></td>
-                <td class="py-2"><%= product.stock %></td>
-                <td class="py-2"><%= product.category.categoryName %></td>
-                <td class="py-2 space-x-2">
-                  <button
-                    class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
-                    onclick="edit('<%= product._id %>')"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
-                    onclick="remove('<%= product._id %>')"
-                  >
-                    Remove
-                  </button>
-                </td>
-              </tr>
-              <% }); %>
-            </tbody>
-          </table>
+          </div>
 
-          
+          <div class="bg-gray-800 p-4 rounded">
+            <table class="w-full text-left text-gray-300">
+              <thead>
+                <tr>
+                  <th class="border-b border-gray-700 py-2">Product</th>
+                  <th class="border-b border-gray-700 py-2">Price</th>
+                  <th class="border-b border-gray-700 py-2">Stock</th>
+                  <th class="border-b border-gray-700 py-2">Category</th>
+                  <th class="border-b border-gray-700 py-2">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% products.forEach(product=> { %>
+                  <tr>
+                    <td class="py-2">
+                      <%= product.productName %>
+                    </td>
+                    <td class="py-2">
+                      <%= product.price %>
+                    </td>
+                    <td class="py-2">
+                      <%= product.stock %>
+                    </td>
+                    <td class="py-2">
+                      <%= product.category.categoryName %>
+                    </td>
+                    <td class="py-2 space-x-2">
+                      <button class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+                        onclick="edit('<%= product._id %>')">
+                        Edit
+                      </button>
+                      <%if(product.isBlocked===true){%>
+                        <button class="px-3 py-1 bg-green-600 rounded text-white hover:bg-green-500"
+                          onclick="blockUnBlockProduct('unblock','<%=product._id%>')">
+                          Unlock
+                        </button>
+                        <%}else{%>
+                          <button class="px-3 py-1 bg-red-600 rounded text-white hover:bg-red-500"
+                            onclick="blockUnBlockProduct('block','<%=product._id%>')">
+                            Block
+                          </button>
+                          <%}%>
+                    </td>
+                  </tr>
+                  <% }); %>
+              </tbody>
+            </table>
+
+
+          </div>
         </div>
-      </div>
     </div>
-
+    <!-- Pagination -->
+    <div class="mt-4 flex justify-center">
+      <nav class="inline-flex">
+        <% if (currentPage> 1) { %>
+          <a href="/admin/products?page=<%= currentPage - 1 %>"
+            class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-orange-500">Previous</a>
+          <% } %>
+            <% for (let i=1; i <=totalPages; i++) { %>
+              <a href="/admin/products?page=<%= i %>"
+                class="<%= currentPage === i ? 'bg-orange-500' : 'bg-[#222]' %> text-white px-3 py-1 mx-1 rounded-md hover:bg-orange-500">
+                <%= i %>
+              </a>
+              <% } %>
+                <% if (currentPage < totalPages) { %>
+                  <a href="/admin/products?page=<%= currentPage + 1 %>"
+                    class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-orange-500">Next</a>
+                  <% } %>
+      </nav>
+    </div>
     <!-- Footer Section -->
-     <%-include('../partials/admin-footer') %>
+    <%-include('../partials/admin-footer') %>
 
 
-  </body>
+</body>
+
 </html>
 <script>
-    function edit(productId){
-   window.location.href=`http://localhost:8000/admin/products/edit/${productId}`
-    }
-    
-    function addProduct(){
-      window.location.href = 'http://localhost:8000/admin/products/add';
+  function edit(productId) {
+    window.location.href = `http://localhost:8000/admin/products/edit/${productId}`
   }
-  </script>
- 
+
+  function addProduct() {
+    window.location.href = 'http://localhost:8000/admin/products/add';
+  }
+  async function blockUnBlockProduct(action, productId) {
+    const actionText = action === 'block' ? 'blocked' : 'unblocked';
+    Swal.fire({
+      title: 'Are you sure?',
+      text: `The product will be ${actionText}!`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#f97316',
+      cancelButtonColor: '#d33',
+      confirmButtonText: `Yes, ${action} it!`
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const response = await fetch(`/admin/products/status/${action}/${productId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          const result = await response.json();
+
+          if (response.ok) {
+            Swal.fire(
+              actionText.charAt(0).toUpperCase() + actionText.slice(1),
+              result.message,
+              'success'
+            ).then(() => {
+              location.reload();
+            });
+          } else {
+            Swal.fire(
+              'Error!',
+              result.message || `Failed to ${actionText} the user. `,
+              'error'
+            );
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          Swal.fire(
+            'Error!',
+            result.message || 'An unexpected error occurred.',
+            'error'
+          );
+        }
+      }
+    });
+  }
+
+  function blockUser(userId) {
+    updateUserStatus(userId, 'block');
+  }
+
+  function unBlockUser(userId) {
+    updateUserStatus(userId, 'unblock');
+  }
+
+</script>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CarryMart</title>
+  <title>Address</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.all.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -264,7 +264,7 @@
             console.error("Error adding address:", error);
             Swal.fire({
               title: "Error",
-              text: error || "Failed to add address. Please try again later.",
+              text: error.message || "Failed to add address. Please try again later.",
               icon: "error",
               confirmButtonText: "OK",
             });
@@ -353,7 +353,7 @@
             console.error("Error adding address:", error);
             Swal.fire({
               title: "Error",
-              text:error || "Failed to edit address. Please try again later.",
+              text:error.message || "Failed to edit address. Please try again later.",
               icon: "error",
               confirmButtonText: "OK",
             });
@@ -395,7 +395,7 @@
               console.error("Error adding address:", error);
             Swal.fire({
               title: "Error",
-              text: error.error || "Failed to delete address.try again later",
+              text: error.message || "Failed to delete address.try again later",
               icon: "error",
               confirmButtonText: "OK",
             });
