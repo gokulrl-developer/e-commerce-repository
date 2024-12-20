@@ -8,6 +8,8 @@ const adminProductController = require('../controllers/admin/adminProductControl
 const adminUserController = require('../controllers/admin/adminUserController');
 const adminAuth = require('../middlewares/adminAuth');
 const adminOrderController = require('../controllers/admin/adminOrderController');
+const adminOfferController=require('../controllers/admin/adminOfferController');
+const adminCouponController=require('../controllers/admin/adminCouponController');
 
 
 router.get('/login', adminAuth.isLoggedIn, (req, res) => {
@@ -46,5 +48,20 @@ router.delete('/categories/delete/:id', adminAuth.checkSession, adminCategoryCon
 //----------------------------------Orders------------------------------------------------------------
 router.get("/orders",adminAuth.checkSession,paginate,adminOrderController.getOrders);
 router.get("/order/details/:id",adminAuth.checkSession,adminOrderController.getDetails);
-router.patch("/order/edit/:id",adminAuth.checkSession,adminOrderController.updateOrderStatus)
+router.patch("/order/edit/:id",adminAuth.checkSession,adminOrderController.updateOrderStatus);
+
+
+//---------------------------------Offers--------------------------------------------------------------
+router.get("/offers",adminAuth.checkSession,paginate,adminOfferController.getAllOffers);
+router.post("/offers/add",adminAuth.checkSession,adminOfferController.createOffer);
+router.put("/offers/edit/:id",adminAuth.checkSession,adminOfferController.updateOffer);
+router.delete("/offers/delete/:id",adminAuth.checkSession,adminOfferController.deleteOffer);
+
+//----------------------------------Coupons--------------------------------------------------------------
+router.get("/coupons",adminAuth.checkSession,paginate,adminCouponController.getCoupons);
+router.post("/coupons/add",adminAuth.checkSession,adminCouponController.addCoupon);
+router.put("/coupons/edit/:id",adminAuth.checkSession,adminCouponController.editCoupon);
+router.delete("/coupons/delete/:id",adminAuth.checkSession,adminCouponController.deleteCoupon);
+router.get("/admin/coupons/search/",adminAuth.checkSession,paginate,adminCouponController.searchCoupons);
+
 module.exports = router;

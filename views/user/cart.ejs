@@ -104,9 +104,10 @@
               <div class="flex items-center border border-gray-300 rounded px-2 py-1 bg-white">
                 <span class="text-gray-500">🎟️</span>
                 <select id="coupon" class="flex-1 ml-2 bg-transparent outline-none text-gray-700">
-                  <option value="" disabled selected>Coupon code</option>
-                  <option value="SAVE10">SAVE10</option>
-                  <option value="DISCOUNT20">DISCOUNT20</option>
+                  <option value="" disabled selected>Coupons Available</option>
+                  <%if(coupons){coupons.forEach(coupon){%>
+                  <option value="coupon._id"><%=coupon.code%></option>
+                  <%}%>
                 </select>
               </div>
             </div>

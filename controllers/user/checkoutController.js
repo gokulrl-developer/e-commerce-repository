@@ -3,6 +3,9 @@ const Address = require('../../models/addressModel');
 const Order = require('../../models/orderModel');
 const User = require('../../models/userModel');
 const Product = require('../../models/productModel');
+const {recalculateCart} = require('./cartController');
+
+
 
 exports.getCheckout = async (req, res) => {
     try {
@@ -14,27 +17,29 @@ exports.getCheckout = async (req, res) => {
         let cart = await Cart.findOne({ userId }).populate('items.product');
         if (!cart || cart.items.length === 0) {
             return res.render("user/checkout", { 
-                subtotal,
-                totalDiscount,
-                totalPriceAfterDiscount,
+                subtotal:0,
+                totalDiscount:0,
+                totalPriceAfterDiscount:0,
                 addresses,
                  message:"no items in the cart" });
         }    
-    let subtotal = 0;
-    let totalDiscount = 0;
-
-    cart.items.forEach((item) => {
-      const product = item.product;
-      subtotal += product.price * item.quantity;
-      totalDiscount += (product.price-product.discountPrice) * item.quantity;
-
-    });
-    const totalPriceAfterDiscount = subtotal - totalDiscount;
-  
+   this.recalculateCart(cart);
+   if(cart.appliedCouponCode){
+               const coupon = await Coupon.findOne({ code: couponCode, isActive: true });
+                       //check if coupon is still active
+   
+               if (coupon.expiryDate && new Date() > coupon.expiryDate 
+               || req.session.totalPurchaseAmount < coupon.minPurchaseAmount
+                || !coupon) {
+                   delete cart.appliedCouponCode;
+            await this.recalculateCart(cart);
+               }
+            };
+            await cart.save();
     res.render("user/checkout", {
-      subtotal,
-      totalDiscount,
-      totalPriceAfterDiscount,
+      subtotal:cart.subTotal,
+      totalDiscount :cart.totalDiscount,
+      totalPriceAfterDiscount:cart.grandTotal,
       addresses
     });
   } catch (error) {

@@ -33,26 +33,25 @@ async function postLogin(req, res) {
     const { email, password } = req.body;
     const matchedUser = await User.findOne({ email }).lean();
     if (!matchedUser) {
-      return res.render('user/user-error',{statusCode:401,message:"invalidCredentials"}) }
-
-    console.log(matchedUser);
+      return res.status(401).json({message:"invalid Credentials"});
+    }
     if(matchedUser.status==='Blocked'){
-     return res.render('user/user-error',{statusCode:401,message:"User is blocked"}) }
+      return res.status(401).json({message:"User is blocked"});
+    }
     const isMatch = await bcrypt.compare(password, matchedUser.password);
     if (!isMatch) {
       return res.render('user/user-error',{statusCode:401,message:"Invalid Credentials"}) 
     } else {
-
       req.session.user = matchedUser;
       res.status(200).json({ redirectUrl: "/" });
-
     }
-
   } catch (error) {
     res.status(500).json({ message: error.message || "Error on Login" });
     console.error("Error on Login : ", err)
   }
 }
+
+
 async function getSignUp(req, res) {
   try {
     res.render('user/user-signup');
