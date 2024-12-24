@@ -12,9 +12,9 @@ const orderSchema = new mongoose.Schema(
         type: String,
         required: true
       },
-      customerEmail:{
-        type:String,
-        required:true
+      customerEmail: {
+        type: String,
+        required: true
       },
       shippingAddress: {
         Name: { type: String, required: true },
@@ -34,19 +34,19 @@ const orderSchema = new mongoose.Schema(
           ref: "Product",
           required: true
         },
-        quantity: {
-          type: Number,
-          required: true
+        productName: String,
+        quantity: Number,
+        price: Number,
+        discountedPrice: Number,
+        totalPrice: Number,// total price before applying discount
+        status: {
+          type: String,
+          enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Return Requested', 'Returned', 'Return Rejected'],
+          default: 'Pending'
         },
-        price: {
-          type: Number,   // price of one piece before discount
-          required: true
-        },
-        discount: {        //discount percentage of each piece
-          type: Number,
-          required: true,
-        }
-
+        returnReason: String,
+        returnRequestDate: Date,
+        returnProcessedDate: Date
       },
     ],
     payment: {
@@ -56,27 +56,41 @@ const orderSchema = new mongoose.Schema(
       },
       paymentStatus: {
         type: String,
-        enum: ["Pending", "Failed", "Completed"],
-        default: "Pending",
-        required: true
+        enum: ['Pending', 'Completed', 'Failed', 'Refunded', 'Partially Refunded'],
+        default: 'Pending'
       },
-      subTotalPrice: {
-        type: Number, // Updated field for total price after discount 
-        required: true
+      totalAmount: Number,
+      discount: Number,
+      grandTotal: Number,
+      couponDiscount: {
+        type: Number,
+        default: 0
       },
-      totalFinalPrice: {
-        type: Number, // Updated field for total price after discount 
-        required: true
+      appliedCouponCode: { type: String,
+      },
+      refundedAmount: {
+        type: Number,
+        default: 0
+      },
+      razorpayOrderId: {
+        type: String
+      },
+      razorpayPaymentId: {
+        type: String
       }
     },
     orderStatus: {
       type: String,
-      enum: ["Processing", "Pending", "Delivered", "Shipped", "Cancelled"],
-      default: "Processing",
+      enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled', 'Partially Cancelled'],
+      default: 'Pending'
     },
     orderDate: {
       type: Date,
       default: Date.now
+    },
+    coupon: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Coupon'
     }
 
   },

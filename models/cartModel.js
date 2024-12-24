@@ -9,7 +9,7 @@ const cartSchema = new mongoose.Schema(
     },
     items: [
       {
-          product: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
+          product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
           quantity: { type: Number, required: true },
           price: { type: Number, required: true },
           finalPrice: { type: Number },
@@ -26,7 +26,7 @@ const cartSchema = new mongoose.Schema(
               },
       },
   ],
-  subTotal: { type: Number, default: 0 },
+totalPrice: { type: Number, default: 0 },
   totalDiscount: { type: Number, default: 0 },
   grandTotal: { type: Number, default: 0 },
   couponDiscount: { type: Number, default: 0 },
@@ -35,8 +35,8 @@ const cartSchema = new mongoose.Schema(
     couponCode: {type:String},
     couponType:{type:String,enum:['Percentage','Fixed']},
     couponValue:{type:Number},
-  },
-  },
+  }
+},
   {
     timestamps: true,  
   }

@@ -50,3 +50,101 @@ exports.updateOrderStatus = async (req, res) => {
         res.status(500).json({ message: error.message || 'Failed to update order status' });
     }
 };
+
+ exports.handleReturnRequest = async (req, res) => {
+    try {
+        const { orderId, itemId, action } = req.body;
+        const order = await Order.findById(orderId).populate('items.product');
+
+        if (!order) {
+            return res.status(404).json({ success: false, message: 'Order not found' });
+        }
+
+        const item = order.items.id(itemId);
+        if (!item) {
+            return res.status(404).json({ success: false, message: 'Item not found in the order' });
+        }
+
+        if (item.status !== 'Return Requested') {
+            return res.status(400).json({ success: false, message: 'Item is not pending return' });
+        }
+
+        if (action === 'approve') {
+            item.status = 'Returned';
+
+            // Restore product stock
+            await Product.findByIdAndUpdate(item.productId, {
+                $inc: { stock: item.quantity }
+            });
+
+            order.payment.totalAmount -= item.price * item.quantity;
+            order.payment.grandTotal -= item.totalPrice;
+            order.payment.discount = order.payment.totalAmount - order.payment.grandTotal;
+           // Calculate refund amount
+      let refundAmount = item.totalPrice;
+
+      // If there's a coupon applied, calculate the proportional discount
+      if (order.payment.appliedCouponCode) {
+        const orderTotal = order.items.reduce((sum, i) => sum + i.discountedPrice, 0);
+          const itemTotal = item.quantity*item.discountedPrice;
+          const discountProportion=(order.couponDiscount/orderTotal*itemTotal);
+          refundAmount = item.totalPrice - discountProportion;
+
+          // Check if this is the last item being returned
+          const activeItems = order.items.filter(i => !['Cancelled', 'Returned'].includes(i.status));
+          if (activeItems.length === 1 && activeItems[0]._id.toString() === itemId) {
+              // This is the last item, include any remaining coupon discount
+              const remainingCouponDiscount = order.payment.couponDiscount - discountProportion;
+              refundAmount -= remainingCouponDiscount;
+          }
+      }
+
+            // Process refund to wallet
+            await Wallet.findOneAndUpdate(
+                { user: order.customer.customerId },
+                {
+                    $inc: { balance: refundAmount },
+                    $push: {
+                        transactions: {
+                            amount: refundAmount,
+                            type: 'credit',
+                            description: `Refund for returned item in order ${order._id}`,
+                            orderId: order._id
+                        }
+                    }
+                },
+                { upsert: true }
+            );
+
+            //update refunded amount in order records
+
+            order.payment.refundedAmount = (order.payment.refundedAmount || 0) + refundAmount;
+            if (order.payment.totalAmount <= 0) {
+                order.payment.paymentStatus = 'Refunded';
+            } else {
+                order.payment.paymentStatus = 'Partially Refunded';
+            }
+        } else if (action === 'reject') {
+            item.status = 'Return Rejected';
+        } else {
+            return res.status(400).json({ success: false, message: 'Invalid action' });
+        }
+
+        item.returnProcessedDate = new Date();
+
+        // Update order status
+        const activeItems = order.orderItems.filter(i => !['Cancelled', 'Returned'].includes(i.status));
+        if (activeItems.length === 0) {
+            order.orderStatus = 'Cancelled';
+        } else if (order.orderItems.every(i => ['Delivered', 'Cancelled', 'Returned', 'Return Rejected'].includes(i.status))) {
+            order.orderStatus = 'Delivered';
+        }
+
+        await order.save();
+
+        res.status(200).json({message: `Return request ${action}d successfully` });
+    } catch (error) {
+        console.error('Error handling return request:', error);
+        res.status(500).json({ success: false, message: 'Failed to handle return request' });
+    }
+}; 

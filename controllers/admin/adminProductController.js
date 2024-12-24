@@ -20,14 +20,14 @@ module.exports = {
   },
   postAddProduct: async (req, res) => {
     try {
-      let { productName, brand, gender, category, imageUrls, stock, price, specifications,discount,description,rating} = req.body;
+      let { productName, brand, gender, category, imageUrls, stock, price, specifications,description,rating} = req.body;
 
      if(!imageUrls || imageUrls.length<4){
       return res.status(400).json({message:"Requires 4 images while adding product"});
      }
 
       if (!productName || !brand || !gender || !imageUrls || !description || !specifications ||
-        !stock || !price || !category || !rating || !discount || imageUrls.length < 4) {
+        !stock || !price || !category || !rating || imageUrls.length < 4) {
         return res.status(400).json({ message: "Missing required fields" });
       }
 
@@ -39,7 +39,6 @@ module.exports = {
         imageUrls,
         stock,
         price,
-        discount,
         specifications,
         description,
         imageUrl: imageUrls,
@@ -76,9 +75,9 @@ module.exports = {
   },
   putEditProduct: async (req, res) => {
     try {
-      let { productName, brand, gender, category, imageUrls, stock, price,rating,specifications,discount,description,indicesEdited} = req.body;
+      let { productName, brand, gender, category, imageUrls, stock, price,rating,specifications,description,indicesEdited} = req.body;
 
-       if (!productName ||!brand||!gender||!specifications|| !description || !category || !price || !stock ||!rating ||!discount) {
+       if (!productName ||!brand||!gender||!specifications|| !description || !category || !price || !stock ||!rating) {
         return res.status(400).json({message: 'Some fields are missing.' });
       } 
       let product = await Product.findById(req.params.id);
@@ -106,7 +105,6 @@ module.exports = {
             imageUrls,
             stock,
             price,
-            discount,
             specifications,
             description,
             imageUrl: editedImageUrls,

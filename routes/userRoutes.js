@@ -75,8 +75,9 @@ router.delete("/address/delete/:id",userAuth.checkSession,userProfileController.
 router.get("/cart", userAuth.checkSession, cartController.getCart);
 router.post("/cart/add",userAuth.checkSession,cartController.addToCart);
 router.delete("/cart/:id",userAuth.checkSession,cartController.deleteFromCart);
-router.put("/cart/update",userAuth.checkSession,cartController.updateCartQuantity);
-
+router.put("/cart/update",userAuth.checkSession,cartController.updateQuantity);
+router.post("/apply-coupon",userAuth.checkSession,cartController.applyCoupon);
+router.post("/remove-coupon",userAuth.checkSession,cartController.removeCoupon);
 
 
 //--------------------Checkout------------------------------------------
@@ -84,12 +85,16 @@ router.get('/checkout',userAuth.checkSession,checkoutController.getCheckout)
 
 
 //--------------------Orders----------------------------------------------
-router.post('/checkout', userAuth.checkSession, checkoutController.placeOrder);
+router.post('/place-order', userAuth.checkSession, checkoutController.placeOrder);
 router.get('/order/confirmation/:orderId', userAuth.checkSession, orderController.getOrderConfirmation);
 
 router.get('/orders',  userAuth.checkSession, orderController.getUserOrders);
 router.get('/order/details/:orderId', userAuth.checkSession, orderController.getOrderDetails);
 router.post('/order/cancel/:orderId', userAuth.checkSession, orderController.cancelOrder); 
+//router.post('/order/return-request', userAuth.checkSession, orderController.requestReturn);
+router.post('/order/verify-payment', userAuth.checkSession, orderController.verifyPayment);
+//router.post('/order/resume-payment/:orderId', userAuth.checkSession, orderController.continuePayment); 
+router.post('/order/payment-failed', userAuth.checkSession, orderController.handlePaymentFailure);
   
 
 module.exports=router;

@@ -33,12 +33,12 @@
 
         <div class="border-t border-gray-700 pt-4 mb-6">
             <div class="flex justify-between items-center mb-2">
-                <span>Subtotal</span>
-                <span>₹<%= order.payment.subTotalPrice.toFixed(2) %></span>
+                <span>totalPrice</span>
+                <span>₹<%= order.payment.totalPricePrice.toFixed(2) %></span>
             </div>
             <div class="flex justify-between items-center mb-2">
                 <span>Discount</span>
-                <span class="text-black">-₹<%= (order.payment.subTotalPrice-order.payment.totalFinalPrice).toFixed(2) %></span>
+                <span class="text-black">-₹<%= (order.payment.totalPricePrice-order.payment.totalFinalPrice).toFixed(2) %></span>
             </div>
             <div class="flex justify-between items-center font-semibold">
                 <span>Total</span>

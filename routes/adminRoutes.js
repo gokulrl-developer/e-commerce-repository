@@ -49,6 +49,7 @@ router.delete('/categories/delete/:id', adminAuth.checkSession, adminCategoryCon
 router.get("/orders",adminAuth.checkSession,paginate,adminOrderController.getOrders);
 router.get("/order/details/:id",adminAuth.checkSession,adminOrderController.getDetails);
 router.patch("/order/edit/:id",adminAuth.checkSession,adminOrderController.updateOrderStatus);
+router.post('/orders/return-request', adminAuth.checkSession, adminOrderController.handleReturnRequest);
 
 
 //---------------------------------Offers--------------------------------------------------------------

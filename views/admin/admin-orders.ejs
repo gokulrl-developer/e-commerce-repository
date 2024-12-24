@@ -203,7 +203,7 @@
                                 <h4 class="font-bold text-black">${item.product.productName}</h4>
                                 <p >Price: ₹${Number(item.price).toFixed(2)}</p>
                                 <p >Quantity: ${item.quantity}</p>
-                                <p >Subtotal: ₹${Number(item.price * item.quantity).toFixed(2)}</p>
+                                <p >totalPrice: ₹${Number(item.price * item.quantity).toFixed(2)}</p>
                                 <p >Final price: ₹${(item.price * item.quantity -
               item.quantity * item.price * item.discount / 100
             ).toFixed(2)}</p>
