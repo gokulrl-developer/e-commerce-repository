@@ -91,10 +91,12 @@ router.get('/order/confirmation/:orderId', userAuth.checkSession, orderControlle
 router.get('/orders',  userAuth.checkSession, orderController.getUserOrders);
 router.get('/order/details/:orderId', userAuth.checkSession, orderController.getOrderDetails);
 router.post('/order/cancel/:orderId', userAuth.checkSession, orderController.cancelOrder); 
-//router.post('/order/return-request', userAuth.checkSession, orderController.requestReturn);
+router.post('/order/return-request', userAuth.checkSession, orderController.requestReturn);
 router.post('/order/verify-payment', userAuth.checkSession, orderController.verifyPayment);
-//router.post('/order/resume-payment/:orderId', userAuth.checkSession, orderController.continuePayment); 
+router.post('/order/resume-payment/:orderId', userAuth.checkSession, orderController.continuePayment); 
 router.post('/order/payment-failed', userAuth.checkSession, orderController.handlePaymentFailure);
   
-
+router.get('/wallet',(req,res)=>{
+  res.render('user/wallet');
+})
 module.exports=router;

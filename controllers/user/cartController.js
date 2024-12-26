@@ -1,4 +1,3 @@
-const mongoose = require("mongoose");
 const Cart = require("../../models/cartModel");
 const Product = require("../../models/productModel");
 const Coupon=require("../../models/couponModel");
@@ -107,9 +106,9 @@ exports.getCart=async function (req, res){
   try {
       if (!req.session.user || !req.session.user._id) {
         if(req.xhr){
-            return res.json({ cartItems: [], totalPrice: 0, totalDiscount: 0,appliedCouponCode:cart.appliedCouponCode,user: req.session.user,couponDiscount:0,applicableCoupons:null, grandTotal: 0, });
+            return res.json({ cartItems: [], totalPrice: 0, totalDiscount: 0,appliedCouponCode:null,user: req.session.user,couponDiscount:0,applicableCoupons:null, grandTotal: 0, });
         }else{
-          return res.render('user/cart', { cartItems: [], totalPrice: 0, totalDiscount: 0,appliedCouponCode:cart.appliedCouponCode,user: req.session.user,couponDiscount:0,applicableCoupons:null, grandTotal: 0, });
+          return res.render('user/cart', { cartItems: [], totalPrice: 0, totalDiscount: 0,appliedCouponCode:null,user: req.session.user,couponDiscount:0,applicableCoupons:null, grandTotal: 0, });
         }
       }
 
@@ -125,9 +124,9 @@ exports.getCart=async function (req, res){
 
       if (!cart || cart.items.length === 0) {
         if(req.xhr){
-            return res.json({ cartItems: [], totalPrice: 0, totalDiscount: 0,appliedCouponCode:cart.appliedCouponCode,user: req.session.user,couponDiscount:0,applicableCoupons:null, grandTotal: 0, });
+            return res.json({ cartItems: [], totalPrice: 0, totalDiscount: 0,appliedCouponCode:null,user: req.session.user,couponDiscount:0,applicableCoupons:null, grandTotal: 0, });
         }else{
-          return res.render('user/cart', { cartItems: [], totalPrice: 0,totalDiscount: 0,appliedCouponCode:cart.appliedCouponCode,user: req.session.user,couponDiscount:0,applicableCoupons:null, grandTotal: 0, });
+          return res.render('user/cart', { cartItems: [], totalPrice: 0,totalDiscount: 0,appliedCouponCode:null,user: req.session.user,couponDiscount:0,applicableCoupons:null, grandTotal: 0, });
         }
             }
       
@@ -348,7 +347,6 @@ exports.applyCoupon = async (req, res) => {
       if (!cart) {
           return res.status(404).json({ message: "Cart not found" });
       }
-console.log(couponCode);
       const coupon = await Coupon.findOne({ code: couponCode, isActive: true });
       if (!coupon) {
           return res.status(404).json({ message: "Coupon not found or inactive" });
@@ -405,11 +403,11 @@ exports.removeCoupon = async (req, res) => {
 
       const coupon = await Coupon.findOne({ code: couponCode, isActive: true });
       if(!coupon){
-        return res.status(400).json({message:"No coupon is active currently"});
+        return res.status(400).json({message:"The coupon is active currently to remove"});
       }
       cart.appliedCouponCode=null;
       await exports.recalculateCart(cart,req);
-      coupon.usageByUser.count--;
+      coupon.usageByUser.find((usage)=>usage.userId.toString()===userId.toString()).count--;
       cart.save();
       coupon.save();
       res.json({

@@ -1,4 +1,6 @@
 const Order = require('../../models/orderModel');
+const Product = require('../../models/productModel');
+const Wallet = require('../../models/walletModel');
 const { format } = require('date-fns');
 
 exports.getOrders = async function (req, res) {
@@ -38,11 +40,33 @@ exports.updateOrderStatus = async (req, res) => {
     try {
         const orderId = req.params.id;
         const { editedStatus } = req.body;
-        const order = await Order.findByIdAndUpdate(orderId, { orderStatus: editedStatus }, { new: true });
+        const order = await Order.findById(orderId);
 
         if (!order) {
             return res.status(404).json({ message: 'Order not found' });
         }
+        if (['Cancelled', 'Delivered'].includes(order.orderStatus)) {
+            return res.status(400).json({ success: false, message: 'Cannot update status of cancelled or delivered orders' });
+        }
+
+        order.orderStatus = editedStatus;
+        if (editedStatus === 'Delivered') {
+            order.payment.paymentStatus = 'Completed';
+            order.orderItems.forEach(item => {
+                if (item.status === 'Pending' || item.status === 'Processing' || item.status === 'Shipped') {
+                    item.status = 'Delivered';
+                }
+            });
+        } else if (editedStatus === 'Cancelled') {
+            order.payment.paymentStatus = 'Failed';
+            order.orderItems.forEach(item => {
+                if (item.status === 'Pending' || item.status === 'Processing' || item.status === 'Shipped') {
+                    item.status = 'Cancelled';
+                }
+            });
+        }
+
+        await order.save();
 
         res.status(200).json({ message: 'Order status updated successfully' });
     } catch (error) {
@@ -54,26 +78,26 @@ exports.updateOrderStatus = async (req, res) => {
  exports.handleReturnRequest = async (req, res) => {
     try {
         const { orderId, itemId, action } = req.body;
-        const order = await Order.findById(orderId).populate('items.product');
+        const order = await Order.findById(orderId).populate('orderItems.product');
 
         if (!order) {
-            return res.status(404).json({ success: false, message: 'Order not found' });
+            return res.status(404).json({message: 'Order not found' });
         }
 
-        const item = order.items.id(itemId);
+        const item = order.orderItems.id(itemId);
         if (!item) {
-            return res.status(404).json({ success: false, message: 'Item not found in the order' });
+            return res.status(404).json({message: 'Item not found in the order' });
         }
 
         if (item.status !== 'Return Requested') {
-            return res.status(400).json({ success: false, message: 'Item is not pending return' });
+            return res.status(400).json({message: 'Item is not pending return' });
         }
 
         if (action === 'approve') {
             item.status = 'Returned';
 
             // Restore product stock
-            await Product.findByIdAndUpdate(item.productId, {
+            await Product.findByIdAndUpdate(item.product, {
                 $inc: { stock: item.quantity }
             });
 
@@ -101,7 +125,7 @@ exports.updateOrderStatus = async (req, res) => {
 
             // Process refund to wallet
             await Wallet.findOneAndUpdate(
-                { user: order.customer.customerId },
+                { user: order.user.userId },
                 {
                     $inc: { balance: refundAmount },
                     $push: {

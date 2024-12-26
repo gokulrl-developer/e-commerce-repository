@@ -99,7 +99,7 @@
                   <%=totalPrice%>
                 </span>
               </div>
-              <div class="flex justify-between text-gray-800 font-semibold text-lg <%=!appliedCouponCode?'hidden':''%>" id="coupon-discount-line">
+              <div class="flex justify-between text-gray-700 <%=!appliedCouponCode?'hidden':''%>" id="coupon-discount-line">
                 <span>Coupon Discount</span>
                 <span id="coupon-discount">
                   <%=couponDiscount%>
@@ -183,8 +183,10 @@
 
       const result = await response.json();
       if (response.ok) {
+        console.log(result.appliedCouponCode)
         swal.fire("Success", result.message || 'Coupon applied Successfully', "success");
-        document.getElementById('totalPrice').textContent = (result.totalPrice || 0);
+        fetchCart();
+       /*  document.getElementById('totalPrice').textContent = (result.totalPrice || 0);
         document.getElementById('coupon-discount').textContent = (result.couponDiscount || 0);
         const totalDiscountElement = document.querySelector('#discount');
         if (totalDiscountElement) {
@@ -196,14 +198,10 @@
           selectCoupon.querySelector('[value=""]').selected = true;
           document.getElementById('remove-coupon-btn').classList.remove('hidden');
           document.getElementById('coupon-discount-line').classList.remove('hidden');
-          console.log("kfdshl")
         }else{
           document.getElementById('remove-coupon-btn').classList.add('hidden');
-          console.log("kfdshl")
-
           document.getElementById('coupon-discount-line').classList.add('hidden');
-          console.log("kfdshl")
-        }
+        } */
       } else {
         swal.fire("Error", result.message || 'Error applying coupon', "error");
       }
@@ -214,7 +212,6 @@
   }
 
   async function fetchCart() {
-    console.log('jdkslf')
     try {
       const response = await fetch('/cart', {
         headers: {
@@ -222,7 +219,6 @@
         }
       });
       const data = await response.json();
-      console.log(data)
       if(response.ok){
       if (data.cartItems.length === 0) {
         window.location.reload();
@@ -315,6 +311,13 @@
                   ${data.totalPrice}
                 </span>
               </div>
+               <div class="flex justify-between text-gray-700 ${!data.appliedCouponCode ? 'hidden' : ''}"
+               id="coupon-discount-line">
+                <span>Coupon Discount</span>
+                <span id="coupon-discount">
+                  ${data.couponDiscount}
+                </span>
+              </div>
               <div class="flex justify-between text-gray-700">
                 <span>Discount</span>
                 <span id="discount">
@@ -350,8 +353,7 @@
 
     if (data.applicableCoupons && data.applicableCoupons.length > 0) {
       data.applicableCoupons.forEach((coupon) => {
-        html += `      
-                  <option value="coupon._id">${coupon.code}</option>`
+          html+=`<option value="${coupon.code}" ${data.appliedCouponCode===coupon.code ? 'selected' : ''}>${coupon.code}</option>`
       })
     }
     html += `
@@ -365,7 +367,11 @@
               </span>
             </div>
             <button
-              class="w-full mt-4 bg-black text-white py-3 rounded text-center font-bold text-sm hover:bg-gray-800 hidden"
+              class="w-full mt-4 bg-black text-white py-3 rounded text-center font-bold text-sm hover:bg-gray-800"`
+         if(!data.appliedCouponCode){
+          html+="hidden"
+         }                  
+          html+=    `
               onclick="toggleCoupon('remove')" id="remove-coupon-btn">
               Romove Coupon
             </button>
@@ -436,24 +442,29 @@
       }
 
       // Send the updated quantity to the server
-      const response = await axios.put('/cart/update', {
+      const response = await fetch('/cart/update',{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
         quantity: newQuantity,
         cartItemId: cartItemId,
-      });
-      if (response.status === 200) {
-        await Swal.fire({
+      })
+    });
+    const result=await response.json();
+      if (response.ok) {
+       Swal.fire({
           title: "Success",
-          text: response.data.message || "Cart updated Successfully",
+          text: result.message || "Cart updated Successfully",
           icon: "success",
           confirmButtonText: "OK"
         })
         fetchCart();
       } else {
-        throw new Error(response.data.message || "Error updating cart quantity.try again later")
-        console.error("Failed to update cart:", response.data.message);
+        Swal.fire("Error",result.message || "Error updating cart quantity.try again later","error")
+        console.error("Failed to update cart:", result.message);
       }
     } catch (error) {
-      await Swal.fire({
+       Swal.fire({
         title: "Error",
         text: error.message || "Error updating cart quantity.try again later",
         icon: "error",

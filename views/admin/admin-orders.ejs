@@ -63,6 +63,12 @@
                           onclick="viewDetailsModal('<%= order._id %>')">
                           View
                         </button>
+                        <% if (order.orderItems.some(item => item.status === 'Return Requested')) { %>
+                          <button onclick="viewReturnRequests('<%= order._id %>')"
+                            class="bg-green-500 text-white py-1 px-2 rounded hover:bg-green-600">
+                            Return
+                          </button>
+                        <% } %>
                       </td>
                     </tr>
                     <% }) %>
@@ -145,6 +151,24 @@
         <div id="cancelOrderContainer" class="mt-6"></div>
       </div>
     </div>
+
+    <!--  Return requests modal -->
+    <div id="return-details" class="hidden fixed z-10 inset-0 flex items-center justify-center bg-black/50  ">
+      <div class="bg-black p-6 rounded shadow-lg max-w-4xl w-full relative overflow-y-auto max-h-[80vh] ">
+        <button
+          class="absolute top-2 right-2 text-gray-600 hover:text-gray-900 text-2xl font-bold w-8 h-8 flex items-center justify-center"
+          onclick="closeReturnDetailsModal()">
+          &times;
+        </button>
+       <!-- Product Details -->
+        <div class="mb-6">
+          <h3 class="font-bold text-lg mb-2 text-black">Products</h3>
+          <div id="return-request-list" class="space-y-4"></div>
+        </div>
+      </div>
+    </div>
+
+
     </div>
 
     <!-- Footer Section -->
@@ -198,9 +222,12 @@
 
 
           productElement.innerHTML = `
+                                <div>
                             <img src="${item.product.imageUrl[0]}" alt="${item.product.productName}" class="w-20 h-20 object-contain">
-                            <div>
+                            
                                 <h4 class="font-bold text-black">${item.product.productName}</h4>
+                                                    <p>Status: ${item.status}</p>
+
                                 <p >Price: ₹${Number(item.price).toFixed(2)}</p>
                                 <p >Quantity: ${item.quantity}</p>
                                 <p >totalPrice: ₹${Number(item.price * item.quantity).toFixed(2)}</p>
@@ -235,7 +262,6 @@
   }
   async function editStatus(orderId) {
     try {
-      console.log(orderId)
       const editedStatus = document.getElementById("edited-status").value;
       if (!editedStatus) {
         throw new Error("No status selected");
@@ -249,13 +275,13 @@
           editedStatus: editedStatus
         })
       });
-      if (response.ok) {
-        const data = await response.json();
+      const data = await response.json();
 
-        Swal.fire('Status Edited!', data.message, 'success');
-        location.reload();
+      if (response.ok) {
+        Swal.fire('Status Edited!', data.message, 'success').then(() => {
+      location.reload();
+    });
       } else {
-        const data = await response.json();
         throw new Error(data.message || 'Failed to edit order status');
       }
     } catch (error) {
@@ -263,5 +289,90 @@
       Swal.fire('Error!', error.message || 'An error occurred while editing the order status', 'error');
     }
   }
+
+  function viewReturnRequests(orderId) {
+      fetch(`/admin/order/details/${orderId}`)
+      .then(response => {
+      if (!response.ok) {
+        return response.json().then(data => {
+          throw new Error( data.message || 'Failed to fetch return requests');
+        });
+      }
+      return response.json();
+    })
+        
+        .then(data => {
+          const returnItems = data.order.orderItems.filter(item => item.status === 'Return Requested');
+          const modalContent = document.getElementById('return-request-list');
+          modalContent.innerHTML = `
+            <h3 class="text-lg font-bold mb-2">Return Requests for Order #${data.order._id}</h3>
+            <ul class="space-y-4">
+              ${returnItems.map(item => `
+              <li>
+                <div>
+                            <div>
+                                <h4 class="font-bold">${item.product.productName}</h4>
+                                                    <p>Status: ${item.status}</p>
+                                <p >Quantity: ${item.quantity}</p>
+                                                 <p><strong>Request Date:</strong> ${new Date(item.returnRequestDate).toLocaleString()}</p>
+                            </div>
+                            <div>
+                  <p><strong>Return Reason:</strong> ${item.returnReason}</p>
+
+                              </div>
+                               <div >
+                    <button onclick="handleReturnRequest('${data.order._id}', '${item._id}', 'approve')"
+                      class="bg-green-600 hover:bg-green-700 text-black font-semibold px-3 py-1 rounded-md text-sm mr-2">
+                      Approve
+                    </button>
+                    <button onclick="handleReturnRequest('${data.order._id}', '${item._id}', 'reject')"
+                      class="bg-red-600 hover:bg-red-700 text-black font-semibold px-3 py-1 rounded-md text-sm">
+                      Reject
+                    </button>
+                  </div>
+                  </div>
+                  </li>
+                  `).join('')}
+               </ul>       
+          `;
+          document.getElementById('return-details').classList.remove('hidden');
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          Swal.fire('Error','Failed to fetch return requests', 'error');
+        });
+    }
+
+    function closeReturnDetailsModal() {
+      document.getElementById('return-details').classList.add('hidden');
+    }
+
+    function handleReturnRequest(orderId, itemId, action) {
+  fetch('/admin/orders/return-request', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ orderId, itemId, action }),
+  })
+    .then(response => {
+      if (!response.ok) {
+        return response.json().then(data => {
+          throw new Error( data.message || 'Failed to process return request on server side');
+        });
+      }
+      return response.json();
+    })
+    .then(data => {
+      Swal.fire('Success', data.message, 'success').then(() => {
+        closeReturnDetailssModal();
+        location.reload();
+      });
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      Swal.fire('Error', error.message || 'An error occurred while processing the return request', 'error');
+    });
+}
 
 </script>

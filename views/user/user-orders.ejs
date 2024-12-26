@@ -7,6 +7,7 @@
   <title>Orders</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
 
 <body class="bg-gray-100">
@@ -62,13 +63,13 @@
                       class="bg-blue-500 text-white px-3 py-2 m-2 rounded hover:bg-blue-600">
                       View Details
                     </button><br>
-                    <%=if(order.payment.paymentStatus === 'Failed'){%>
+                    <%if(order.payment.paymentStatus === 'Failed' || order.payment.paymentStatus === 'Pending'){%>
                     <button 
-                        onclick="resumePayment('${order._id}')" 
+                        onclick="resumePayment('<%=order._id%>','<%=user%>')" 
                         class="bg-orange-700 text-black  font-semibold px-3 py-2 rounded hover:bg-orange-800">
                         RePay
                     </button>
-                    <%=}%>
+                    <%}%>
                     <% if (order.orderStatus==='Pending' || order.orderStatus==='Processing' ) { %>
                       <button class="bg-red-500 text-white px-3 py-2 m-2 rounded hover:bg-red-600"
                         onclick="cancelOrder('<%= order._id %>')">
@@ -140,6 +141,25 @@
         </div>
       </div>
 
+       <!-- Return Request Modal -->
+    <div id="return-modal" class="fixed h-3/5 w-3/5 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-800 flex justify-center items-center hidden">
+      <div class="bg-darker text-white rounded-lg max-w-md w-4/5 p-6">
+          <h2 class="text-xl font-bold mb-4">Request Return</h2>
+          <form id="return-form">
+              <input type="hidden" id="return-order-id" name="orderId">
+              <input type="hidden" id="return-item-id" name="itemId">
+              <div class="mb-4">
+                  <label for="return-reason" class="block text-sm font-medium text-gray-300 mb-2">Reason for Return</label>
+                  <textarea id="return-reason" name="reason" rows="3" class=" resize-none w-full px-3 py-2 bg-gray-900 border-none rounded-lg focus:outline-none" required></textarea>
+              </div>
+              <div class="flex justify-end">
+                  <button type="button" onclick="closeReturnModal()" class="bg-gray-500 text-white px-4 py-2 rounded-lg mr-2">Cancel</button>
+                  <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-lg">Submit</button>
+              </div>
+          </form>
+      </div>
+  </div>
+
 </body>
 
 </html>
@@ -162,7 +182,6 @@
         const address = data.order.user.shippingAddress;
         document.getElementById('shippingAddress').textContent =
           `${address.Name}, ${address.HouseName}, ${address.LocalityStreet}, ${address.TownCity}, ${address.state}, ${address.country}, ${address.pincode}, ${address.MobileNumber}`;
-
         // Populate product details
         const productList = document.getElementById('productList');
         productList.innerHTML = ''; // Clear previous data
@@ -177,11 +196,14 @@
                                 <h4 class="font-bold text-black">${item.product.productName}</h4>
                                 <p >Price: ₹${Number(item.price).toFixed(2)}</p>
                                 <p >Quantity: ${item.quantity}</p>
-                                <p >totalPrice: ₹${Number(item.price*item.quantity).toFixed(2)}</p>
-                                <p >Final price: ₹${(item.price*item.quantity-
-                                  item.quantity*item.price*item.discount/100
-                                ).toFixed(2)}</p>
-
+                                <p >totalPrice: ₹${Number(item.totalPrice).toFixed(2)}</p>
+                                <p >Final price: ₹${(item.discountedPrice*item.quantity).toFixed(2)}</p>
+                   ${item.status === 'Delivered'?
+                      `<button 
+                          onclick="requestReturn('${data.order._id}','${item._id}')" 
+                          class="bg-orange-700 text-black  font-semibold px-3 py-2 rounded hover:bg-orange-800">
+                          Return
+                      </button>` : ''} 
                             </div>
                         `;
           productList.appendChild(productElement);
@@ -189,10 +211,9 @@
         // Populate payment details
         document.getElementById('paymentMethod').textContent = data.order.payment.paymentMethod;
         document.getElementById('paymentStatus').textContent = data.order.payment.paymentStatus;
-        document.getElementById('totalPrice').textContent =Number(data.order.payment.totalPricePrice).toFixed(2);
-        document.getElementById('discount').textContent = (Number(data.order.payment.totalPricePrice) - 
-                                                                         Number(data.order.payment.totalFinalPrice)).toFixed(2);
-        document.getElementById('total').textContent =Number(data.order.payment.totalFinalPrice).toFixed(2);
+        document.getElementById('totalPrice').textContent =Number(data.order.payment.totalAmount).toFixed(2);
+        document.getElementById('discount').textContent = (Number(data.order.payment.discount)).toFixed(2);
+        document.getElementById('total').textContent =Number(data.order.payment.grandTotal).toFixed(2);
       
         // Add cancel button if order is cancellable
         const cancelOrderContainer = document.getElementById('cancelOrderContainer');
@@ -202,7 +223,7 @@
                                 onclick="cancelOrder('${data.order._id}')" 
                                 class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 w-full">
                                 Cancel Order
-                            </button>
+                            </button>                   
                         `;
         } else {
           cancelOrderContainer.innerHTML = '';
@@ -215,7 +236,7 @@
       }
     }catch (error) {
       console.error('Error fetching order details:', error);
-      Swal.fire('Error', 'An error occurred while fetching order details', 'error');
+      Swal.fire('Error', error.message ||'An error occurred while fetching order details', 'error');
     }
     }
   
@@ -258,7 +279,7 @@
     }
   }
 
-  async function resumePayment(orderId) {
+  async function resumePayment(orderId,user) {
         try {
             const response = await fetch(`/order/resume-payment/${orderId}`, {
                 method: 'POST',
@@ -266,24 +287,22 @@
                     'Content-Type': 'application/json',
                 },
             });
-
             const data = await response.json();
-
             if (response.ok) {
                 const options = {
                     key: data.key,
                     amount: data.amount,
                     currency: data.currency,
-                    name: 'Your Store Name',
+                    name: 'Carrymart',
                     description: 'Order Payment',
                     order_id: data.orderId,
                     handler: function (response) {
                         verifyPayment(response, data);
                     },
                     prefill: {
-                        name: 'Customer Name',
-                        email: 'customer@example.com',
-                        contact: 'Customer Phone Number'
+                        name: user.name,
+                        email: user.email,
+                        contact: user.mobile
                     },
                     theme: {
                         color: '#F37254'
@@ -296,7 +315,7 @@
             }
         } catch (error) {
             console.error('Error resuming payment:', error);
-            Swal.fire('Error', 'An error occurred while resuming the payment', 'error');
+            Swal.fire('Error', error.message || 'An error occurred while resuming the payment', 'error');
         }
     }
 
@@ -316,7 +335,7 @@
 
             const result = await response.json();
 
-            if (result.success) {
+            if (response.ok){
                 Swal.fire({
                     title: 'Payment Successful!',
                     text: 'Your order has been successfully paid.',
@@ -332,7 +351,7 @@
             }
         } catch (error) {
             console.error('Error verifying payment:', error);
-            Swal.fire('Error', 'An error occurred while verifying the payment', 'error');
+            Swal.fire('Error','An error occurred while verifying the payment', 'error');
         }
     }
 
@@ -369,7 +388,45 @@
             Swal.fire('Error', 'An error occurred while processing your payment. Please check your order status.', 'error');
         }
     }
+//----------------------------Handle return request--------------------------------------------------------------------------
+    function requestReturn(orderId, itemId) {
+            document.getElementById('return-order-id').value = orderId;
+            document.getElementById('return-item-id').value = itemId;
+            document.getElementById('return-modal').classList.remove('hidden');
+        }
 
+        function closeReturnModal() {
+            document.getElementById('return-modal').classList.add('hidden');
+        }
 
+        document.getElementById('return-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const returnData = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await fetch('/order/return-request', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(returnData),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    await Swal.fire('Success', data.message, 'success');
+                    closeReturnModal();
+                    location.reload();
+                } else {
+                    Swal.fire('Error', data.message || 'Failed to submit return request', 'error');
+                }
+            } catch (error) {
+                console.error('Error submitting return request:', error);
+                Swal.fire('Error', 'An error occurred while submitting the return request', 'error');
+            }
+        });
+        
     
 </script>

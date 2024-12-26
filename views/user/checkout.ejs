@@ -8,6 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.all.min.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 </head>
 
@@ -102,13 +103,13 @@
                             <!-- Dropdown -->
                             <div class="relative">
                               <select 
-                               id="paymentMethod"
+                               id="payment-method"
                                 name="paymentMethod" 
                                 class="block w-full bg-gray-200 border border-gray-300 text-gray-700 p-3 rounded appearance-none focus:outline-none focus:ring-2 focus:ring-gray-500">
                                 <option value="" disabled selected>Select Payment Mode</option>
-                                <option value="cash on delivery" >Cash On Delivery</option>
-                                <option value="razorpay" >Razorpay</option>
-                                <option value="wallet" >Wallet</option>
+                                <option value="Cash On Delivery" >Cash On Delivery</option>
+                                <option value="Razorpay" >Razorpay</option>
+                                <option value="Wallet" >Wallet</option>
                             </select>
                               <!-- Dropdown arrow -->
                               <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none">
@@ -183,7 +184,8 @@
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-xl font-bold">Add New Address</h2>
                         <button id="closeAddAddressModalButton"
-                            class="text-gray-500 hover:text-gray-800">&times;</button>
+                            class="text-gray-500 hover:text-gray-800">&times;
+                        </button>
                     </div>
 
                     <!-- Form Content -->
@@ -301,7 +303,6 @@
 
 </html>
 <script>
-
     const addAddressmodal = document.getElementById("addAddressmodal");
     const openAddAddressModalButton = document.getElementById("openAddAddressModalButton");
     const closeAddAddressModalButton = document.getElementById("closeAddAddressModalButton");
@@ -504,7 +505,7 @@
 ///////Place Order////////////////////////////////////////////////////////////////////
 async function placeOrder() {
         const selectedAddressId = document.querySelector('input[name="selectedAddress"]:checked');
-        const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked');
+        const paymentMethod = document.getElementById('payment-method').value;
 
         if (!selectedAddressId) {
             Swal.fire('Error', 'Please select a delivery address.', 'error');
@@ -514,23 +515,20 @@ async function placeOrder() {
             Swal.fire('Error', 'Please select a payment method.', 'error');
             return;
         }
-
-        const addressId = selectedAddressId.value;
-        const method = paymentMethod.value;
-        
+        const addressId = selectedAddressId.value;        
         try {
             const response = await fetch('/place-order', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ addressId, paymentMethod: method })
+                body: JSON.stringify({ addressId, paymentMethod })
             });
 
             const result = await response.json();
 
             if (response.ok) {
-                if (method === 'Razorpay') {
+                if (paymentMethod === 'Razorpay') {
                     handleRazorpayPayment(result.order);
-                } else if (method === 'Cash On Delivery' || method === 'Wallet') {
+                } else if (paymentMethod === 'Cash On Delivery' || paymentMethod === 'Wallet') {
                     window.location.href = `order/confirmation/${result.orderId}`;
                 }
             } else {
@@ -542,7 +540,7 @@ async function placeOrder() {
             }
         } catch (error) {
             console.error("Error placing order:", error);
-            Swal.fire('Error', 'An error occurred while placing your order. Please try again.', 'error');
+            Swal.fire('Error', error.message || 'An error occurred while placing your order. Please try again.', 'error');
         }
     }
 
@@ -559,9 +557,9 @@ function handleRazorpayPayment(order) {
                 verifyPayment(response, order); 
             },
             prefill: {
-                name: '<%= user.name %> ,
+                name: '<%= user.name %>',
                 email: '<%= user.email %>',
-                contact: '<%= user.phone %>'
+                contact: '<%= user.mobile %>'
             },
             theme: {
                 color: '#F97316'
@@ -587,10 +585,9 @@ function handleRazorpayPayment(order) {
                     signature: paymentResponse.razorpay_signature
                 })
             });
-
             const result = await response.json();
 
-            if (result.success) {
+            if (response.ok) {
                 Swal.fire('Success', 'Payment successful!', 'success').then(() => {
                     window.location.href = `order/confirmation/${result.orderId}`;
                 });
@@ -598,7 +595,7 @@ function handleRazorpayPayment(order) {
                 await handlePaymentFailure(order.id);
             }
         } catch (error) {
-            console.error("Error verifying payment:", error);
+            console.error(error.message || "Error verifying payment:", error);
             await handlePaymentFailure(order.id);
         }
     }

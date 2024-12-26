@@ -25,7 +25,7 @@
                 <% order.orderItems.forEach(item => { %>
                     <div class="flex justify-between items-center">
                         <span><%= item.product.productName %> x <%= item.quantity %></span>
-                        <span>₹<%= (item.product.discountPrice*item.quantity).toFixed(2) %></span>
+                        <span>₹<%= (item.product.discountedPrice*item.quantity).toFixed(2) %></span>
                     </div>
                 <% }) %>
             </div>
@@ -33,16 +33,16 @@
 
         <div class="border-t border-gray-700 pt-4 mb-6">
             <div class="flex justify-between items-center mb-2">
-                <span>totalPrice</span>
-                <span>₹<%= order.payment.totalPricePrice.toFixed(2) %></span>
+                <span>TotalPrice</span>
+                <span>₹<%= order.payment.totalAmount.toFixed(2) %></span>
             </div>
             <div class="flex justify-between items-center mb-2">
                 <span>Discount</span>
-                <span class="text-black">-₹<%= (order.payment.totalPricePrice-order.payment.totalFinalPrice).toFixed(2) %></span>
+                <span class="text-black">-₹<%= order.payment.discount.toFixed(2) %></span>
             </div>
             <div class="flex justify-between items-center font-semibold">
                 <span>Total</span>
-                <span>₹<%= order.payment.totalFinalPrice.toFixed(2) %></span>
+                <span>₹<%= order.payment.grandTotal.toFixed(2) %></span>
             </div>
         </div>
 

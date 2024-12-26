@@ -2,6 +2,13 @@ const Order = require('../../models/orderModel');
 const Product = require('../../models/productModel');
 const Wallet = require('../../models/walletModel');
 const { format } = require('date-fns');
+const crypto =require('crypto');
+const Razorpay = require('razorpay');
+
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET
+});
 
 exports.continuePayment = async (req, res) => {
   try {
@@ -17,7 +24,7 @@ exports.continuePayment = async (req, res) => {
       }
      
       const razorpayOrder = await razorpay.orders.create({
-          amount: Math.round(order.payment.discountPrice * 100),
+          amount: Math.round(order.payment.grandTotal* 100),
           currency: 'INR',
           receipt: order._id.toString()
       });
@@ -57,17 +64,15 @@ exports.verifyPayment = async (req, res) => {
           order.payment.paymentStatus = 'Completed';
           order.payment.razorpayPaymentId = paymentId;
           await order.save();
-
           res.status(200).json({ message: 'Payment verified successfully', orderId: order._id });
       } else {
           order.payment.paymentStatus = 'Failed';
           await order.save();
-
           res.status(400).json({message: 'Payment verification failed' });
       }
   } catch (error) {
       console.error("Payment verification error: ", error);
-      res.status(500).json({message: 'Payment verification failed' });
+      res.status(500).json({message: error.message || 'Payment verification failed' });
   }
 };
 
@@ -224,7 +229,7 @@ exports.getWalletBalance = async (req, res) => {
         totalItems: order.orderItems.reduce((sum, item) => sum + item.quantity, 0)
       }));
   
-      res.render('user/user-orders', { orders: formattedOrders});
+      res.render('user/user-orders', { orders: formattedOrders,user:req.session.user});
     } catch (error) {
       console.error('Error fetching user orders:', error);
       res.status(500).render('error', { message: 'Failed to fetch orders' });
@@ -239,7 +244,6 @@ exports.getWalletBalance = async (req, res) => {
       if (!order) {
         return res.status(404).json({ message: 'Order not found' });
       }
-  
       if (order.user.userId.toString() !== req.user._id.toString()) {
         return res.status(403).json({ message: 'Unauthorized access' });
       }
@@ -296,15 +300,15 @@ exports.getWalletBalance = async (req, res) => {
             return res.status(404).json({ message: 'Order not found' });
         }
 
-        if (order.customer.customerId.toString() !== req.user._id.toString()) {
+        if (order.user.userId.toString() !== req.user._id.toString()) {
             return res.status(403).json({ message: 'Unauthorized access' });
         }
 
-        const item = order.items.id(itemId);
+        const item = order.orderItems.id(itemId);
         if (!item) {
             return res.status(404).json({ message: 'Item not found in the order' });
         }
-
+console.log(item.status);
         if (item.status !== 'Delivered') {
             return res.status(400).json({ message: 'Only delivered items can be returned' });
         }
@@ -314,7 +318,6 @@ exports.getWalletBalance = async (req, res) => {
         item.returnRequestDate = new Date();
 
         await order.save();
-        let cartItemCount = 0;
        
         res.json({ message: 'Return request submitted successfully'});
     } catch (error) {
