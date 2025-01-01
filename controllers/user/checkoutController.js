@@ -117,12 +117,12 @@ exports.placeOrder = async (req, res) => {
         
         if (paymentMethod === 'Wallet') {
             const wallet = await Wallet.findOne({ user: userId });
-            if (!wallet || wallet.balance < order.payment.grandTotal) {
+            if (!wallet || wallet.balance < cart.grandTotal) {
                 return res.status(400).json({ message: "Insufficient wallet balance" });
             }
         }
 
-        if (paymentMethod === 'Cash On Delivery' && order.payment.grandTotal > 1000) {
+        if (paymentMethod === 'Cash On Delivery' && cart.grandTotal > 1000) {
             return res.status(400).json({ message: "Cash On Delivery is not available for orders above Rs 1000" });
         }
         const order = new Order({

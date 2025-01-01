@@ -1,162 +1,399 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <title>Shop All</title>
-  </head>
-  <body>
-   <!-- Header Section -->
-    <%- include('../partials/user-header') %>
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <style>
-      .filter-section {
-        background-color: #f8f9fa;
-        padding: 15px;
-        border-radius: 8px;
-      }
-    </style>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <title>Shop All</title>
+</head>
+
+<body class="bg-blue-200">
+  <!-- Header Section -->
+  <%- include('../partials/user-header') %>
+
+
 
     <!-- Main Content -->
-    <div class="container mx-auto my-4">
+    <div class="container my-4">
       <div class="flex">
         <!-- Sidebar -->
-        <aside class="w-full lg:w-1/5 mb-4 border border-black">
+        <aside class="w-full lg:w-1/5 mb-4 mx-4 p-4">
           <div class="filter-section">
             <h4 class="text-lg font-semibold">Categories</h4>
-            <ul class="space-y-2">
-              <%if(categories){categories.forEach((category)=>{%>
-              <li><input type="checkbox" oninput="applyFilters()" name="category" value="<%=category._id%>" id="<%=category.categoryName%>"> <label for="<%=category.categoryName%>"><%=category.categoryName%></label></li>
-              <%})}%>
-            </ul>
-            <h4 class="text-lg font-semibold mt-4">Filter</h4>
-            <p class="text-sm">Gender</p>
-            <ul class="space-y-2">
-              <li><input type="radio" value="Men" oninput="applyFilters()" name="gender" id="men"> <label for="men">Men</label></li>
-              <li><input type="radio" value="Women" oninput="applyFilters()" name="gender" id="women"> <label for="women">Women</label></li>
-              <li><input type="radio" value="Unisex" oninput="applyFilters()" name="gender" id="unisex"> <label for="unisex">Unisex</label></li>
-            </ul>
-            <p class="text-sm mt-4">Price</p>
-            <div class="flex space-x-2">
-              <input type="number" id="min-price" name="min-price" class="form-input rounded px-3 py-1 w-1/2" placeholder="Min">
-              <input type="number" id="max-price" name="max-price" class="form-input rounded px-3 py-1 w-1/2" placeholder="Max"><br>
-              <button onclick="applyFilters()">Apply</button> 
+            <div class="relative inline-block w-full">
+              <label for="categories" class="block text-lg font-semibold mb-2">Select Category</label>
+              <ul id="categories" 
+                  class="block w-full p-2 bg-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <% if (categories) { categories.forEach((category) => { %>
+                  <li class="flex items-center gap-2 p-2 border-b">
+                    <input 
+                      type="checkbox" 
+                      name="category" 
+                      value="<%= category._id %>" 
+                      id="category-<%= category._id %>" 
+                      class="cursor-pointer"
+                      onchange="applyFilters()">
+                    <label for="category-<%= category._id %>" class="cursor-pointer">
+                      <%= category.categoryName %>
+                    </label>
+                  </li>
+                <% }) } %>
+              </ul>
+            </div>            
+            <div class="relative inline-block w-full">
+              <h4 class="text-lg font-semibold">Sort By</h4>
+              <select name="sort" id="sort" onchange="applyFilters()"
+                class="bg-white block w-full text-black border-2 border-gray-300 rounded px-4 py-2">
+                <option value="" selected>Default</option>
+                <option value="rating">Average Ratings</option>
+                <option disabled value="popularity">Popularity</option>
+                <option disabled value="featured">Featured Products</option>
+                <option value="latest">Latest Arrivals</option>
+                <option value="priceAsc">Price: Low to High</option>
+                <option value="priceDesc">Price: High to Low</option>
+                <option value="nameAsc">Aa-Zz</option>
+                <option value="nameDesc">Zz-Aa</option>
+              </select>
             </div>
+            <h4 class="text-lg font-semibold mt-4">Filter</h4>
+            <div class="relative inline-block w-full">
+              <label for="gender" class="block text-lg font-semibold mb-2">Gender</label>
+              <select name="gender" id="gender"
+                class="block w-full p-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onchange="applyFilters()">
+                <option value="" selected>All</option>
+                <option value="Men" id="men">Men</option>
+                <option value="Women" id="women">Women</option>
+                <option value="Unisex" id="unisex">Unisex</option>
+              </select>
+            </div>
+
+            <p class="text-lg font-semibold mt-4">Price</p>
+            <div class="flex space-x-4">
+              <!-- Min Price -->
+              <div class="w-1/2">
+                <label for="min-price" class="block text-sm font-medium text-gray-700 mb-1">Min Price</label>
+                <input type="number" id="min-price" name="min-price"
+                  class="form-input rounded px-4 py-2 w-full bg-gray-100 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none" 
+                  oninput="applyFilters()"/>
+              </div>
+
+              <!-- Max Price -->
+              <div class="w-1/2">
+                <label for="max-price" class="block text-sm font-medium text-gray-700 mb-1">Max Price</label>
+                <input type="number" id="max-price" name="max-price"
+                  class="form-input rounded px-4 py-2 w-full bg-gray-100 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none" 
+                  oninput="applyFilters()"/>
+              </div>
+            </div>
+
+            <div class="relative inline-block w-1/2 bg-red-800 mt-3">
+              <button onclick="removeFilters()">
+                Remove Filters
+              </button>
+            </div>
+
           </div>
         </aside>
 
         <!-- Product Section -->
-        <main class="w-full lg:w-4/5">
+        <main class="w-full lg:w-4/5 p-5">
           <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-semibold">Our Collection</h2>
-            <select name="sort" id="sort" onchange="applyFilters()" class="bg-white text-black border-2 border-gray-300 rounded px-4 py-2">
-              <option  value="" disabled selected>Sort by</option>
-              <option value="rating">Average Ratings</option>
-              <option  disabled value="popularity">Popularity</option>
-              <option disabled value="featured">Featured Products</option>
-              <option value="latest">Latest Arrivals</option>
-              <option value="priceAsc">Price: Low to High</option>
-              <option value="priceDesc">Price: High to Low</option>
-              <option value="nameAsc">Aa-Zz</option>
-              <option value="nameDesc">Zz-Aa</option>
-            </select>
+            <h2 class="text-xl font-semibold">Our Collections</h2>
           </div>
           <div class="mb-4">
-            <input type="text" id="search" name="search" class="form-input rounded px-4 py-2 w-[90%]" placeholder="Search an item">
+            <input type="text" id="search" name="search" class="form-input rounded px-4 py-2 w-[90%]"
+              placeholder="Search an item" oninput="applyFilters()">
             <button onclick="applyFilters()">Search</button>
-         </div>
+          </div>
           <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <!-- Product Card -->
-              <% products.forEach(function(product) { %>
-                <div class="card p-4 border rounded shadow-md">
-                  <div class="w-full ">
-                    <div class="w-full h-100">
-                    <img src="<%= product.imageUrl[0] %>" class="w-full h-full object-cover rounded" alt="Product Image">
+            <% products.forEach(function(product) { %>
+              <div class="card p-4 border rounded shadow-md bg-gray-400">
+                <div class="w-full ">
+                  <div class="w-full h-100">
+                    <img src="<%= product.imageUrl[0] %>" class="w-full h-full object-cover rounded"
+                      alt="Product Image">
                   </div>
                 </div>
-                  <div class="text-center mt-3">
-                    <h6 class="text-lg font-semibold"><%= product.productName %></h6>
-                    <p class="text-gray-600"><%= product.price %></p>
-                    <a href="/product/<%= product._id %>" class="btn bg-blue-500 text-white rounded px-4 py-2 mt-2 inline-block">View Product</a>
+                <div class="mt-3 bg-white py-3 px-3">
+                  <div class="flex">
+                    <h6 class="text-lg font-semibold">
+                      <%= product.productName %>
+                    </h6>
+                    <a class="flex items-center justify-center w-10 h-10 bg-red-100 hover:bg-red-200 rounded-full shadow-md transition duration-300 ease-in-out ml-auto"
+                      onclick="toggleWishlist('<%=product._id%>')">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-500" viewBox="0 0 24 24"
+                        fill="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                      </svg>
+                    </a>
                   </div>
+                  <h6 class="text-lg font-light">
+                    <%= product.description.substring(0, 20) + '...' %>
+                  </h6>
+                  <div class="flex justify-between items-center mb-2">
+                    <p class="font-bold text-xl">
+                      <span class="font-bold">₹</span>
+                      <%=product.finalDiscountedPrice%>
+                    </p>
+                    <%if(product.finalDiscountedPrice < product.price ){%>
+                      <span class=" line-through text-sm">₹<%=product.price%></span>
+                      <%}%>
+                  </div>
+                  <%if(product.stock>0){%>
+                    <h6 class="text-lg font-normal">
+                      <%= product.stock%> Pieces Left
+                    </h6>
+                    <%}else{%>
+                      <h6 class="text-lg font-normal">Out of Stock</h6>
+                      <%}%>
+                        <a href="/product/<%= product._id %>"
+                          class="btn bg-blue-500 text-white rounded px-2 py-1 mt-2 inline-block">View</a>
+                        <a class="btn bg-blue-500 text-white rounded px-2 py-1 mt-2 inline-block" id="add-to-cart"
+                          onclick="addToCart('<%=product._id%>')">Add to Cart</a>
                 </div>
+              </div>
               <% }) %>
-           
-              
+
+
           </div>
-          <div class="text-center mt-4">
-            <button class="bg-blue-500 text-white px-6 py-2 rounded">Load More</button>
-          </div>
+          <!-- Pagination -->
+    <div class="mt-4 flex justify-center">
+      <nav class="inline-flex" id="pagination-container">
+             <%if(currentPage>1){%>
+               <a href="/shopAll?page=<%= currentPage - 1 %>&limit=9"
+            class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer" id="pagination-previous">Previous</a>
+            <%}%>
+               <% for (let i=1; i <=totalPages; i++) { %>
+              <a href="/shopAll?page=<%= i %>&limit=9"
+                class="<%= currentPage === i ? 'bg-indigo-500' : 'bg-[#222]' %> text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer"
+                id="pagination-current">
+                <%= i %>
+              </a>
+              <% } %>
+              <%if(currentPage<totalPages){%>
+                 <a href="/shopAll?page=<%= currentPage + 1 %>&limit=9"
+                    class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer"
+                    id="pagination-next">Next</a>
+                    <%}%>
+      </nav>
+    </div>
         </main>
       </div>
     </div>
 
-     
+
     <!-- Footer Section -->
-     <%- include('../partials/user-footer') %>
-  </body>
+    <%- include('../partials/user-footer') %>
+</body>
+
 </html>
 <script>
+//--------------------Filter-----------------------------------------------------------------------------------------
 
-async function applyFilters(){
+//Remove Filters
+
+ async function removeFilters(){
   try{
-  const categories= Array.from(document.querySelectorAll('input[name="category"]:checked'))
-                     .map((checkbox)=>checkbox.value);
-  const filters={};
-  const gender = document.querySelector('input[name="gender"]:checked')?.value;
-  const maxPrice=document.getElementById('max-price').value;
-  const minPrice=document.getElementById('min-price').value;
-  const search=document.getElementById('search').value.trim();
-  if(gender){filters.gender=gender};
-   if(maxPrice){filters.maxPrice=maxPrice};
-   if(minPrice){filters.minPrice=minPrice};
-   if(search){filters.search=search}; 
-   const sort=document.getElementById('sort').value;
-  const response=await fetch('/filter',{
-    method:"POST",
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-      categories:categories,
-      filters:filters,
-      sort
-    })
-  });
-  if(response.ok){
-    const data=await response.json();
-    console.log(data.products)
-    if(!data.products || data.products.length===0){
-      document.getElementById('product-grid').innerHTML=`
+    Array.from(document.querySelectorAll('input[name="category"]:checked'))
+        .forEach((checkbox) => checkbox.checked=false)
+    document.getElementById('gender').querySelector('option[value=""]').selected=true;
+    document.getElementById('sort').querySelector('option[value=""]').selected=true;
+    document.getElementById('max-price').value="";
+    document.getElementById('min-price').value="";
+    document.getElementById('search').value="";
+    await applyFilters();
+  }catch (error) {
+      console.error("error applying filters", error);
+      Swal.fire("Error","Error In Filtering Products", "error");
+} 
+ }
+
+//Apply Filters
+  async function applyFilters(url='/filter?page=1&limit=9') {
+    try {
+      const categories = Array.from(document.querySelectorAll('input[name="category"]:checked'))
+        .map((checkbox) => checkbox.value);
+      const filters = {};
+      const gender = document.getElementById('gender').value;
+      const maxPrice = document.getElementById('max-price').value;
+      const minPrice = document.getElementById('min-price').value;
+      const search = document.getElementById('search').value.trim();
+      if (gender) { filters.gender = gender };
+      if (maxPrice) { filters.maxPrice = maxPrice };
+      if (minPrice) { filters.minPrice = minPrice };
+      if (search) { filters.search = search };
+      const sort = document.getElementById('sort').value;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          categories: categories,
+          filters: filters,
+          sort
+        })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        console.log(data)
+        if (!data.products || data.products.length === 0) {
+          document.getElementById('product-grid').innerHTML = `
       <div>No Products Matches Your Query</div>`
-    }else{document.getElementById("product-grid").innerHTML
-    =data.products.map((product)=>{
-    return `<div class="card p-4 border rounded shadow-md">
-                  <div class="w-full ">
-                    <div class="w-full h-100">
-                    <img src="${product.imageUrl[0]}" class="w-full h-full object-cover rounded" alt="Product Image">
+        } else {
+          document.getElementById("product-grid").innerHTML=
+           data.products.map((product) => (
+          ` 
+           <div class="card p-4 border rounded shadow-md bg-gray-400">
+                <div class="w-full ">
+                  <div class="w-full h-100">
+                    <img src="${ product.imageUrl[0] }" class="w-full h-full object-cover rounded"
+                      alt="Product Image">
                   </div>
                 </div>
-                  <div class="text-center mt-3">
-                    <h6 class="text-lg font-semibold">${product.productName}</h6>
-                    <p class="text-gray-600">${product.price}</p>
-                    <a href="/product/${product._id }" class="btn bg-blue-500 text-white rounded px-4 py-2 mt-2 inline-block">View Product</a>
+                <div class="mt-3 bg-white py-3 px-3">
+                  <div class="flex">
+                    <h6 class="text-lg font-semibold">
+                      ${ product.productName }
+                    </h6>
+                    <a class="flex items-center justify-center w-10 h-10 bg-red-100 hover:bg-red-200 rounded-full shadow-md transition duration-300 ease-in-out ml-auto"
+                      onclick="toggleWishlist('${product._id}')">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-500" viewBox="0 0 24 24"
+                        fill="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                      </svg>
+                    </a>
                   </div>
-                </div>`;
-              }).join('');
+                  <h6 class="text-lg font-light">
+                    ${ product.description.substring(0, 20) + '...' }
+                  </h6>
+                  <div class="flex justify-between items-center mb-2">
+                    <p class="font-bold text-xl">
+                      <span class="font-bold">₹</span>
+                      ${product.finalDiscountedPrice}
+                    </p>
+                    ${product.finalDiscountedPrice < product.price ?
+                      `<span class=" line-through text-sm">₹${product.price}</span>`:''}                     
+                  </div>
+                  ${product.stock>0?
+                    `<h6 class="text-lg font-normal">${ product.stock} Pieces Left
+                    </h6>`: `<h6 class="text-lg font-normal">Out of Stock</h6>`}
+                        <a href="/product/${ product._id }"
+                          class="btn bg-blue-500 text-white rounded px-2 py-1 mt-2 inline-block">View</a>
+                        <a class="btn bg-blue-500 text-white rounded px-2 py-1 mt-2 inline-block" id="add-to-cart"
+                          onclick="addToCart('${product._id}')">Add to Cart</a>
+                </div>
+              </div>`
+           )).join(''); 
+        }
+      //pagination
+      const paginationContainer=document.getElementById('pagination-container');
+     let html=` 
+             ${data.currentPage>1 ?`
+               <a onclick="setPaginationDetails(${data.currentPage-1},9)"
+            class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer" >Previous</a>
+            `: ''}
+            `;
+         for (let i=1; i <=data.totalPages; i++) {
+          html+=    `<a onclick="setPaginationDetails(${i},9)"
+                class="${data.currentPage === i ? 'bg-indigo-500' : 'bg-[#222]'} text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer"
+                >
+                ${i}
+              </a>`;
+            }
+              
+           html+= `${data.currentPage<data.totalPages ?
+                 `<a onclick="setPaginationDetails(${data.currentPage+1},9)"
+                    class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer"
+                    >Next</a>`:''}`
+        paginationContainer.innerHTML=html;
 
-     
+    }}catch (error){
+      console.error("error applying filters", error);
+      Swal.fire("Error", error.message || "Error In Filtering Products", "error");
     }
   }
+  
+ 
+//----------------------------------------Pagination---------------------------------------------
+async function setPaginationDetails(page,limit){
+const url=`/filter?page=${page}&limit=${limit}`
+applyFilters(url);
+}
+//--------------------------------Add to Cart-------------------------------------------------------
+  async function addToCart(productId) {
+    const quantity = 1; // Default quantity for now, later give option to select quantity
 
-  }catch(error){
-    console.error("error applying filters",error);
-   Swal.fire("Error",error.message || "Error In Filtering Products" ,"error"); 
-  }
-  }
+    fetch("/cart/add", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        productId,
+        quantity,
+      }),
+    })
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          return response.json().then((data) => {
+            throw new Error(data.message || "Failed to add to cart.");
+          });
+        }
+      }).then((data) => {
+        Swal.fire("Success", data.message , "success");
+      })
+      .catch((error) => {
+        console.error("Error adding to cart:", error.message);
+        Swal.fire("Error","Error In adding products to cart", "error");
+      });
+  };
 
+  function toggleWishlist(productId) {
+    fetch('/wishlist/toggle', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: JSON.stringify({ productId })
+    })
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          return response.json()
+            .then((error) => { throw new Error(error.message || "Something went wrong") })
+        }
+      })
+      .then(data => {
+        Swal.fire({
+          title: "Success",
+          text: data.message,
+          icon: 'success',
+          showConfirmButton: false,
+          timer: 1500
+        });
+        // Update the wishlist icon
+        const wishlistBtn = document.querySelector(`button[onclick="toggleWishlist('${productId}')"]`);
+
+      })
+      .catch(error => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops...',
+          text: error.message || 'Something went wrong!',
+        });
+      });
+  }
 
 </script>

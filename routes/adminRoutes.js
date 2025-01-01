@@ -10,16 +10,15 @@ const adminAuth = require('../middlewares/adminAuth');
 const adminOrderController = require('../controllers/admin/adminOrderController');
 const adminOfferController=require('../controllers/admin/adminOfferController');
 const adminCouponController=require('../controllers/admin/adminCouponController');
+const salesController=require('../controllers/admin/adminSalesController');
 
 
 router.get('/login', adminAuth.isLoggedIn, (req, res) => {
     res.render('admin/admin-login')
 })
 router.post('/login', adminAuth.isLoggedIn, adminController.postLogin)
-router.get('/dashboard', adminAuth.checkSession, (req, res) => {
-    res.render('admin/admin-dashboard')
-})
-
+router.get('/dashboard', adminAuth.checkSession,adminController.getDashboard)
+router.get('/dashboard/data', adminAuth.checkSession, adminController.getSalesSummary);
 router.post("/logout", adminController.logout);
 
 
@@ -65,4 +64,9 @@ router.put("/coupons/edit/:id",adminAuth.checkSession,adminCouponController.edit
 router.delete("/coupons/delete/:id",adminAuth.checkSession,adminCouponController.deleteCoupon);
 router.get("/admin/coupons/search/",adminAuth.checkSession,paginate,adminCouponController.searchCoupons);
 
+//-----------------------------------Sales routes--------------------------------------------------------
+router.get('/sales-report', adminAuth.checkSession, salesController.renderSalesReportPage);
+router.get('/sales-report/data', adminAuth.checkSession, salesController.getSalesReport);
+router.get('/sales-report/download/pdf', adminAuth.checkSession, salesController.downloadPdfReport);
+router.get('/sales-report/download/excel', adminAuth.checkSession, salesController.downloadExcelReport);
 module.exports = router;

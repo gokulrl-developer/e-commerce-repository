@@ -25,7 +25,7 @@
                 <% order.orderItems.forEach(item => { %>
                     <div class="flex justify-between items-center">
                         <span><%= item.product.productName %> x <%= item.quantity %></span>
-                        <span>₹<%= (item.product.discountedPrice*item.quantity).toFixed(2) %></span>
+                        <span>₹<%= (item.totalPrice).toFixed(2) %></span>
                     </div>
                 <% }) %>
             </div>

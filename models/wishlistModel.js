@@ -1,12 +1,12 @@
 const mongoose=require('mongoose');
 const wishlistSchema= new mongoose.Schema({
-  userId:{
+  user:{
     type: mongoose.Schema.Types.ObjectId,
     ref:'User',
     required:true ,
 
   },
-  productId:{
+  product:{
     type:mongoose.Schema.Types.ObjectId,
     ref:'Product',
     required:true

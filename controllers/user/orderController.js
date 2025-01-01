@@ -149,7 +149,7 @@ exports.cancelOrderItem = async (req, res) => {
       // Process refund
       if (order.payment.paymentMethod !== 'Cash On Delivery' && order.payment.paymentStatus === 'Completed') {
           await Wallet.findOneAndUpdate(
-              { user: order.customer.customerId },
+              { user: order.user.userId },
               { 
                   $inc: { balance: refundAmount },
                   $push: { 
@@ -186,18 +186,7 @@ exports.cancelOrderItem = async (req, res) => {
   }
 };
 
-exports.getWalletBalance = async (req, res) => {
-  try {
-      const userId = req.user._id;
-      const wallet = await Wallet.findOne({ user: userId });
-      const balance = wallet ? wallet.balance : 0;
-      res.status(200).json({ balance });
-  } catch (error) {
-      console.error('Error fetching wallet balance:', error);
-      res.status(500).json({ message: 'Failed to fetch wallet balance' });
-  }
-};
-   exports.getOrderConfirmation = async (req, res) => {
+exports.getOrderConfirmation = async (req, res) => {
     try {
       const orderId = req.params.orderId;
       
@@ -308,7 +297,6 @@ exports.getWalletBalance = async (req, res) => {
         if (!item) {
             return res.status(404).json({ message: 'Item not found in the order' });
         }
-console.log(item.status);
         if (item.status !== 'Delivered') {
             return res.status(400).json({ message: 'Only delivered items can be returned' });
         }

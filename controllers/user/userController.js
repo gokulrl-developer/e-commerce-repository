@@ -1,6 +1,7 @@
 const User = require('../../models/userModel');
 const Product = require('../../models/productModel');
 const Category = require('../../models/categoryModel');
+const Offer = require('../../models/offerModel');
 const { generateOtp, sendOtpEmail } = require('../../utils/sendOtpUtil');
 const { saveOtp, Otp } = require('../../models/otpModel');
 const bcrypt = require("bcryptjs");
@@ -33,14 +34,14 @@ async function postLogin(req, res) {
     const { email, password } = req.body;
     const matchedUser = await User.findOne({ email }).lean();
     if (!matchedUser) {
-      return res.status(401).json({message:"invalid Credentials"});
+      return res.status(401).json({ message: "invalid Credentials" });
     }
-    if(matchedUser.status==='Blocked'){
-      return res.status(401).json({message:"User is blocked"});
+    if (matchedUser.status === 'Blocked') {
+      return res.status(401).json({ message: "User is blocked" });
     }
     const isMatch = await bcrypt.compare(password, matchedUser.password);
     if (!isMatch) {
-      return res.render('user/user-error',{statusCode:401,message:"Invalid Credentials"}) 
+      return res.render('user/user-error', { statusCode: 401, message: "Invalid Credentials" })
     } else {
       req.session.user = matchedUser;
       res.status(200).json({ redirectUrl: "/" });
@@ -83,19 +84,45 @@ async function signUpPost(req, res) {
 }
 
 async function shopAll(req, res) {
-  const products = await Product.find({}).lean();
+  const {currentPage,limit,skip}=req.pagination;
+  const products = await Product.find({}).skip(skip).limit(limit).lean();
   const categories = await Category.find({}).lean();
-  products.forEach(product => {
-    product.firstImageUrl = product.imageUrl[0];
-  });
-  res.render('user/all-products', { products, categories })
+  const totalProducts=await Product.find({}).countDocuments();
+  const totalPages=Math.ceil(totalProducts/limit);
+  for (let product of products) {
+    const productOffer = await Offer.findOne({
+      offerType: 'Product', applicableProduct: product._id, isActive: true,
+      startDate: { $lte: Date.now() }, expiryDate: { $gte: Date.now() }
+    });
+    const categoryOffer = await Offer.findOne({
+      offerType: 'Category', applicableCategory: product.category, isActive: true,
+      startDate: { $lte: Date.now() }, expiryDate: { $gte: Date.now() }
+    });
+
+    let bestDiscount = 0;
+    if (productOffer) {
+      bestDiscount = Math.max(bestDiscount, productOffer.discountPercentage);
+    }
+
+    if (categoryOffer) {
+      if (categoryOffer.discountPercentage > bestDiscount) {
+        bestDiscount = categoryOffer.discountPercentage;
+      }
+    }
+    let finalDiscountedPrice = product.price;
+    if (bestDiscount > 0) {
+      finalDiscountedPrice = product.price * (1 - bestDiscount / 100);
+    }
+    product.finalDiscountedPrice = finalDiscountedPrice;
+  };
+  res.render('user/all-products', { products, categories,currentPage,totalPages })
 };
 
 
 async function filterProducts(req, res) {
+  const {currentPage,limit,skip}=req.pagination;
   try {
     const { categories, filters, sort } = req.body;
-    console.log(req.body);
     if (categories.length === 0 && filters.length === 0 && !sort) { return res.redirect('/shopAll') }
     const filter = [];
     if (categories.length !== 0) { filter.push({ category: { $in: [...categories] } }) };
@@ -103,7 +130,7 @@ async function filterProducts(req, res) {
     if (filters.minPrice) { filter.push({ price: { $gte: filters.minPrice } }) };
     if (filters.maxPrice) { filter.push({ price: { $lte: filters.maxPrice } }) };
     if (filters.search) {
-      const regex = new RegExp("^"+filters.search, "i");
+      const regex = new RegExp("^" + filters.search, "i");
       filter.push({ productName: { $regex: regex } })
     };
     let sortObj = {};
@@ -115,24 +142,41 @@ async function filterProducts(req, res) {
       sortObj.price = 1;
     } else if (sort === 'latest') {
       sortObj.createdAt = -1;
-    } else if (sort === 'priceDesc') {
-      sortObj.price = -1;
-    } else if (sort === 'priceDesc') {
-      sortObj.price = -1;
-    } else if (sort === 'priceDesc') {
-      sortObj.price = -1;
     } else if (sort === 'nameAsc') {
       sortObj.productName = 1;
     } else if (sort === 'nameDesc') {
       sortObj.productName = -1;
     }
+    const products = await Product.find({ $and: filter }).sort(sortObj).skip(skip).limit(limit).lean();
+    const totalProducts=await Product.find({ $and: filter }).sort(sortObj).countDocuments();
+    const totalPages=Math.ceil(totalProducts/limit);
+    for (let product of products) {
+      const productOffer = await Offer.findOne({
+        offerType: 'Product', applicableProduct: product._id, isActive: true,
+        startDate: { $lte: Date.now() }, expiryDate: { $gte: Date.now() }
+      });
+      const categoryOffer = await Offer.findOne({
+        offerType: 'Category', applicableCategory: product.category, isActive: true,
+        startDate: { $lte: Date.now() }, expiryDate: { $gte: Date.now() }
+      });
 
-    const products = await Product.find({ $and: filter }).sort(sortObj);
-    /* if (products.length === 0) {
-      return res.status(404).json({ message: 'No products found' });
-    } */
+      let bestDiscount = 0;
+      if (productOffer) {
+        bestDiscount = Math.max(bestDiscount, productOffer.discountPercentage);
+      }
 
-    res.status(200).json({ products });
+      if (categoryOffer) {
+        if (categoryOffer.discountPercentage > bestDiscount) {
+          bestDiscount = categoryOffer.discountPercentage;
+        }
+      }
+      let finalDiscountedPrice = product.price;
+      if (bestDiscount > 0) {
+        finalDiscountedPrice = product.price * (1 - bestDiscount / 100);
+      }
+      product.finalDiscountedPrice = finalDiscountedPrice;
+    };
+    res.status(200).json({ products,currentPage,totalPages});
   } catch (error) {
     console.error('Error filtering products:', error);
     res.status(500).json({ message: 'Error filtering products' });
@@ -264,19 +308,74 @@ async function getProduct(req, res) {
     const productId = req.params.id;
 
     if (!mongoose.Types.ObjectId.isValid(productId)) {
-      return res.render('user/user-error',{statusCode:400,message:"invalid Product Id"})
+      return res.render('user/user-error', { statusCode: 400, message: "invalid Product Id" })
     }
 
     const product = await Product.findOne({ _id: productId });
-    const products = await Product.find({}).lean();
-
     if (!product) {
-      return res.render('user/user-error',{statusCode:404,message:"No product found"})
+      return res.render('user/user-error', { statusCode: 404, message: "No product found" })
     }
+    const productOffer = await Offer.findOne({
+      offerType: 'Product', applicableProduct: product._id, isActive: true,
+      startDate: { $lte: Date.now() }, expiryDate: { $gte: Date.now() }
+    });
+    const categoryOffer = await Offer.findOne({
+      offerType: 'Category', applicableCategory: product.category, isActive: true,
+      startDate: { $lte: Date.now() }, expiryDate: { $gte: Date.now() }
+    });
+
+    let bestDiscount = 0;
+    let appliedOffer=null;
+    if (productOffer) {
+      bestDiscount = Math.max(bestDiscount, productOffer.discountPercentage);
+      appliedOffer=productOffer;
+    }
+
+    if (categoryOffer) {
+      if (categoryOffer.discountPercentage > bestDiscount) {
+        bestDiscount = categoryOffer.discountPercentage;
+        appliedOffer=categoryOffer;
+      }
+    }
+    let finalDiscountedPrice = product.price;
+    if (bestDiscount > 0) {
+      finalDiscountedPrice = product.price * (1 - bestDiscount / 100);
+    }
+    product.finalDiscountedPrice = finalDiscountedPrice;
+    product.appliedOffer=appliedOffer;
+    
+    const products = await Product.find({}).lean().limit(8);
+    for (let product of products) {
+      const productOffer = await Offer.findOne({
+        offerType: 'Product', applicableProduct: product._id, isActive: true,
+        startDate: { $lte: Date.now() }, expiryDate: { $gte: Date.now() }
+      });
+      const categoryOffer = await Offer.findOne({
+        offerType: 'Category', applicableCategory: product.category, isActive: true,
+        startDate: { $lte: Date.now() }, expiryDate: { $gte: Date.now() }
+      });
+  
+      let bestDiscount = 0;
+      if (productOffer) {
+        bestDiscount = Math.max(bestDiscount, productOffer.discountPercentage);
+      }
+  
+      if (categoryOffer) {
+        if (categoryOffer.discountPercentage > bestDiscount) {
+          bestDiscount = categoryOffer.discountPercentage;
+        }
+      }
+      let finalDiscountedPrice = product.price;
+      if (bestDiscount > 0) {
+        finalDiscountedPrice = product.price * (1 - bestDiscount / 100);
+      }
+      product.finalDiscountedPrice = finalDiscountedPrice;
+    };
     res.render("user/view-product", { product, products });
+    
   } catch (err) {
     console.error("Error fetching product:", err.message);
-    return res.render('user/user-error',{statusCode:500,message:"Server error while retrieving the product"});
+    return res.render('user/user-error', { statusCode: 500, message: "Server error while retrieving the product" });
   }
 };
 async function resendOtp(req, res) {

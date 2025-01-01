@@ -6,14 +6,7 @@ const Offer = require('../../models/offerModel');
 
 exports.getWishlist = async (req, res) => {
     try {
-        let cartItemCount = 0;
-        if (req.user) {
-            const cart = await Cart.findOne({ userId: req.user._id });
-            if (cart) {
-                cartItemCount = cart.items.length
-            } 
-        }
-        res.render('user/wishList', { user: req.user, cartItemCount });
+        res.render('user/user-wishList', { user: req.user});
     } catch (error) {
         console.error('Error rendering wishlist page:', error);
         res.status(500).render('error', { message: 'Error loading wishlist page' });
@@ -22,16 +15,16 @@ exports.getWishlist = async (req, res) => {
 
 exports.getWishlistData = async (req, res) => {
     try {
-        const wishlistItems = await Wishlist.find({ userId: req.user._id })
-            .populate('productId', 'product_name price discountPrice image stock rating description category createdAt')
+        const wishlistItems = await Wishlist.find({ user: req.user._id })
+            .populate('product', 'productName price imageUrl rating description category')
             .lean();
         
         const currentDate = new Date();
         const sevenDaysAgo = new Date(currentDate - 7 * 24 * 60 * 60 * 1000);
         
         // Fetch additional offers for products
-        const productIds = wishlistItems.map(item => item.productId._id);
-        const categoryIds = wishlistItems.map(item => item.productId.category);
+        const productIds = wishlistItems.map(item => item.product._id);
+        const categoryIds = wishlistItems.map(item => item.product.category);
         
         const additionalOffers = await Offer.find({
             $or: [
@@ -45,10 +38,10 @@ exports.getWishlistData = async (req, res) => {
 
         const transformedWishlist = wishlistItems.map(item => {
             const productOffer = additionalOffers.find(offer => 
-                offer.applicableProduct && offer.applicableProduct.equals(item.productId._id)
+                offer.applicableProduct && offer.applicableProduct.equals(item.product._id)
             );
             const categoryOffer = additionalOffers.find(offer => 
-                offer.applicableCategory && offer.applicableCategory.equals(item.productId.category)
+                offer.applicableCategory && offer.applicableCategory.equals(item.product.category)
             );
             
             let bestDiscount = 0;
@@ -66,46 +59,34 @@ exports.getWishlistData = async (req, res) => {
                 }
             }
 
-            let finalDiscountPrice = item.productId.discountPrice;
+            let finalDiscountedPrice = item.price;
             let offer = null;
 
             if (bestDiscount > 0 && bestOfferSource) {
-                finalDiscountPrice = item.productId.discountPrice * (1 - bestDiscount / 100);
+                finalDiscountedPrice = item.product.price * (1 - bestDiscount / 100);
                 offer = {
                     title: bestOfferSource.title,
                     discountPercentage: bestDiscount
                 };
             }
 
-            const isNew = item.productId.createdAt > sevenDaysAgo;
 
             return {
-                _id: item.productId._id,
+                _id: item.product._id,
                 wishlistItemId: item._id,
-                product_name: item.productId.product_name,
-                description: item.productId.description,
-                image: item.productId.image,
-                price: item.productId.price,
-                discountPrice: Math.floor(finalDiscountPrice),
-                stock: item.productId.stock,
-                rating: item.productId.rating,
+                productName: item.product.productName,
+                description: item.product.description,
+                image: item.product.imageUrl[0],
+                price: item.product.price,
+                discountedPrice: Math.floor(finalDiscountedPrice),
+                rating: item.product.rating,
                 offer: offer,
-                isNew: isNew
             };
         });
-
-        let cartItemCount = 0;
-        if (req.user) {
-            const cart = await Cart.findOne({ userId: req.user._id });
-            if (cart) {
-                cartItemCount = cart.items.length
-            }
-        }
-
-        res.json({ success: true, wishlist: transformedWishlist, cartItemCount });
+        res.json({ wishlist: transformedWishlist});
     } catch (error) {
         console.error('Error fetching wishlist data:', error);
-        res.status(500).json({ success: false, message: 'Error fetching wishlist data' });
+        res.status(500).json({ message: 'Error fetching wishlist data' });
     }
 };
 
@@ -115,31 +96,23 @@ exports.addToWishlist = async (req, res) => {
 
         const product = await Product.findById(productId);
         if (!product) {
-            return res.status(404).json({ success: false, message: 'Product not found' });
+            return res.status(404).json({message: 'Product not found' });
         }
 
-        const existingItem = await Wishlist.findOne({ userId: req.user._id, productId });
+        const existingItem = await Wishlist.findOne({ user: req.user._id, product });
         if (existingItem) {
-            return res.status(400).json({ success: false, message: 'Product already in wishlist' });
+            return res.status(400).json({message: 'Product already in wishlist' });
         }
 
         const wishlistItem = new Wishlist({
-            userId: req.user._id,
-            productId: productId
+            user: req.user._id,
+            product: productId
         });
         await wishlistItem.save();
-        let cartItemCount = 0;
-        if (req.user) {
-            const cart = await Cart.findOne({ userId: req.user._id });
-            if (cart) {
-                cartItemCount = cart.items.length
-            }
-        }
-
-        res.json({ success: true, message: 'Product added to wishlist', cartItemCount });
+        res.json({ success: true, message: 'Product added to wishlist'});
     } catch (error) {
         console.error('Error adding to wishlist:', error);
-        res.status(500).json({ success: false, message: 'Error adding to wishlist' });
+        res.status(500).json({message: 'Error adding to wishlist' });
     }
 };
 
@@ -147,15 +120,15 @@ exports.removeFromWishlist = async (req, res) => {
     try {
         const { wishlistItemId } = req.body;
 
-        const result = await Wishlist.findOneAndDelete({ _id: wishlistItemId, userId: req.user._id });
+        const result = await Wishlist.findOneAndDelete({ _id: wishlistItemId, user: req.user._id });
         if (!result) {
-            return res.status(404).json({ success: false, message: 'Wishlist item not found' });
+            return res.status(404).json({ message: 'Wishlist item not found' });
         }
 
-        res.json({ success: true, message: 'Product removed from wishlist' });
+        res.status(200).json({message: 'Product removed from wishlist' });
     } catch (error) {
         console.error('Error removing from wishlist:', error);
-        res.status(500).json({ success: false, message: 'Error removing from wishlist' });
+        res.status(500).json({ message: 'Error removing from wishlist' });
     }
 };
 
@@ -163,21 +136,21 @@ exports.toggleWishlistItem = async (req, res) => {
     try {
         const { productId } = req.body;
 
-        const existingItem = await Wishlist.findOne({ userId: req.user._id, productId });
+        const existingItem = await Wishlist.findOne({ user: req.user._id, product:productId });
 
         if (existingItem) {
             await Wishlist.findByIdAndDelete(existingItem._id);
-            res.json({ success: true, message: 'Product removed from wishlist' });
+            res.status(200).json({ message: 'Product removed from wishlist' });
         } else {
             const wishlistItem = new Wishlist({
-                userId: req.user._id,
-                productId: productId
+                user: req.user._id,
+                product: productId
             });
             await wishlistItem.save();
-            res.json({ success: true, message: 'Product added to wishlist' });
+            res.status(200).json({message: 'Product added to wishlist' });
         }
     } catch (error) {
         console.error('Error toggling wishlist item:', error);
-        res.status(500).json({ success: false, message: 'Error updating wishlist' });
+        res.status(500).json({message: 'Error updating wishlist' });
     }
 };

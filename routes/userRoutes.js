@@ -7,6 +7,9 @@ const userProfileController = require("../controllers/user/userProfileAddressCon
 const cartController = require("../controllers/user/cartController");
 const checkoutController = require("../controllers/user/checkoutController");
 const orderController = require("../controllers/user/orderController");
+const wishlistController = require("../controllers/user/wishlistController");
+const walletController = require("../controllers/user/walletController");
+const paginate = require('../middlewares/paginate');
 
 
 
@@ -44,8 +47,8 @@ router.post('/forgot-password-otp',userController.postForgotPasswordOtp);
 router.get('/change-password',userController.getChangePassword);
 router.post('/change-password',userController.postChangePassword);
 
-router.get('/shopAll',userAuth.checkSession,userController.shopAll);
-router.post('/filter',userAuth.checkSession,userController.filterProducts)
+router.get('/shopAll',userAuth.checkSession,paginate,userController.shopAll);
+router.post('/filter',userAuth.checkSession,paginate,userController.filterProducts)
 
 router.get('/product/:id',userAuth.checkSession,userController.getProduct);
 
@@ -95,8 +98,15 @@ router.post('/order/return-request', userAuth.checkSession, orderController.requ
 router.post('/order/verify-payment', userAuth.checkSession, orderController.verifyPayment);
 router.post('/order/resume-payment/:orderId', userAuth.checkSession, orderController.continuePayment); 
 router.post('/order/payment-failed', userAuth.checkSession, orderController.handlePaymentFailure);
-  
-router.get('/wallet',(req,res)=>{
-  res.render('user/wallet');
-})
+ 
+
+//-------------------------Wish List----------------------------------------------------------
+router.get('/wishlist',  userAuth.checkSession, wishlistController.getWishlist);
+router.get('/wishlist/data',  userAuth.checkSession, wishlistController.getWishlistData);
+router.post('/wishlist/add',  userAuth.checkSession, wishlistController.addToWishlist);
+router.post('/wishlist/remove',  userAuth.checkSession, wishlistController.removeFromWishlist);
+router.post('/wishlist/toggle',  userAuth.checkSession, wishlistController.toggleWishlistItem);
+
+router.get('/wallet',userAuth.checkSession,walletController.getWallet)
+
 module.exports=router;

@@ -40,15 +40,12 @@ passport.use(
       try {
         let user = await User.findOne({ email: profile.emails[0].value });
 
-        // console.log("google user details " +user)
         if (user) {
-          if (user.status === "blocked") {
+          if (user.status === "Blocked") {
             return done(null, false, {
               message: `${profile.emails[0].value} is blocked`,
             });
-            // return res.render("user/userLogin", {
-            // error: `${user.email} is blocked`,
-            // });
+            
           }
 
           user.googleId = profile.id;

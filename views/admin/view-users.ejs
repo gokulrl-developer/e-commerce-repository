@@ -95,6 +95,7 @@
       confirmButtonText: 'Yes, block him!'
     }).then(async (result) => {
       if (result.isConfirmed) {
+        console.log("kfjh")
         try {
           const response = await fetch(`/admin/users/block/${userId}`, {
             method: 'PUT',
@@ -102,23 +103,30 @@
               'Content-Type': 'application/json',
             },
           });
+          console.log(response);
           const result = await response.json();
-
+         console.log(result)
           if (response.ok) {
 
-            Swal.fire(
+            await Swal.fire(
               'Blocked!',
               result.message,
               'success'
             ).then(() => {
               location.reload();
             });
+          }else{
+            Swal.fire(
+              'Error',
+              result.message,
+              'error'
+            )
           } 
         } catch (error) {
           console.error('Error:', error);
           Swal.fire(
             'Error!',
-            result.message || 'An unexpected error occurred.',
+            error.message || 'An unexpected error occurred.',
             'error'
           );
         }

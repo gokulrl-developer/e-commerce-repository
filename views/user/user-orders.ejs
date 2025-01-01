@@ -52,9 +52,10 @@
                   </td>
                   <td class="px-4 py-2 border">
                     Total items : <%=order.orderItems.length%><br>
-                      Total price : <%=order.payment.totalFinalPrice%><br>
-                        Total Discount : <%=order.payment.totalPricePrice-order.payment.totalFinalPrice%><br>
-                          Order status : <%=order.orderStatus%><br>
+                      Total price : <%=order.payment.totalAmount%><br>
+                      Total Discount : <%=order.payment.discount%><br>
+                      Grand Total : <%=order.payment.grandTotal%><br>
+                      Order status : <%=order.orderStatus%><br>
                             Payment method : <%=order.payment.paymentMethod%><br>
                               Payment Status : <%=order.payment.paymentStatus%><br>
                   </td>
@@ -63,7 +64,7 @@
                       class="bg-blue-500 text-white px-3 py-2 m-2 rounded hover:bg-blue-600">
                       View Details
                     </button><br>
-                    <%if(order.payment.paymentStatus === 'Failed' || order.payment.paymentStatus === 'Pending'){%>
+                    <%if((order.payment.paymentStatus === 'Failed' || order.payment.paymentStatus === 'Pending' )&&order.payment.paymentMethod === 'Razorpay'){%>
                     <button 
                         onclick="resumePayment('<%=order._id%>','<%=user%>')" 
                         class="bg-orange-700 text-black  font-semibold px-3 py-2 rounded hover:bg-orange-800">

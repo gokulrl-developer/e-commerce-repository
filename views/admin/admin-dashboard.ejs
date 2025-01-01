@@ -7,6 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body class="bg-gray-900 text-white">
@@ -18,12 +19,60 @@
       <!-- Sidebar -->
       <%-include('../partials/admin-sidebar')%>
 
-        <!-- Main Section -->
-        <main class="w-4/5 p-6">
 
+        <!-- Main Content -->
+        <main class="flex-grow p-6 md:w-4/5">
+          <div class="flex justify-between items-center mb-8">
+            <h1 class="text-2xl font-bold text-green-500">Sales Summary</h1>
+            <div class="flex space-x-4">
+              <select id="dateRange" class="bg-[#111] text-white px-4 py-2 rounded-md">
+                <option value="day">Today</option>
+                <option value="week">This Week</option>
+                <option value="month">This Month</option>
+                <option value="year">This Year</option>
+                <option value="custom">Custom Range</option>
+              </select>
+              <input type="date" id="startDate" class="bg-[#111] text-white px-4 py-2 rounded-md hidden">
+              <input type="date" id="endDate" class="bg-[#111] text-white px-4 py-2 rounded-md hidden">
+              <button id="generateSummary"
+              class="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold px-4 py-2 rounded-md">
+              Apply
+            </button>
+            </div>
+          </div>
 
-
+          <!-- Summary Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+            <div class="bg-[#111] p-4 rounded-lg">
+              <h3 class="text-lg font-bold text-green-500">Total Sales</h3>
+              <p class="text-2xl font-bold" id="totalSales"><span class="text-red-500 font-bold">₹</span>
+                <%= summary.totalSales.toFixed(2) %>
+              </p>
+            </div>
+            <div class="bg-[#111] p-4 rounded-lg">
+              <h3 class="text-lg font-bold text-green-500">Total Orders</h3>
+              <p class="text-2xl font-bold" id="totalOrders">
+                <%= summary.totalOrders %>
+              </p>
+            </div>
+            <div class="bg-[#111] p-4 rounded-lg">
+              <h3 class="text-lg font-bold text-green-500">Total Discount</h3>
+              <p class="text-2xl font-bold" id="totalDiscount">₹<%= summary.totalDiscount.toFixed(2) %>
+              </p>
+            </div>
+            <div class="bg-[#111] p-4 rounded-lg">
+              <h3 class="text-lg font-bold text-green-500">Total Coupon</h3>
+              <p class="text-2xl font-bold" id="totalCouponDiscount">₹<%= summary.totalCouponDiscount.toFixed(2) %>
+              </p>
+            </div>
+            <div class="bg-[#111] p-4 rounded-lg">
+              <h3 class="text-lg font-bols text-green-500">Net Amount</h3>
+              <p class="text-2xl font-bold" id="netAmount">₹<%= summary.netAmount.toFixed(2) %>
+              </p>
+            </div>
+          </div>
         </main>
+
     </div>
 
     <!-- Footer -->
@@ -31,3 +80,52 @@
 </body>
 
 </html>
+<script>
+// Utility Functions
+const qs = (selector) => document.querySelector(selector);
+    const qsa = (selector) => document.querySelectorAll(selector);
+
+
+   // Generate Report
+   async function generateSummary() {
+        const dateRange = qs("#dateRange").value;
+        let startDate = qs("#startDate").value;
+        let endDate = qs("#endDate").value;
+
+        let url = `/admin/dashboard/data?range=${dateRange}`;
+        if (dateRange === 'custom') {
+            url += `&startDate=${startDate}&endDate=${endDate}`;
+        }
+
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            if (response.ok) {
+                qs("#totalSales").textContent = `₹${data.summary.totalSales.toFixed(2)}`;
+        qs("#totalOrders").textContent = data.summary.totalOrders;
+        qs("#totalDiscount").textContent = `₹${data.summary.totalDiscount.toFixed(2)}`;
+        qs("#totalCouponDiscount").textContent = `₹${data.summary.totalCouponDiscount.toFixed(2)}`;
+        qs("#netAmount").textContent = `₹${data.summary.netAmount.toFixed(2)}`;
+            } else {
+                Swal.fire('Error', data.message || 'Failed to generate report', 'error');
+            }
+        } catch (error) {
+            console.error("Error generating report:", error);
+            Swal.fire('Error',error.message || 'An error occurred while generating the report', 'error');
+        }
+    }
+
+    // Event Listeners
+    qs("#dateRange").addEventListener("change", function () {
+        const customDateInputs = qsa("#startDate, #endDate");
+        customDateInputs.forEach(input => {
+            input.classList.toggle("hidden", this.value !== "custom");
+        });
+    });
+
+    qs("#generateSummary").addEventListener("click", generateSummary);
+
+    // Initialize summary on page load
+    document.addEventListener("DOMContentLoaded", generateSummary);
+
+</script>

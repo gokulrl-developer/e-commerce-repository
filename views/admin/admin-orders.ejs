@@ -347,6 +347,7 @@
       document.getElementById('return-details').classList.add('hidden');
     }
 
+    
     function handleReturnRequest(orderId, itemId, action) {
   fetch('/admin/orders/return-request', {
     method: 'POST',

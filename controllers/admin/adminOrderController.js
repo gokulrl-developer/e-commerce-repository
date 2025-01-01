@@ -106,23 +106,23 @@ exports.updateOrderStatus = async (req, res) => {
             order.payment.discount = order.payment.totalAmount - order.payment.grandTotal;
            // Calculate refund amount
       let refundAmount = item.totalPrice;
-
       // If there's a coupon applied, calculate the proportional discount
       if (order.payment.appliedCouponCode) {
-        const orderTotal = order.items.reduce((sum, i) => sum + i.discountedPrice, 0);
+        const orderTotal = order.orderItems.reduce((sum, i) => sum + i.discountedPrice, 0);
           const itemTotal = item.quantity*item.discountedPrice;
-          const discountProportion=(order.couponDiscount/orderTotal*itemTotal);
+          
+          const discountProportion=(order.payment.couponDiscount/orderTotal*itemTotal);
           refundAmount = item.totalPrice - discountProportion;
 
           // Check if this is the last item being returned
-          const activeItems = order.items.filter(i => !['Cancelled', 'Returned'].includes(i.status));
+         /*  const activeItems = order.orderItems.filter(i => !['Cancelled', 'Returned'].includes(i.status));
           if (activeItems.length === 1 && activeItems[0]._id.toString() === itemId) {
               // This is the last item, include any remaining coupon discount
               const remainingCouponDiscount = order.payment.couponDiscount - discountProportion;
               refundAmount -= remainingCouponDiscount;
-          }
+          } */
       }
-
+          console.log(refundAmount)
             // Process refund to wallet
             await Wallet.findOneAndUpdate(
                 { user: order.user.userId },
@@ -169,6 +169,6 @@ exports.updateOrderStatus = async (req, res) => {
         res.status(200).json({message: `Return request ${action}d successfully` });
     } catch (error) {
         console.error('Error handling return request:', error);
-        res.status(500).json({ success: false, message: 'Failed to handle return request' });
+        res.status(500).json({ message: 'Failed to handle return request' });
     }
 }; 

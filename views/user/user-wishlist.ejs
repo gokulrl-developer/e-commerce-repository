@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orders</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+
+<body class="bg-gray-100">
+
+  <!-- Header Section -->
+  <%- include('../partials/user-header') %>
+
+    <!-- Main Content -->
+    <main class="container mx-auto mb-8 mt-8 gap-3 px-4 flex flex-col md:flex-row">
+
+      <!-- Sidebar -->
+      <%- include('../partials/user-profile-sidebar') %>
+
+      <main class="flex-grow container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-orange-500 mb-6">Your Wishlist</h1>
+        
+        <div id="wishlistContent" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- Wishlist items will be dynamically inserted here -->
+        </div>
+    </main>
+
+    </main>
+
+    <!-- Footer -->
+    <%- include('../partials/user-footer') %>
+
+</body>
+
+</html>
+<script>
+   function showMessage(icon, title, text) {
+            Swal.fire({
+                icon: icon,
+                title: title,
+                text: text,
+            });
+        }
+
+    async function fetchWishlist() {
+        try {
+            const response = await fetch('/wishlist/data', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+            const data = await response.json();
+            renderWishlist(data.wishlist);
+        } catch (err) {
+            showMessage('error', 'Error', err.message||'An error occurred while fetching your wishlist.');
+        }
+    }
+
+    function renderWishlist(wishlist) {
+        const wishlistContent = document.getElementById('wishlistContent');
+        if (wishlist.length === 0) {
+            wishlistContent.innerHTML = '<p class="text-blue-400 col-span-full text-center">Your wishlist is empty.</p>';
+        } else {
+            wishlistContent.innerHTML = wishlist.map(item => `
+                <div class="bg-darker rounded-lg shadow-xl overflow-hidden relative flex flex-col h-full" data-wishlist-item-id="${item.wishlistItemId}">
+                    <div class="relative group">
+                        <img src="${item.image}" alt="${item.productName}" class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        ${item.offer ? `
+                            <div class="absolute top-0 left-0 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-br">
+                                Extra ${item.offer.discountPercentage}% OFF
+                            </div>
+                        ` : ''}
+                    </div>
+                    <div class="p-4 flex flex-col flex-grow">
+                        <h3 class="font-semibold text-lg text-white mb-1">${item.productName}</h3>
+                        <p class="text-gray-400 text-sm mb-2 flex-grow">${item.description ? item.description.substring(0, 20) + '...' : ''}</p>
+                        <div class="flex justify-between items-center mb-2">
+                            <p class="text-white-500 font-bold text-xl">
+                                <span class="text-red-500 font-bold">₹</span>${item.discountedPrice}
+                            </p>
+                            ${item.discountedPrice < item.price ? `
+                                <span class="text-gray-400 line-through text-sm">₹${item.price}</span>
+                            ` : ''}
+                        </div>
+                        <div class="flex justify-between items-center mt-2">
+                            <button onclick="addToCart('${item._id}')" class="w-3/4 bg-yellow-500 hover:bg-yellow-600 text-black font-bold px-4 py-2 rounded-lg transition-colors ${item.stock === 0 ? 'opacity-50 cursor-not-allowed' : ''}">
+                                ${item.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+                            </button>
+                            <button onclick="removeFromWishlist('${item.wishlistItemId}')" class="wishlist-btn p-2 rounded-full hover:bg-gray-700 transition-colors duration-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-500 fill-current" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+    }
+
+    async function addToCart(productId) {
+        try {
+            const response = await fetch('/cart/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ productId, quantity: 1 })
+            });
+
+            const result = await response.json();
+            if (response.ok) {
+                showMessage('success', 'Success', result.message);
+            } else {
+                showMessage('error', 'Error', result.message);
+            }
+        } catch (err) {
+            showMessage('error', 'Error', 'An error occurred. Please try again later.');
+        }
+    }
+
+    async function removeFromWishlist(wishlistItemId) {
+        try {
+            const response = await fetch('/wishlist/remove', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ wishlistItemId })
+            });
+            const result = await response.json();
+            if (response.ok) {
+                showMessage('success', 'Removed', result.message);
+                const itemElement = document.querySelector(`[data-wishlist-item-id="${wishlistItemId}"]`);
+                if (itemElement) {
+                    itemElement.remove();
+                }
+                if (document.querySelectorAll('#wishlistContent > div').length === 0) {
+                    document.getElementById('wishlistContent').innerHTML = '<p class="text-gray-400 col-span-full text-center">Your wishlist is empty.</p>';
+                }
+            } else {
+                showMessage('error', 'Error', result.message);
+            }
+        } catch (err) {
+            showMessage('error', 'Error', err.message || 'An error occurred. Please try again later.');
+        }
+    }
+/* 
+    function updateCartCount(count) {
+        const cartCountElement = document.getElementById('cart-count');
+        if (cartCountElement) {
+            cartCountElement.textContent = count;
+            cartCountElement.classList.toggle('hidden', count === 0);
+        }
+    }
+ */
+    // Fetch and render wishlist on page load
+    document.addEventListener('DOMContentLoaded', fetchWishlist);
+    
+   /*  document.addEventListener('DOMContentLoaded', () => {
+        const userIcon = document.getElementById('user-icon');
+        const userDropdown = document.getElementById('user-dropdown');
+
+        userIcon.addEventListener('click', () => {
+            userDropdown.classList.toggle('hidden');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!userIcon.contains(e.target) && !userDropdown.contains(e.target)) {
+                userDropdown.classList.add('hidden');
+            }
+        });
+    }); */
+</script>

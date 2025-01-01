@@ -44,7 +44,6 @@ module.exports = {
         imageUrl: imageUrls,
         rating
       });
-      console.log(newProduct);
       const savedProduct = await newProduct.save();
 
       res.status(200).json({

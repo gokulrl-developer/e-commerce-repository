@@ -125,9 +125,7 @@ async function handleSignup(event) {
         });
     
         const data = await response.json();
-        console.log(response.status);
         if (response.status == 200) {
-          console.log(data.Message);
           location.href = data.redirectUrl;
            
         } else {
