@@ -42,7 +42,7 @@
                   <td class="p-3 flex space-x-2">
                     <%if(user.status==='Blocked'){%>
                     <button class="px-3 py-1 bg-green-600 rounded text-white hover:bg-green-500" onclick="unBlockUser('<%=user._id%>')">
-                      Unlock
+                      Unblock
                     </button>
                     <%}else{%>
                     <button class="px-3 py-1 bg-red-600 rounded text-white hover:bg-red-500" onclick="blockUser('<%=user._id%>')">

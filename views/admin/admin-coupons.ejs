@@ -140,29 +140,29 @@
           </div>
           <div class="mb-4">
             <label for="add-min-purchase-amount" class="block text-sm font-medium">Minimum Purchase Amount</label>
-            <input type="number" id="add-min-purchase-amount" name="minPurchaseAmount" placeholder="Enter Coupon Value"
+            <input type="number" id="add-min-purchase-amount" name="minPurchaseAmount" placeholder="Enter min:purchase Amount"
               class="border p-2 w-full rounded">
           </div>
           <div class="mb-4">
             <label for="add-total-usage-limit" class="block text-sm font-medium">Total Usage Limit</label>
-            <input type="number" id="add-total-usage-limit" name="totalUsageLimit" placeholder="Enter Coupon Value"
+            <input type="number" id="add-total-usage-limit" name="totalUsageLimit" placeholder="Enter total usage limit"
               class="border p-2 w-full rounded">
           </div>
           <div class="mb-4">
             <label for="add-start-date" class="block text-sm font-medium">Start Date</label>
-            <input type="date" id="add-start-date" name="startDate" placeholder="Enter offer title"
+            <input type="date" id="add-start-date" name="startDate" 
               class="border p-2 w-full rounded">
           </div>
           <div class="mb-4">
             <label for="add-expiry-date" class="block text-sm font-medium">Expiry Date</label>
-            <input type="date" id="add-expiry-date" name="expiryDate" placeholder="Enter offer title"
+            <input type="date" id="add-expiry-date" name="expiryDate" 
               class="border p-2 w-full rounded">
           </div>
           <div class="mb-4">
             <label for="add-is-active" class="block text-sm font-medium">Active/Inactive</label>
-            <select type="checkbox" id="add-is-active" name="isActive" placeholder="Enter offer title"
-              class="border p-2 w-full rounded">
-              <option value=""selected disabled></option>
+            <select type="checkbox" id="add-is-active" name="isActive"
+              class="border p-2 w-full rounded text-blue-500">
+              <option value=""selected disabled>Select status</option>
               <option value="true">Active</option>
               <option value="false">Inactive</option>
               </select>
@@ -187,7 +187,7 @@
           &times;
         </button>
         <h2 class="text-lg font-bold mb-4">Edit Coupon</h2>
-        <form id="edit-coupon-form" class="text-blue-500" onsubmit="handleFormSubmit()">
+        <form id="edit-coupon-form" class="text-blue-500" onsubmit="handleFormSubmit(event)">
           <div class="grid grid-cols-2 gap-4">
           <div class="mb-4">
             <label for="edit-coupon-code" class="block text-sm font-medium">Coupon Code</label>
@@ -208,35 +208,35 @@
           </div>
           <div class="mb-4">
             <label for="edit-min-purchase-amount" class="block text-sm font-medium">Minimum Purchase Amount</label>
-            <input type="number" id="edit-min-purchase-amount" name="minPurchaseAmount" placeholder="Enter Coupon Value"
+            <input type="number" id="edit-min-purchase-amount" name="minPurchaseAmount" placeholder="Enter min:purchase amount"
               class="border p-2 w-full rounded">
           </div>
           <div class="mb-4">
             <label for="edit-total-usage-limit" class="block text-sm font-medium">Total Usage Limit</label>
-            <input type="number" id="edit-total-usage-limit" name="totalUsageLimit" placeholder="Enter Coupon Value"
+            <input type="number" id="edit-total-usage-limit" name="totalUsageLimit" placeholder="Enter total usage limit"
               class="border p-2 w-full rounded">
           </div>
           <div class="mb-4">
             <label for="edit-start-date" class="block text-sm font-medium">Start Date</label>
-            <input type="date" id="edit-start-date" name="startDate" placeholder="Enter offer title"
+            <input type="date" id="edit-start-date" name="startDate" 
               class="border p-2 w-full rounded">
           </div>
           <div class="mb-4">
             <label for="edit-expiry-date" class="block text-sm font-medium">Expiry Date</label>
-            <input type="date" id="edit-expiry-date" name="expiryDate" placeholder="Enter offer title"
+            <input type="date" id="edit-expiry-date" name="expiryDate" 
               class="border p-2 w-full rounded">
           </div>
           <div class="mb-4">
             <label for="edit-is-active" class="block text-sm font-medium">Active/Inactive</label>
-            <select id="edit-is-active" name="isActive" placeholder="Enter offer title"
-              class="border p-2 w-full rounded">
+            <select id="edit-is-active" name="isActive" 
+              class="border p-2 w-full rounded text-blue-500">
               <option value=""disabled selected>Select status</option>
               <option value="true">Active</option>
               <option value="false">Inactive</option>
               </select>
           </div>
           <div class="text-right">
-            <button type="submit" class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">Add
+            <button type="submit" class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">Edit
               Coupon</button>
           </div>
           </div>
@@ -273,6 +273,7 @@
     qs(`#${formId}`).reset();
   }
 
+
   // Edit Coupon - Pre-fill form with coupon data
   function editCouponModal(couponData) {
     const coupon = JSON.parse(couponData);
@@ -288,6 +289,7 @@
 
     toggleModal('edit');
   }
+
 
   // Delete Coupon
   async function deleteCoupon(couponId) {
@@ -340,27 +342,22 @@
 
   async function handleFormSubmit(e) {
     e.preventDefault();
-
     const form = e.target;
     const formData = new FormData(form);
     const method = this.id==='edit-coupon-form' ? "PUT" : "POST";
-
+    const mode = this.id==='edit-coupon-form' ? "EDIT" : "ADD";
+    
     // Client-side validation
-    const couponType = formData.get("couponType");
-    const couponValue = parseFloat(formData.get("couponValue"));
-    const minPurchaseAmount = parseFloat(formData.get("minPurchaseAmount"));
 
-    if (couponType === "Percentage" && (couponValue <= 0 || couponValue > 100)) {
-      Swal.fire('Validation Error', 'Percentage discount must be between 0 and 100', 'error');
+    const couponDataObj =Object.fromEntries(formData.entries());
+    const validationErrors = validateCoupon(couponDataObj,mode);
+    if(validationErrors.length>0){
+      let errorText=validationErrors.join("<br>");
+      Swal.fire({title:"Error",html:errorText,icon:"error"});
       return;
     }
 
-    if (couponType === "Fixed" && couponValue >= minPurchaseAmount) {
-      Swal.fire('Validation Error', 'Fixed discount must be less than the minimum purchase amount', 'error');
-      return;
-    }
-     console.log(this.action);
-     console.log(formData);
+
     try {
       const response = await fetch(this.action, {
         method,
@@ -400,6 +397,66 @@
 
   // Search functionality
   qs("#search-input").addEventListener("input", debounce(searchCoupons, 300));
+
+//-------------helper function for validation----------------------------
+const validateCoupon =(couponData,mode)=>{
+    const  {code,couponType}=couponData;
+    let {couponValue,minPurchaseAmount,totalUsageLimit,startDate,expiryDate}=couponData;
+    couponValue =parseFloat(couponValue);
+    minPurchaseAmount=parseFloat(minPurchaseAmount);
+    totalUsageLimit=parseFloat(totalUsageLimit);
+    startDate=new Date(startDate);
+    expiryDate =new Date(expiryDate);
+    const errors=[];
+    if(!code || typeof code!== 'string'){
+       errors.push('coupon code is required and must be a string');
+}else if(!/^[A-Z0-9]{1,15}$/.test(code)){
+       errors.push('coupon code should contain only numbers and uppercase letters and its maximum length should be 15.')
+};
+   if(!couponType){
+       errors.push('coupon type is required');
+}else if(!["Percentage","Fixed"].includes(couponType)){
+       errors.push('coupon type should be Percentage or Fixed')
+};
+   if(!couponValue){
+       errors.push('couponValue is required');
+}
+ else if(typeof couponValue !=='number' || couponValue<0){
+     errors.push('couponValue should be a positive number');
+}else if(couponType==='Percentage' && couponValue>100){
+       errors.push('couponValue should be between 0 and 100 if couponType is Percentage');
+};
+   if(!minPurchaseAmount){
+    errors.push('minPurchaseAmount is required');
+   }else if(typeof minPurchaseAmount !== 'number'){
+    errors.push('minPurchaseAmount should be a number')
+   };
+   if(!startDate){
+    errors.push('startDate is required');
+   }else if(!(startDate instanceof Date)||isNaN(startDate.getTime())){
+    errors.push('start Date should be a date');
+   };
+   if(!expiryDate){
+    errors.push('Expiry Date is required');
+   }else if(!(expiryDate instanceof Date) ||isNaN(expiryDate.getTime())){
+    errors.push('Expiry Date should be a date');
+   };
+   if(startDate.getTime()>expiryDate.getTime()){
+    errors.push('Expiry Date cannot be before StartDate');
+   }
+   if(mode==="ADD"){
+   if(startDate.getTime()<Date.now()){
+    errors.push('Start Date should be after present time');
+   }
+  }
+   if(!totalUsageLimit){
+    errors.push('Total usage limit is required')
+   }else if(typeof totalUsageLimit !=='number' || totalUsageLimit <1){
+    errors.push('Total usage Limit should be a number greater than 1');
+   }
+  return errors;
+}
+
 
   async function searchCoupons() {
     const query = qs("#searchInput").value.trim();

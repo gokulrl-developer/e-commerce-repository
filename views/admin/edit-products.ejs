@@ -268,41 +268,43 @@
     closeCropModal();
   }
 
-/*   function validateForm(formData){
-    const  {productName,brand,gender,stock,price,description,specifications,category,rating}=formData;
-    
-    const errors=[];
-    if(!productName || typeof productName!== 'string'){
-       errors.push('product name is required and must be a string');
-}
-if(!brand || typeof brand!== 'string'){
-       errors.push('brand is required and must be a string');
-}
-if(!gender || typeof gender!== 'string'){
-       errors.push('gender is required and must be a string');
-}
-if(!description || typeof description!== 'string'){
-       errors.push('description is required and must be a string');
-}
-if(!specifications || typeof specifications!== 'string'){
-       errors.push('specifications is required and must be a string');
-}
-if(!category || typeof category!== 'string'){
-       errors.push('category is required and must be a string');
-}
-if(!price || typeof price!=='number' || price<0){
-       errors.push('Price should be a positive number');
-}
-if(stock || typeof stock!=='number' || price<0){
-       errors.push('stock should be a positive number');
-}
-if(!rating || typeof rating!=='number' || price<0){
-       errors.push('rating should be a positive number');
-}
-  return errors;
-}
+  function validateForm(formData) {
+    let { productName, brand, gender, stock, price, description, specifications, category, rating } = Object.fromEntries(formData.entries());
+    price=parseFloat(price);
+    stock=parseFloat(stock);
+    rating=parseFloat(rating); 
+    const errors = [];
+    if (!productName || typeof productName !== 'string') {
+      errors.push('product name is required and must be a string');
+    }
+    if (!brand || typeof brand !== 'string') {
+      errors.push('brand is required and must be a string');
+    }
+    if (!gender || typeof gender !== 'string') {
+      errors.push('gender is required and must be a string');
+    }
+    if (!description || typeof description !== 'string') {
+      errors.push('description is required and must be a string');
+    }
+    if (!specifications || typeof specifications !== 'string') {
+      errors.push('specifications is required and must be a string');
+    }
+    if (!category || typeof category !== 'string') {
+      errors.push('category is required and must be a string');
+    }
+    if (!price || typeof price !== 'number' || price < 0) {
+      errors.push('Price should be a positive number');
+    }
+    if (!stock || typeof stock !== 'number' || price < 0) {
+      errors.push('stock should be a positive number');
+    }
+    if (!rating || typeof rating !== 'number' || price < 0) {
+      errors.push('rating should be a positive number');
+    }
+    return errors;
+  }
 
-  */
+
 
 
   document.getElementById("productForm").addEventListener("submit", async function (e) {
@@ -333,12 +335,13 @@ if(!rating || typeof rating!=='number' || price<0){
     });
     formData.append("indicesEdited", JSON.stringify(indicesEdited));
 
- /*    let errors=validateForm(formData);
-if(errors && errors.length>0){
-  errors=errors.join(',')
-  Swal.fire("Error",errors,'error');
-  return
-} */
+    let errors = validateForm(formData);
+    if (errors && errors.length > 0) {
+      loadingIndicator.classList.add("hidden");
+      errors = errors.join(',')
+      Swal.fire("Error", errors, 'error');
+      return
+    }
 
     try {
       const response = await fetch(this.action, {
@@ -346,16 +349,19 @@ if(errors && errors.length>0){
         body: formData,
       });
 
-      const result = await response.json();
 
       if (response.ok) {
-        window.location.reload();
+        const result = await response.json();
+        userConfirmation = await Swal.fire({ title: 'Success', icon: 'success', text: result.message || 'Product Edited successfully', confirmButtonText: 'OK' })
+        if (userConfirmation.isConfirmed) {
+          location.reload();
+        }
       } else {
-        throw new Error(result.message || "Error editing  product")
+        const result = await response.json();
+        userConfirmation = await Swal.fire({ title: 'Failed', icon: 'error', text: result.message || 'Product Editing Failed.Please Try Again Later', confirmButtonText: 'OK' })
       }
     } catch (error) {
-      console.error("Error:", error);
-      alert(error.message || "Error editing Product");
+      Swal.fire({ title: "Error", icon: "error", text: error.message || "An Unexected Error Occured.Please Try again.Later", confirmButtonText: "OK" })
     } finally {
       loadingIndicator.classList.add("hidden");
     }

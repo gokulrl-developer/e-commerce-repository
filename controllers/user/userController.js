@@ -251,7 +251,7 @@ async function postForgotPasswordOtp(req, res) {
     req.session.isForgotPasswordVerified = true;
     await Otp.deleteOne({ email });
     return res.status(200).json({
-      redirectUrl: "/change-password",
+      redirectUrl: "/forgot-password-password",
     });
   } catch (error) {
     res.status(500).json({ message: "Server error" });
@@ -274,7 +274,7 @@ async function resendForgotPasswordOtp(req, res) {
 };
 
 async function getChangePassword(req, res) {
-  res.render('user/user-change-password');
+  res.render('user/user-reset-password');
 };
 async function postChangePassword(req, res) {
   try {
@@ -295,6 +295,41 @@ async function postChangePassword(req, res) {
     req.session.isForgotPasswordVerified = null;
     return res.status(200).json({
       redirectUrl: "/home",
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error on changing password" });
+
+  }
+}
+async function getResetPassword(req, res) {
+  res.render('user/user-change-password');
+};
+async function postResetPassword(req, res) {
+  try {
+    let {newPassword,currentPassword} = req.body;
+    const regex =
+      /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,16}$/;
+  
+    if (!regex.test(newPassword)) {
+      return res.status(400).json({message:"Password must be 8-16 characters long, and include a number, uppercase, lowercase, and special character."});
+       }
+    const email=req.user.email;
+    if(!email){
+      return res.status(401).json({message:"You are not logged in"})
+    }
+    const salt = await bcrypt.genSalt(10);
+    currentPassword = await bcrypt.hash(currentPassword, salt);
+    const user = await User.findOne({ email }, { currentPassword });
+    if (!user) {
+      return res.status(401).json({ message: "The user is not found" })
+    };
+    
+     user.password=newPassword;
+     await user.save();
+
+    req.user = user;
+     return res.status(200).json({
+      message:"password changed successfully"
     });
   } catch (error) {
     res.status(500).json({ message: "Server error on changing password" });
@@ -424,5 +459,7 @@ module.exports = {
   postForgotPasswordOtp,
   resendForgotPasswordOtp,
   getChangePassword,
-  postChangePassword
+  postChangePassword,
+  getResetPassword,
+  postResetPassword
 }

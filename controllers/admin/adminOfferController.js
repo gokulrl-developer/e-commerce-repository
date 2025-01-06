@@ -4,7 +4,7 @@ const Category = require('../../models/categoryModel');
 
 
 //------------------helper function to validate-------------------------------------------
-const validateOffer = (offerData) => {
+const validateOffer = (offerData,mode) => {
     const { title, discountPercentage, applicableProduct, applicableCategory, offerType, startDate, expiryDate, } = offerData;
 
     const errors = [];
@@ -34,8 +34,14 @@ const validateOffer = (offerData) => {
     if (startDate.getTime() > expiryDate.getTime()) {
         errors.push('Expiry Date cannot be before StartDate');
     }
+    if(mode==="ADD"){
+        if (startDate.getTime() < Date.now()) {
+            errors.push('Start date must be after present time');
+        }
+    }
     return errors;
 }
+
 //------------------------get all offers--------------------------------------------------------------------
 exports.getAllOffers = async (req, res) => {
 
@@ -74,7 +80,7 @@ exports.createOffer = async (req, res) => {
             req.body.applicableCategory=req.body.applicableItem;
         }
         req.body.isActive=req.body.isActive==="true";
-        const validationErrors = validateOffer(req.body);
+        const validationErrors = validateOffer(req.body,"ADD");
         if (validationErrors.length > 0) {
            return  res.render('admin/admin-offers', { message: "error on create offer form validation", errors: validationErrors })
         }
@@ -102,8 +108,7 @@ exports.updateOffer = async (req, res) => {
             req.body.applicableCategory=req.body.applicableItem;
         }
         req.body.isActive=req.body.isActive==="true";
-        console.log(req.body);
-        const validationErrors = validateOffer(req.body);
+        const validationErrors = validateOffer(req.body,"EDIT");
         if (validationErrors.length > 0) {
             return res.render('admin/admin-offers', { message: "error on create offer form validation", errors: validationErrors })
         };

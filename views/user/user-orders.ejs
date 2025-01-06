@@ -20,74 +20,94 @@
 
       <!-- Sidebar -->
       <%- include('../partials/user-profile-sidebar') %>
+ 
+    <!-- Orders Section -->
+    <div class="w-full md:w-4/5 bg-white shadow-md rounded-md p-4">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-semibold">My Orders</h2>
+        <!--  <select class="border border-gray-300 rounded px-3 py-1">
+        <option>Last 6 months</option>
+        <option>Last Year</option>
+      </select> -->
+      </div>
 
-        <!-- Orders Section -->
-        <div class="w-full md:w-4/5 bg-white shadow-md rounded-md p-4">
-          <div class="flex justify-between items-center mb-4">
-            <h2 class="text-lg font-semibold">My Orders</h2>
-            <!--  <select class="border border-gray-300 rounded px-3 py-1">
-            <option>Last 6 months</option>
-            <option>Last Year</option>
-          </select> -->
-          </div>
+      <!-- Orders Table -->
+      <div class="overflow-x-auto">
+        <table class="table-auto w-full border border-gray-300">
+          <thead class="bg-gray-100">
+            <tr>
+              <% if (orders.length===0) { %>
+                <p class="text-gray-400">You haven't placed any orders yet.</p>
+                <% } else {orders.forEach((order)=>{%>
+                  <th class="px-4 py-2 text-left border">Order Id& Date</th>
+                  <th class="px-4 py-2 text-left border">Order Details</th>
+                  <th class="px-4 py-2 text-left border">Order Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="px-4 py-2 border">
+                Id : #<%=order._id.toString().slice(-6)%><br>
+                  Date : <%= order.formattedDate %>
+              </td>
+              <td class="px-4 py-2 border">
+                Total items : <%=order.orderItems.length%><br>
+                  Total price : <%=order.payment.totalAmount%><br>
+                  Total Discount : <%=order.payment.discount%><br>
+                  Grand Total : <%=order.payment.grandTotal%><br>
+                  Order status : <%=order.orderStatus%><br>
+                        Payment method : <%=order.payment.paymentMethod%><br>
+                          Payment Status : <%=order.payment.paymentStatus%><br>
+              </td>
+              <td class="px-4 py-2 border">
+                <button onclick="viewDetails('<%= order._id %>')"
+                  class="bg-blue-500 text-white px-3 py-2 m-2 rounded hover:bg-blue-600">
+                  View Details
+                </button><br>
+                <%if((order.payment.paymentStatus === 'Failed' || order.payment.paymentStatus === 'Pending' )&&order.payment.paymentMethod === 'Razorpay'){%>
+                <button 
+                    onclick="resumePayment('<%=order._id%>','<%=user%>')" 
+                    class="bg-orange-700 text-black  font-semibold px-3 py-2 rounded hover:bg-orange-800">
+                    RePay
+                </button>
+                <%}%>
+                <% if (order.orderStatus==='Pending' || order.orderStatus==='Processing' ) { %>
+                  <button class="bg-red-500 text-white px-3 py-2 m-2 rounded hover:bg-red-600"
+                    onclick="cancelOrder('<%= order._id %>')">
+                    Cancel Order
+                  </button>
+                  <% } %>
 
-          <!-- Orders Table -->
-          <div class="overflow-x-auto">
-            <table class="table-auto w-full border border-gray-300">
-              <thead class="bg-gray-100">
-                <tr>
-                  <% if (orders.length===0) { %>
-                    <p class="text-gray-400">You haven't placed any orders yet.</p>
-                    <% } else {orders.forEach((order)=>{%>
-                      <th class="px-4 py-2 text-left border">Order Id& Date</th>
-                      <th class="px-4 py-2 text-left border">Order Details</th>
-                      <th class="px-4 py-2 text-left border">Order Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td class="px-4 py-2 border">
-                    Id : #<%=order._id.toString().slice(-6)%><br>
-                      Date : <%= order.formattedDate %>
-                  </td>
-                  <td class="px-4 py-2 border">
-                    Total items : <%=order.orderItems.length%><br>
-                      Total price : <%=order.payment.totalAmount%><br>
-                      Total Discount : <%=order.payment.discount%><br>
-                      Grand Total : <%=order.payment.grandTotal%><br>
-                      Order status : <%=order.orderStatus%><br>
-                            Payment method : <%=order.payment.paymentMethod%><br>
-                              Payment Status : <%=order.payment.paymentStatus%><br>
-                  </td>
-                  <td class="px-4 py-2 border">
-                    <button onclick="viewDetails('<%= order._id %>')"
-                      class="bg-blue-500 text-white px-3 py-2 m-2 rounded hover:bg-blue-600">
-                      View Details
-                    </button><br>
-                    <%if((order.payment.paymentStatus === 'Failed' || order.payment.paymentStatus === 'Pending' )&&order.payment.paymentMethod === 'Razorpay'){%>
-                    <button 
-                        onclick="resumePayment('<%=order._id%>','<%=user%>')" 
-                        class="bg-orange-700 text-black  font-semibold px-3 py-2 rounded hover:bg-orange-800">
-                        RePay
-                    </button>
-                    <%}%>
-                    <% if (order.orderStatus==='Pending' || order.orderStatus==='Processing' ) { %>
-                      <button class="bg-red-500 text-white px-3 py-2 m-2 rounded hover:bg-red-600"
-                        onclick="cancelOrder('<%= order._id %>')">
-                        Cancel Order
-                      </button>
-                      <% } %>
+              </td>
+            </tr>
+            <%})}%>
 
-                  </td>
-                </tr>
-                <%})}%>
-
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-    </main>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+           <!-- Pagination -->
+<div class="my-4 flex justify-center">
+  <nav class="inline-flex" id="pagination-container">
+       <%if(currentPage>1){%>
+         <a href="/orders?page=<%= currentPage - 1 %>"
+      class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer" id="pagination-previous">Previous</a>
+      <%}%>
+         <% for (let i=1; i <=totalPages; i++) { %>
+        <a href="/orders?page=<%= i %>"
+          class="<%= currentPage === i ? 'bg-indigo-500' : 'bg-[#222]' %> text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer"
+          id="pagination-current">
+          <%= i %>
+        </a>
+        <% } %>
+        <%if(currentPage<totalPages){%>
+           <a href="/orders?page=<%= currentPage + 1 %>"
+              class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer"
+              id="pagination-next">Next</a>
+              <%}%>
+  </nav>
+  </div> 
 
     <!-- Footer -->
     <%- include('../partials/user-footer') %>
@@ -139,6 +159,8 @@
 
           <!-- Cancel Order Button -->
           <div id="cancelOrderContainer" class="mt-6"></div>
+          <!-- Download Invoice container -->
+          <div id="download-invoice-container" class="mt-6"></div>
         </div>
       </div>
 
@@ -229,7 +251,15 @@
         } else {
           cancelOrderContainer.innerHTML = '';
         }
-
+        const downloadInvoiceContainer = document.getElementById('download-invoice-container');
+        downloadInvoiceContainer.innerHTML = `
+                            <a href="/invoice?orderId=${orderId}">
+                            <div 
+                                class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 w-full text-center">
+                                Download Invoice
+                            </div> 
+                            </a>                  
+                        `;
         // Show modal
         document.getElementById('detailsModal').classList.remove('hidden');
       }else {

@@ -15,21 +15,29 @@
   <!-- Header Section -->
   <%- include('../partials/user-header') %>
 
-    <!-- Main Content -->
-    <main class="container mx-auto mb-8 mt-8 gap-3 px-4 flex flex-col md:flex-row">
+  <!-- Main Content -->
+  <div class="container my-4 p-6">
+    <div class="flex">
 
       <!-- Sidebar -->
       <%- include('../partials/user-profile-sidebar') %>
 
-      <main class="flex-grow container mx-auto px-4 py-8">
+      <main class="md:w-4/5 p-20 text-center">
         <h1 class="text-3xl font-bold text-orange-500 mb-6">Your Wishlist</h1>
         
-        <div id="wishlistContent" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div id="wishlistContent" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <!-- Wishlist items will be dynamically inserted here -->
         </div>
     </main>
 
-    </main>
+  </div>
+  </div>
+          <!-- Pagination -->
+<div class="my-4 flex justify-center">
+    <nav class="inline-flex" id="pagination-container">
+        
+    </nav>
+    </div> 
 
     <!-- Footer -->
     <%- include('../partials/user-footer') %>
@@ -46,65 +54,97 @@
             });
         }
 
-    async function fetchWishlist() {
+    async function fetchWishlist(page=1,limit=9){
+        console.log(page);
         try {
-            const response = await fetch('/wishlist/data', {
+            const response = await fetch(`/wishlist/data?page=${page}&limit=${limit}`, {
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest'
                 }
             });
             const data = await response.json();
-            renderWishlist(data.wishlist);
+            renderWishlist(data.wishlist,data.currentPage,data.totalPages);
         } catch (err) {
             showMessage('error', 'Error', err.message||'An error occurred while fetching your wishlist.');
         }
     }
 
-    function renderWishlist(wishlist) {
+    function renderWishlist(wishlist,currentPage,totalPages) {
         const wishlistContent = document.getElementById('wishlistContent');
-        if (wishlist.length === 0) {
+        if (wishlist.products.length === 0) {
             wishlistContent.innerHTML = '<p class="text-blue-400 col-span-full text-center">Your wishlist is empty.</p>';
         } else {
-            wishlistContent.innerHTML = wishlist.map(item => `
-                <div class="bg-darker rounded-lg shadow-xl overflow-hidden relative flex flex-col h-full" data-wishlist-item-id="${item.wishlistItemId}">
-                    <div class="relative group">
-                        <img src="${item.image}" alt="${item.productName}" class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300">
-                        <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                        ${item.offer ? `
-                            <div class="absolute top-0 left-0 bg-green-600 text-white text-xs font-bold px-2 py-1 rounded-br">
-                                Extra ${item.offer.discountPercentage}% OFF
-                            </div>
-                        ` : ''}
-                    </div>
-                    <div class="p-4 flex flex-col flex-grow">
-                        <h3 class="font-semibold text-lg text-white mb-1">${item.productName}</h3>
-                        <p class="text-gray-400 text-sm mb-2 flex-grow">${item.description ? item.description.substring(0, 20) + '...' : ''}</p>
-                        <div class="flex justify-between items-center mb-2">
-                            <p class="text-white-500 font-bold text-xl">
-                                <span class="text-red-500 font-bold">₹</span>${item.discountedPrice}
-                            </p>
-                            ${item.discountedPrice < item.price ? `
-                                <span class="text-gray-400 line-through text-sm">₹${item.price}</span>
-                            ` : ''}
-                        </div>
-                        <div class="flex justify-between items-center mt-2">
-                            <button onclick="addToCart('${item._id}')" class="w-3/4 bg-yellow-500 hover:bg-yellow-600 text-black font-bold px-4 py-2 rounded-lg transition-colors ${item.stock === 0 ? 'opacity-50 cursor-not-allowed' : ''}">
-                                ${item.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
-                            </button>
-                            <button onclick="removeFromWishlist('${item.wishlistItemId}')" class="wishlist-btn p-2 rounded-full hover:bg-gray-700 transition-colors duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-500 fill-current" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
+            wishlistContent.innerHTML = wishlist.products.map((productData) =>{
+            const product=productData.product[0];
+              return `<div class="card p-4 border rounded shadow-md bg-gray-400">
+                <div class="w-full ">
+                  <div class="w-full h-100">
+                    <img src="${ product.imageUrl[0] }" class="w-full h-full object-cover rounded"
+                      alt="Product Image">
+                  </div>
                 </div>
-            `).join('');
-        }
+                <div class="mt-3 bg-white py-3 px-3">
+                  <div class="flex">
+                    <h6 class="text-lg font-semibold">
+                      ${ product.productName }
+                    </h6>
+                    <a class="flex items-center justify-center w-10 h-10 bg-red-100 hover:bg-red-200 rounded-full shadow-md transition duration-300 ease-in-out ml-auto"
+                      onclick="removeFromWishlist('${product._id}')">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-500" viewBox="0 0 24 24"
+                        fill="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                      </svg>
+                    </a>
+                  </div>
+                  <h6 class="text-lg font-light">
+                    ${ product.description.substring(0, 20) + '...' } 
+                  </h6>
+                  <div class="flex justify-between items-center mb-2">
+                    <p class="font-bold text-xl">
+                      <span class="font-bold">₹</span>
+                      ${product.finalDiscountedPrice}
+                    </p>
+                    ${product.finalDiscountedPrice < product.price?
+                      `<span class=" line-through text-sm">₹${product.price}</span>`:''
+                     }
+                  </div>
+                  ${product.stock>0?
+                    `<h6 class="text-lg font-normal">
+                      ${ product.stock} Pieces Left
+                    </h6>`:
+                     `<h6 class="text-lg font-normal">Out of Stock</h6>`
+                }
+                        <a href="/product/${ product._id }"
+                          class="btn bg-blue-500 text-white rounded px-2 py-1 mt-2 inline-block">View</a>
+                        <a class="btn bg-blue-500 text-white rounded px-2 py-1 mt-2 inline-block" id="add-to-cart"
+                          onclick="addToCart('${product._id}')">Add to Cart</a>
+                </div>
+              </div>`}).join('');
+   }
+    const paginationContainer=document.getElementById('pagination-container');
+    let html=`
+   ${currentPage>1?`<a onclick="fetchWishlist(${currentPage-1},9)"
+        class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer" id="pagination-previous">Previous</a>`
+        :''}`
+    for (let i=1; i <=totalPages; i++) { 
+    html += `<a onclick="fetchWishlist(${i},9)"
+            class="${currentPage === i ? 'bg-indigo-500' : 'bg-[#222]'} text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer"
+            id="pagination-current">
+            ${i}
+          </a>`
+         }
+         html+= `${currentPage<totalPages?
+             `<a onclick="fetchWishlist(${currentPage+1},9)"
+                class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer"
+                id="pagination-next">Next</a>`:''
+                }`
+
+        paginationContainer.innerHTML=html;
     }
 
-    async function addToCart(productId) {
-        try {
+ async function addToCart(productId) {
+     try {
             const response = await fetch('/cart/add', {
                 method: 'POST',
                 headers: {
@@ -125,7 +165,7 @@
         }
     }
 
-    async function removeFromWishlist(wishlistItemId) {
+    async function removeFromWishlist(productId) {
         try {
             const response = await fetch('/wishlist/remove', {
                 method: 'POST',
@@ -133,23 +173,20 @@
                     'Content-Type': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest'
                 },
-                body: JSON.stringify({ wishlistItemId })
+                body: JSON.stringify({ productId })
             });
-            const result = await response.json();
             if (response.ok) {
-                showMessage('success', 'Removed', result.message);
-                const itemElement = document.querySelector(`[data-wishlist-item-id="${wishlistItemId}"]`);
-                if (itemElement) {
-                    itemElement.remove();
-                }
-                if (document.querySelectorAll('#wishlistContent > div').length === 0) {
-                    document.getElementById('wishlistContent').innerHTML = '<p class="text-gray-400 col-span-full text-center">Your wishlist is empty.</p>';
-                }
+                const result = await response.json();
+             const userConfirmation=await Swal.fire({icon:'success',title:'Removed',text:result.message,showConfirmButton:true,confirmationText:'OK'});
+            if(userConfirmation.isConfirmed){
+               fetchWishlist();
+            }
             } else {
+                const result = await response.json();
                 showMessage('error', 'Error', result.message);
             }
         } catch (err) {
-            showMessage('error', 'Error', err.message || 'An error occurred. Please try again later.');
+            showMessage('error', 'Error','An error occurred. Please try again later.');
         }
     }
 /* 
@@ -162,7 +199,7 @@
     }
  */
     // Fetch and render wishlist on page load
-    document.addEventListener('DOMContentLoaded', fetchWishlist);
+    document.addEventListener('DOMContentLoaded', fetchWishlist(1,9));
     
    /*  document.addEventListener('DOMContentLoaded', () => {
         const userIcon = document.getElementById('user-icon');

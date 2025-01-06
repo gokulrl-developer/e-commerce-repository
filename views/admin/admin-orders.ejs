@@ -101,52 +101,53 @@
 
     <!--  Details Modal -->
     <div id="detailsModal" class="hidden fixed z-10 inset-0 flex items-center justify-center bg-black/50  ">
-      <div class="bg-black p-6 rounded shadow-lg max-w-4xl w-full relative overflow-y-auto max-h-[80vh] ">
+      <div class="bg-black p-6 rounded shadow-lg max-w-4xl w-full relative overflow-y-auto max-h-[90vh]">
         <button
           class="absolute top-2 right-2 text-gray-600 hover:text-gray-900 text-2xl font-bold w-8 h-8 flex items-center justify-center"
           onclick="closeDetailsModal()">
           &times;
         </button>
-        <h2 class="text-lg font-bold mb-4">Order Details</h2>
+        <h2 class="text-xl font-bold mb-4 text-center">Order Details</h2>
+        <hr>
         <!-- Order Information -->
         <div class="mb-6">
-          <h3 class="font-bold text-lg mb-2 text-gold">Order Information</h3>
-          <p><strong>Order ID:</strong> <span id="orderId"></span>
-            <strong>Order Status:</strong> <span id="orderStatus"></span>
-            <strong>Order Date:</strong> <span id="orderDate"></span>
+          <h3 class="font-bold text-lg mb-2 text-gold text-center">Order Information</h3>
+          <p><strong>Order ID:</strong> <span id="orderId"></span><br>
+            <strong>Order Status:</strong> <span id="orderStatus"></span><br>
+            <strong>Order Date:</strong> <span id="orderDate"></span><br>
           </p>
           <div id="edit-status"></div>
         </div>
-
+<hr>
         <!-- Customer Details -->
         <div class="mb-6">
-          <h3 class="font-bold text-lg mb-2 text-gold">Customer Details</h3>
-          <p><strong>Name:</strong> <span id="customerName"></span>
-            <strong>Email:</strong> <span id="customerEmail"></span>
+          <h3 class="font-bold text-lg mb-2 text-gold text-center">Customer Details</h3>
+          <p><strong>Name:</strong> <span id="customerName"></span><br>
+            <strong>Email:</strong> <span id="customerEmail"></span><br>
           </p>
         </div>
-
+<hr>
         <!-- Shipping Address -->
         <div class="mb-6">
-          <h3 class="font-bold text-lg mb-2 text-gold">Shipping Address</h3>
+          <h3 class="font-bold text-lg mb-2 text-gold text-center">Shipping Address</h3>
           <p id="shippingAddress"></p>
         </div>
-
+<hr>
         <!-- Product Details -->
         <div class="mb-6">
-          <h3 class="font-bold text-lg mb-2 text-black">Products</h3>
-          <div id="productList" class="space-y-4"></div>
+          <h3 class="font-bold text-lg mb-2 text-black text-center">Products</h3>
+          <ul id="productList" class="space-y-4"></ul>
         </div>
-
+<hr>
         <!-- Payment Details -->
         <div class="mb-6">
-          <h3 class="font-bold text-lg mb-2 text-gold">Payment Details</h3>
-          <p><strong>Payment Method:</strong> <span id="paymentMethod"></span>
-            <strong>Payment Status:</strong> <span id="paymentStatus"></span>
-            <strong>Total Amount :</strong> ₹<span id="total"></span>
+          <h3 class="font-bold text-lg mb-2  text-center">Payment Details</h3>
+          <p><strong>Payment Method:</strong> <span id="paymentMethod"></span><br>
+            <strong>Payment Status:</strong> <span id="paymentStatus"></span><br>
+            <strong>Total Amount :</strong> ₹<span id="total"></span><br>
           </p>
         </div>
-
+<hr>
         <!-- Cancel Order Button -->
         <div id="cancelOrderContainer" class="mt-6"></div>
       </div>
@@ -154,7 +155,7 @@
 
     <!--  Return requests modal -->
     <div id="return-details" class="hidden fixed z-10 inset-0 flex items-center justify-center bg-black/50  ">
-      <div class="bg-black p-6 rounded shadow-lg max-w-4xl w-full relative overflow-y-auto max-h-[80vh] ">
+      <div class="bg-black p-6 rounded shadow-lg max-w-4xl w-full relative overflow-y-auto h-auto ">
         <button
           class="absolute top-2 right-2 text-gray-600 hover:text-gray-900 text-2xl font-bold w-8 h-8 flex items-center justify-center"
           onclick="closeReturnDetailsModal()">
@@ -183,6 +184,7 @@
       const response = await fetch(`/admin/order/details/${orderId}`)
       const data = await response.json();
       if (response.ok) {
+        console.log(data);
         // Populate order information
         document.getElementById('orderId').textContent = `#${data.order._id.toString().slice(-6)}`;
         document.getElementById('orderDate').textContent = data.formattedDate;
@@ -210,22 +212,23 @@
         document.getElementById('customerEmail').textContent = data.order.user.customerEmail;
         // Populate shipping address
         const address = data.order.user.shippingAddress;
-        document.getElementById('shippingAddress').textContent =
-          `${address.Name}, ${address.HouseName}, ${address.LocalityStreet}, ${address.TownCity}, ${address.state}, ${address.country}, ${address.pincode}, ${address.MobileNumber}`;
+        document.getElementById('shippingAddress').innerHTML =
+          `${address.Name}, ${address.HouseName}, ${address.LocalityStreet}, ${address.TownCity}, ${address.state}, ${address.country},<br> Pin :  ${address.pincode},<br> Contact :  ${address.MobileNumber}`;
 
         // Populate product details
         const productList = document.getElementById('productList');
         productList.innerHTML = ''; // Clear previous data
         data.order.orderItems.forEach((item) => {
-          const productElement = document.createElement('div');
+          const productElement = document.createElement('li');
           productElement.classList.add('flex', 'gap-4', 'border-b', 'border-gray-700', 'pb-4', 'last:border-b-0');
 
 
           productElement.innerHTML = `
                                 <div>
                             <img src="${item.product.imageUrl[0]}" alt="${item.product.productName}" class="w-20 h-20 object-contain">
-                            
-                                <h4 class="font-bold text-black">${item.product.productName}</h4>
+                            </div>
+                              <div>
+                                <h4 class="font-bold">${item.product.productName}</h4>
                                                     <p>Status: ${item.status}</p>
 
                                 <p >Price: ₹${Number(item.price).toFixed(2)}</p>
@@ -242,7 +245,7 @@
         // Populate payment details
         document.getElementById('paymentMethod').textContent = data.order.payment.paymentMethod;
         document.getElementById('paymentStatus').textContent = data.order.payment.paymentStatus;
-        document.getElementById('total').textContent = Number(data.order.payment.totalFinalPrice).toFixed(2);
+        document.getElementById('total').textContent = Number(data.order.payment.grandTotal).toFixed(2);
 
 
 
@@ -254,7 +257,7 @@
 
     } catch (error) {
       console.error('Error fetching order details:', error);
-      Swal.fire('Error', 'An error occurred while fetching order details', 'error');
+      Swal.fire('Error',error.message || 'An error occurred while fetching order details', 'error');
     }
   }
   async function closeDetailsModal() {

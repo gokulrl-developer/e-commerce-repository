@@ -60,8 +60,10 @@ exports.getDashboard = async (req, res) => {
 
 exports.getSalesSummary = async (req, res) => {
     try {
-        const { range, startDate, endDate} = req.query;
-        const dateRange = getDateRange(range, startDate, endDate);
+        const {range} = req.query;
+        const startDate=req.query.startDate?req.query.startDate:null;
+        const endDate=req.query.endDate?req.query.endDate:null; 
+        const dateRange = getDateRange(range,startDate,endDate);
         const salesData = await Order.aggregate([
             {
                 $match: {
@@ -82,7 +84,7 @@ exports.getSalesSummary = async (req, res) => {
         ]);
 
         const totalCount = await Order.countDocuments({
-            orderDate: { $gte: dateRange.start, $lte: dateRange.end },
+            orderDate: { $gte:dateRange.start, $lte:dateRange.end },
             'payment.paymentStatus': 'Completed'
         });
 
@@ -104,6 +106,147 @@ exports.getSalesSummary = async (req, res) => {
     }
 };
 
+exports.getChartData = async (req, res) => {
+    try {
+        const { chartRange, range} = req.query;
+        const startDate=req.query.startDate?req.query.startDate:null;
+        const endDate=req.query.endDate?req.query.endDate:null; 
+        const dateRange = getDateRange(range, startDate, endDate);
+        let timeField;
+        switch (chartRange) {
+            case "Year":
+                timeField = { $year: "$orderDate" };
+                break;
+            case "Month":
+                timeField = { $month: "$orderDate" };
+                break;
+            case "Week":
+                timeField = { $isoWeek: "$orderDate" };
+                break;
+            case "Day":
+                timeField = { $dayOfMonth: "$orderDate" };
+                break;
+            default:
+                timeField = { $hour: "$orderDate" };
+        }
+
+        const chartData = await Order.aggregate([
+            {
+                $match: {
+                    orderDate: { $gte: dateRange.start, $lte: dateRange.end },
+                    'payment.paymentStatus': 'Completed'
+                }
+            },
+            {
+                $group: {
+                    _id: timeField,
+                    orderCount: { $sum: 1 }
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    label: { $push: "$_id" },
+                    orderCount: { $push: "$orderCount" }
+                }
+            }
+        ]);
+        res.status(200).json({ chartData });
+    } catch (error) {
+        console.error("Error occurred while fetching chart data:", error);
+        res.status(500).json({
+            message: "Error occurred while fetching chart data",
+            error: error.message
+        });
+    }
+};
+
+exports.getTopSoldItems = async (req,res) => {
+try{
+   const {item,range}=req.query;
+   const startDate=req.query.startDate?req.query.startDate:null;
+   const endDate=req.query.endDate?req.query.endDate:null; 
+   const dateRange = getDateRange(range, startDate, endDate);
+   let aggregationPipeline
+   =[
+    {$match: {
+        orderDate: { $gte: dateRange.start, $lte: dateRange.end },
+        'payment.paymentStatus': 'Completed'
+    }
+    },
+    {$unwind:"$orderItems"},
+    {$lookup:{
+        from:"products",
+        foreignField:"_id",
+        localField:"orderItems.product",
+        as:"item"
+    }},
+   {$project:{
+     _id:0,
+     item: { $arrayElemAt: ["$item", 0] }
+    }} 
+   ];
+   if(item==='Product'){
+    aggregationPipeline.push({
+       $project:{
+        _id:0,
+        itemName : "$item.productName",
+        itemBrand : "$item.brand",
+        itemImage:{$arrayElemAt:["$item.imageUrl",0]}
+        
+       } 
+    })
+   };  
+   if(item==='Brand'){
+    aggregationPipeline.push({
+       $project:{
+        _id:0,
+        itemName:"$item.brand"
+       } 
+    })
+   };
+   if(item==='Category'){
+    aggregationPipeline.push({
+     $lookup:{from:"categories",
+        foreignField:"_id",
+        localField:"item.category",
+        as:"category"
+     }
+    });
+    aggregationPipeline.push({
+    $project:{
+        _id:0,
+        item: { $arrayElemAt:["$category", 0]}
+       } 
+    });
+    aggregationPipeline.push({
+       $project:{
+        _id:0,
+        itemName:"$item.categoryName"
+       }
+    });
+    };
+     aggregationPipeline.push({
+        $group:{
+            _id:"$itemName",
+            orderCount:{$sum:1},
+            item:{$first:"$$ROOT"}
+        }
+    });
+    aggregationPipeline.push({
+        $sort:{orderCount:-1}
+    })
+    aggregationPipeline.push({
+        $limit:10
+    }) 
+    const topSoldData=await Order.aggregate(aggregationPipeline);
+    console.log(topSoldData)
+    res.status(200).json({topSoldData});
+}catch(error){
+    console.error("error while getting top sold items",error.message);
+    res.status(500).json({message:"Server error while getting top sold items"})
+}
+};
 
 exports.postLogin = (req, res) => {
   if (

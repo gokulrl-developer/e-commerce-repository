@@ -19,6 +19,8 @@ router.get('/login', adminAuth.isLoggedIn, (req, res) => {
 router.post('/login', adminAuth.isLoggedIn, adminController.postLogin)
 router.get('/dashboard', adminAuth.checkSession,adminController.getDashboard)
 router.get('/dashboard/data', adminAuth.checkSession, adminController.getSalesSummary);
+router.get('/dashboard/chartData',adminAuth.checkSession,adminController.getChartData);
+router.get('/dashboard/topSold',adminAuth.checkSession,adminController.getTopSoldItems)
 router.post("/logout", adminController.logout);
 
 

@@ -96,7 +96,7 @@
                 <div
                   class="spinner-border animate-spin inline-block w-8 h-8 border-4 border-gray-600 border-t-blue-500 rounded-full">
                 </div>
-                <span class="text-gray-400">Uploading images...</span>
+                <span class="text-green-500 font-bold">Uploading images...</span>
               </div>
 
               <button type="submit"
@@ -246,6 +246,7 @@
     price=parseFloat(price);
     stock=parseFloat(stock);
     rating=parseFloat(rating);
+    const fileArray=formData.getAll('imageFiles');
     const errors=[];
     if(!productName || typeof productName!== 'string'){
        errors.push('product name is required and must be a string');
@@ -274,20 +275,18 @@ if(!stock || typeof stock!=='number' || stock<0){
 if(!rating || typeof rating!=='number' || rating<0){
        errors.push('rating should be a positive number');
 }
+if(fileArray.length !==4){
+  errors.push('Four Images should be uploaded');
+}
   return errors;
 }
  
   document.getElementById("productForm").addEventListener("submit", async function (e) {
     e.preventDefault();
-
-
-    const loadingIndicator = document.getElementById("loadingIndicator");
+   const loadingIndicator = document.getElementById("loadingIndicator");
     loadingIndicator.classList.remove("hidden");
-
-    const formData = new FormData();
-
-
-    formData.append(
+   const formData = new FormData();
+   formData.append(
       "productName",
       document.getElementById("productName").value
     );
@@ -304,9 +303,9 @@ if(!rating || typeof rating!=='number' || rating<0){
     uploadedImages.forEach((blob, index) => {
       formData.append("imageFiles", blob, `image_${index}.jpg`);
     });
-
     let errors=validateForm(formData);
 if(errors && errors.length>0){
+  loadingIndicator.classList.add("hidden");
   errors=errors.join(',')
   Swal.fire("Error",errors,'error');
   return
@@ -317,17 +316,18 @@ if(errors && errors.length>0){
         method: "POST",
         body: formData,
       });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        window.location.reload();
+       if (response.ok) {
+        const result = await response.json();
+       userConfirmation =await Swal.fire({title:'Success',icon:'success',text:result.message || 'Product added successfully',confirmButtonText:'OK'})
+        if(userConfirmation.isConfirmed){
+          location.reload();
+        }
       } else {
-        throw new Error(result.message || "Error adding product");
-      }
+        const result = await response.json();
+         userConfirmation =await Swal.fire({title:'Failed',icon:'error',text:result.message || 'Product Addition Failed.Please Try Again Later',confirmButtonText:'OK'})
+       }
     } catch (error) {
-      console.error("Error:", error);
-      alert(error.message || "Error submitting form");
+      Swal.fire({title:"Error",icon:"error",text:error.message||"An Unexected Error Occured.Please Try again.Later",confirmButtonText:"OK"})
     } finally {
       loadingIndicator.classList.add("hidden");
     }

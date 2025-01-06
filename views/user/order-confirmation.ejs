@@ -55,7 +55,9 @@
             <p><%= order.user.shippingAddress.country %></p>
             <p>Phone: <%= order.user.shippingAddress.MobileNumber %></p>
         </div>
-
+        <div class="text-center">
+            <a href="/invoice?orderId=<%=order._id%>" class="inline-block bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors">View All Orders</a>
+        </div>
         <div class="text-center">
             <a href="/orders" class="inline-block bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 transition-colors">View All Orders</a>
         </div>

@@ -4,6 +4,7 @@ const Wallet = require('../../models/walletModel');
 const { format } = require('date-fns');
 const crypto =require('crypto');
 const Razorpay = require('razorpay');
+const PDFDocument = require('pdfkit'); 
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -206,22 +207,25 @@ exports.getOrderConfirmation = async (req, res) => {
   
   
   exports.getUserOrders = async (req, res) => {
+        const{currentPage,skip,limit}= req.pagination;
     try {
       const userId = req.session.user?._id;
       if(!userId){
         return res.status(401).render('error', { message:"User not logged in." });
       }
-      const orders = await Order.find({ 'user.userId': userId }).sort({ orderDate: -1 }).populate('orderItems.product');
+      const orders = await Order.find({ 'user.userId': userId }).sort({ orderDate: -1 }).skip(skip).populate('orderItems.product');
+      const totalOrders = await Order.find({ 'user.userId': userId }).countDocuments();
+      const totalPages=Math.ceil(totalOrders/limit);
       const formattedOrders = orders.map(order => ({
         ...order.toObject(),
         formattedDate: format(order.orderDate, 'MMMM dd, yyyy'),
         totalItems: order.orderItems.reduce((sum, item) => sum + item.quantity, 0)
       }));
   
-      res.render('user/user-orders', { orders: formattedOrders,user:req.session.user});
+      res.render('user/user-orders', { orders: formattedOrders,user:req.session.user,currentPage,totalPages});
     } catch (error) {
       console.error('Error fetching user orders:', error);
-      res.status(500).render('error', { message: 'Failed to fetch orders' });
+      res.render('user-error', { statusCode:500,message: 'Failed to fetch orders' });
     }
   };
    
@@ -312,4 +316,126 @@ exports.getOrderConfirmation = async (req, res) => {
         console.error('Error requesting return:', error);
         res.status(500).json({ message: 'Failed to submit return request' });
     }
+};
+
+exports.downloadInvoice =async (req,res) =>{
+ try{
+    const user=req.user;
+    const {orderId}=req.query;
+    const order =await Order.findOne({"user.userId":user._id,_id:orderId}).populate("orderItems.product");
+    if(!order){
+      return res.status(404).json({message:"Order Not Found"});
+    }
+    function buildPDF(dataCallback,endCallback){
+      const doc =new PDFDocument();
+      doc.on('data',dataCallback);
+      doc.on('end',endCallback);
+      doc .fontSize(15) .text(`Final Details of Order #${order._id}`,{
+        align:'center'
+      });
+      doc.moveDown();
+      doc.moveTo(60, doc.y).lineTo(550, doc.y).stroke();
+       doc.moveDown(.25);
+      doc .fontSize(13) .text('Items Ordered',{
+        align:'left',
+        continued:true
+      });
+      doc .fontSize(13) .text('Price',{
+        align:'right'
+      });
+      for(let i=0;i<order.orderItems.length;i++){
+        doc.moveDown();
+        doc .fontSize(11) .text(`${order.orderItems[i].quantity} of ${order.orderItems[i].productName}|${order.orderItems[i].product.brand}`,{
+          align:'left',
+          continued:true
+        });
+        doc .fontSize(11) .text(`₹${order.orderItems[i].discountedPrice*order.orderItems[i].quantity}`,{
+          align:'right'
+        });
+        doc .fontSize(10).text(`status : ${order.orderItems[i].status}`,{
+          align:'left'
+        });
+      }
+      doc.moveTo(60, doc.y).lineTo(550, doc.y).stroke();
+      doc.moveDown(.25);
+      doc .fontSize(13).text('Customer Details',{
+        align:'center'
+      });
+      doc .fontSize(11).text(`Customer Name : ${order.user.customerName}`,{
+        align:'left'
+      });
+      doc .fontSize(11).text(`Customer Email : ${order.user.customerEmail}`,{
+        align:'left'
+      });
+      doc .fontSize(11).text(`Shipping Address : ${order.user.shippingAddress.Name},${order.user.shippingAddress.HouseName},${order.user.shippingAddress.LocalityStreet},${order.user.shippingAddress.TownCity},${order.user.shippingAddress.state},${order.user.shippingAddress.country},`,{
+        align:'left'
+      });
+      doc .fontSize(11).text(`Pin : ${order.user.shippingAddress.pincode}`,{
+        align:'left'
+      });
+      doc .fontSize(11).text(`Contact : ${order.user.shippingAddress.MobileNumber}`,{
+        align:'left'
+      });
+      doc.moveTo(60, doc.y).lineTo(550, doc.y).stroke();
+      doc.moveDown(.25);
+      doc .fontSize(13).text('Payment Details',{
+        align:'center'
+      });
+      doc .fontSize(11).text('Payment Status',{
+        align:'left',
+        continued:true
+      });
+      doc .fontSize(11).text(`${order.payment.paymentStatus}`,{
+        align:'right'
+      });
+      doc .fontSize(11).text('Payment Method',{
+        align:'left',
+        continued:true
+      });
+      doc .fontSize(11).text(`${order.payment.paymentMethod}`,{
+        align:'right'
+      });
+      doc .fontSize(11).text('Subtotal',{
+        align:'left',
+        continued:true
+      });
+      doc .fontSize(11).text(`${order.payment.totalAmount-order.payment.discount}`,{
+        align:'right'
+      });
+      if(order.payment.appliedCouponCode){
+      doc .fontSize(11).text('Coupon Discount',{
+        align:'left',
+        continued:true
+      });
+      doc .fontSize(11).text(`${order.payment.couponDiscount}`,{
+        align:'right'
+      });
+    };
+      doc .fontSize(12).text('Grand Total',{
+        align:'left',
+        continued:true
+      });
+      doc .fontSize(12).text(`${order.payment.grandTotal}`,{
+        align:'right'
+      });
+      doc.moveTo(60, doc.y).lineTo(550, doc.y).stroke();
+       doc.rect(60,60,490,257.072).stroke();
+      doc.end();
+    };
+
+    res.writeHead(200,{
+      'Content-Type':'application/pdf',
+      'Content-Disposition':'attachment;filename=invoice.pdf'
+    });
+    buildPDF(
+      (chunk)=>res.write(chunk),
+      ()=>res.end()
+    );
+ }catch(error){
+  if(!res.headersSent){
+  res.status(500).json({message:"Server error while sending pdf"});
+  }else{
+  console.log(error.message)
+  }
+ }
 };

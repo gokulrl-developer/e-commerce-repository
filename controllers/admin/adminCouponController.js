@@ -1,7 +1,7 @@
 const Coupon=require('../../models/couponModel');
 
 //-------------helper function for validation----------------------------
-const validateCoupon =(couponData)=>{
+const validateCoupon =(couponData,mode)=>{
     const  {code,couponType,couponValue,minPurchaseAmount,startDate,expiryDate,totalUsageLimit}=couponData;
     
     const errors=[];
@@ -38,9 +38,14 @@ const validateCoupon =(couponData)=>{
    }else if(!(expiryDate instanceof Date) ||isNaN(expiryDate.getTime())){
     errors.push('Expiry Date should be a date');
    };
-   if(startDate.getTime>expiryDate.getTime){
+   if(startDate.getTime()>expiryDate.getTime){
     errors.push('Expiry Date cannot be before StartDate');
    }
+   if(mode==="ADD"){
+   if(startDate.getTime()<Date.now()){
+    errors.push('Start Date should be after present time');
+   }
+  };
    if(!totalUsageLimit){
     errors.push('Total usage limit is required')
    }else if(typeof totalUsageLimit !=='number' || totalUsageLimit <1){
@@ -73,7 +78,7 @@ exports.addCoupon = async (req, res) => {
         req.body.couponValue=parseFloat(req.body.couponValue);
         req.body.minPurchaseAmount=parseFloat(req.body.minPurchaseAmount);
         req.body.totalUsageLimit=parseFloat(req.body.totalUsageLimit);
-        const validationErrors = validateCoupon(req.body);
+        const validationErrors = validateCoupon(req.body,"ADD");
         if (validationErrors.length > 0) {
             return res.status(400).json({ message: 'Validation error', errors: validationErrors });
         }
@@ -105,7 +110,7 @@ exports.editCoupon=async (req,res)=>{
         req.body.couponValue=parseFloat(req.body.couponValue);
         req.body.minPurchaseAmount=parseFloat(req.body.minPurchaseAmount);
         req.body.totalUsageLimit=parseFloat(req.body.totalUsageLimit);
-        const validationErrors = validateCoupon(updateData);
+        const validationErrors = validateCoupon(updateData,"EDIT");
         if (validationErrors.length > 0) {
             return res.status(400).json({message: 'Validation error', errors: validationErrors });
         }

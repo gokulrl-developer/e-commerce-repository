@@ -44,8 +44,13 @@ router.get('/forgot-password-email', userController.getForgotPasswordEmail);
 router.post('/forgot-password-email', userController.postForgotPasswordEmail);
 router.get('/forgot-password-otp',userController.getForgotPasswordOtp);
 router.post('/forgot-password-otp',userController.postForgotPasswordOtp);
-router.get('/change-password',userController.getChangePassword);
-router.post('/change-password',userController.postChangePassword);
+router.get('/forgot-password-password',userController.getChangePassword);
+router.post('/forgot-password-password',userController.postChangePassword);
+
+//--------------------Change Password-------------------------------------------------
+router.get('/reset-password',userController.getResetPassword);
+router.post('/reset-password',userController.postResetPassword);
+
 
 router.get('/shopAll',userAuth.checkSession,paginate,userController.shopAll);
 router.post('/filter',userAuth.checkSession,paginate,userController.filterProducts)
@@ -91,22 +96,23 @@ router.get('/checkout',userAuth.checkSession,checkoutController.getCheckout)
 router.post('/place-order', userAuth.checkSession, checkoutController.placeOrder);
 router.get('/order/confirmation/:orderId', userAuth.checkSession, orderController.getOrderConfirmation);
 
-router.get('/orders',  userAuth.checkSession, orderController.getUserOrders);
+router.get('/orders',  userAuth.checkSession,paginate, orderController.getUserOrders);
 router.get('/order/details/:orderId', userAuth.checkSession, orderController.getOrderDetails);
 router.post('/order/cancel/:orderId', userAuth.checkSession, orderController.cancelOrder); 
 router.post('/order/return-request', userAuth.checkSession, orderController.requestReturn);
 router.post('/order/verify-payment', userAuth.checkSession, orderController.verifyPayment);
 router.post('/order/resume-payment/:orderId', userAuth.checkSession, orderController.continuePayment); 
 router.post('/order/payment-failed', userAuth.checkSession, orderController.handlePaymentFailure);
- 
+router.get('/invoice',userAuth.checkSession,orderController.downloadInvoice) 
 
 //-------------------------Wish List----------------------------------------------------------
 router.get('/wishlist',  userAuth.checkSession, wishlistController.getWishlist);
-router.get('/wishlist/data',  userAuth.checkSession, wishlistController.getWishlistData);
-router.post('/wishlist/add',  userAuth.checkSession, wishlistController.addToWishlist);
+router.get('/wishlist/data',userAuth.checkSession,paginate,wishlistController.getWishlistData);
+//router.post('/wishlist/add',  userAuth.checkSession, wishlistController.addToWishlist);
 router.post('/wishlist/remove',  userAuth.checkSession, wishlistController.removeFromWishlist);
 router.post('/wishlist/toggle',  userAuth.checkSession, wishlistController.toggleWishlistItem);
 
-router.get('/wallet',userAuth.checkSession,walletController.getWallet)
+//-----------------------------Wallet------------------------------------------------------------------
+router.get('/wallet',userAuth.checkSession,paginate,walletController.getWallet)
 
 module.exports=router;

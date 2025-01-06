@@ -96,6 +96,29 @@
     return true;
   };
   
+  // Function to validate email
+ /*  function validateEmail() {
+    const emailError = document.getElementById("email-error");
+  
+    const startsWithNumber = /^[0-9]/.test(email);
+  
+    if (startsWithNumber) {
+      emailError.textContent = "Email ID cannot start with a number.";
+      return false;
+    }
+  
+    const regex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+  
+    if (!regex.test(email)) {
+      emailError.textContent = "Enter a valid email address.";
+      return false;
+    } else {
+      emailError.textContent = "";
+      return true;
+    }
+  }
+  */
+ 
   // Add event listeners to input fields for live validation
   document.getElementById("mobile").addEventListener("input", (e) => {
     const mobile = e.target.value;

@@ -38,19 +38,19 @@
                 <table class="w-full">
                     <thead>
                         <tr class="text-left border-black border">
-                            <th class="pb-2">Date</th>
-                            <th class="pb-2">Description</th>
-                            <th class="pb-2">Type</th>
-                            <th class="pb-2">Amount</th>
+                            <th class="p-2">Date</th>
+                            <th class="p-2">Description</th>
+                            <th class="p-2">Type</th>
+                            <th class="p-2">Amount</th>
                         </tr>
                     </thead>
                     <tbody id="transactionTableBody">
                       <%wallet.transactions.forEach((transaction)=>{%>
                         <tr class="border-black border">
-                        <td class="py-2"><%=new Date(transaction.date).toLocaleDateString()%></td>
-                        <td class="py-2"><%=transaction.description%></td>
-                        <td class="py-2"><%=transaction.type%></td>
-                        <td class="py-2 <%=transaction.amount > 0 ? 'text-green-500' : 'text-red-500'%>">
+                        <td class="p-2"><%=new Date(transaction.date).toLocaleDateString()%></td>
+                        <td class="p-2"><%=transaction.description%></td>
+                        <td class="p-2"><%=transaction.type%></td>
+                        <td class="p-2 <%=transaction.amount > 0 ? 'text-yellow-500' : 'text-red-500'%>">
                           <%=transaction.amount > 0 ? '+' : '-'%>₹<%=Math.abs(transaction.amount).toFixed(2)%>
                         </td>
                     </tr>
@@ -91,6 +91,28 @@
       </section>
     
   </main>
+
+             <!-- Pagination -->
+<div class="my-4 flex justify-center">
+  <nav class="inline-flex" id="pagination-container">
+       <%if(currentPage>1){%>
+         <a href="/wallet?page=<%= currentPage - 1 %>"
+      class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer" id="pagination-previous">Previous</a>
+      <%}%>
+         <% for (let i=1; i <=totalPages; i++) { %>
+        <a href="/wallet?page=<%= i %>"
+          class="<%= currentPage === i ? 'bg-indigo-500' : 'bg-[#222]' %> text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer"
+          id="pagination-current">
+          <%= i %>
+        </a>
+        <% } %>
+        <%if(currentPage<totalPages){%>
+           <a href="/wallet?page=<%= currentPage + 1 %>"
+              class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer"
+              id="pagination-next">Next</a>
+              <%}%>
+  </nav>
+  </div> 
 
   <!-- Footer -->
   <%- include('../partials/user-footer') %>

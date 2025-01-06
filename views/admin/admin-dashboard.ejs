@@ -15,7 +15,7 @@
   <%-include('../partials/admin-header')%>
 
     <!-- Main Content -->
-    <div class="flex h-screen">
+    <div class="flex">
       <!-- Sidebar -->
       <%-include('../partials/admin-sidebar')%>
 
@@ -35,9 +35,9 @@
               <input type="date" id="startDate" class="bg-[#111] text-white px-4 py-2 rounded-md hidden">
               <input type="date" id="endDate" class="bg-[#111] text-white px-4 py-2 rounded-md hidden">
               <button id="generateSummary"
-              class="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold px-4 py-2 rounded-md">
-              Apply
-            </button>
+                class="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold px-4 py-2 rounded-md">
+                Apply
+              </button>
             </div>
           </div>
 
@@ -71,61 +71,194 @@
               </p>
             </div>
           </div>
+
+          <!-- Chart -->
+          <div>
+            <select id="chart-range" class="bg-[#111] text-white px-4 py-2 rounded-md">
+              <option value="Year">Yearly</option>
+              <option value="Month">Monthly</option>
+              <option value="Week">Weekly</option>
+              <option value="Day">Daily</option>
+              <option value="Hour">Hoursly</option>
+            </select>
+            <button id="generate-chart" onclick="generateChart()"
+                class="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold px-4 py-2 rounded-md">
+                Apply
+            </button>
+            <div id="sales-chart">
+
+            </div>
+          </div>
+         
+          <!-- Top Selling Items -->
+           <div >
+                 <h3>Select Top Selling Items</h3>
+            <select id="select-item" class="bg-[#111] text-white px-4 py-2 rounded-md"
+            onchange="getBestSellingItems()">
+              <option value="Product">Products</option>
+              <option value="Brand">Brands</option>
+              <option value="Category">Categorys</option>
+            </select>
+            <div id="top-sold-container" class="flex w-full h-auto flex-wrap">
+             
+           </div>
+
         </main>
 
     </div>
 
     <!-- Footer -->
     <%-include('../partials/admin-footer')%>
+      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
 
 </html>
 <script>
-// Utility Functions
-const qs = (selector) => document.querySelector(selector);
-    const qsa = (selector) => document.querySelectorAll(selector);
+  // Utility Functions
+  const qs = (selector) => document.querySelector(selector);
+  const qsa = (selector) => document.querySelectorAll(selector);
 
 
-   // Generate Report
-   async function generateSummary() {
-        const dateRange = qs("#dateRange").value;
-        let startDate = qs("#startDate").value;
-        let endDate = qs("#endDate").value;
+  // Generate Report
+  async function generateSummary() {
+    const dateRange = qs("#dateRange").value;
+    let startDate = qs("#startDate").value;
+    let endDate = qs("#endDate").value;
 
-        let url = `/admin/dashboard/data?range=${dateRange}`;
-        if (dateRange === 'custom') {
-            url += `&startDate=${startDate}&endDate=${endDate}`;
-        }
+    let url = `/admin/dashboard/data?range=${dateRange}`;
+    if (dateRange === 'custom') {
+      url += `&startDate=${startDate}&endDate=${endDate}`;
+    }
 
-        try {
-            const response = await fetch(url);
-            const data = await response.json();
-            if (response.ok) {
-                qs("#totalSales").textContent = `₹${data.summary.totalSales.toFixed(2)}`;
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      if (response.ok) {
+        qs("#totalSales").textContent = `₹${data.summary.totalSales.toFixed(2)}`;
         qs("#totalOrders").textContent = data.summary.totalOrders;
         qs("#totalDiscount").textContent = `₹${data.summary.totalDiscount.toFixed(2)}`;
         qs("#totalCouponDiscount").textContent = `₹${data.summary.totalCouponDiscount.toFixed(2)}`;
         qs("#netAmount").textContent = `₹${data.summary.netAmount.toFixed(2)}`;
-            } else {
-                Swal.fire('Error', data.message || 'Failed to generate report', 'error');
-            }
-        } catch (error) {
-            console.error("Error generating report:", error);
-            Swal.fire('Error',error.message || 'An error occurred while generating the report', 'error');
-        }
+        getBestSellingItems();
+        generateChart();
+         } else {
+        Swal.fire('Error', data.message || 'Failed to generate report', 'error');
+      }
+    } catch (error) {
+      console.error("Error generating report:", error);
+      Swal.fire('Error', error.message || 'An error occurred while generating the report', 'error');
     }
+  }
 
-    // Event Listeners
-    qs("#dateRange").addEventListener("change", function () {
-        const customDateInputs = qsa("#startDate, #endDate");
-        customDateInputs.forEach(input => {
-            input.classList.toggle("hidden", this.value !== "custom");
-        });
+
+  //Get Chart Data
+  async function generateChart() {
+    const dateRange = qs("#dateRange").value;
+    let startDate = qs("#startDate").value;
+    let endDate = qs("#endDate").value;
+    let chartRange =qs('#chart-range');
+    let url = `/admin/dashboard/chartData?range=${dateRange}&chartRange=${chartRange}`;
+    if (dateRange === 'custom') {
+      url += `&startDate=${startDate}&endDate=${endDate}`;
+    }
+   try {
+      const response = await fetch(url);
+      if (response.ok) {
+        const data=await response.json();
+        const chartContainer=document.getElementById('sales-chart');
+        chartContainer.innerHTML='';
+        if(data.chartData.length>0){
+        chartContainer.innerHTML='<canvas id="chart-canvas"></canvas>'
+         const ctx=qs("#chart-canvas");
+        var chart=new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: data.chartData[0].label,
+            datasets: [{
+              label: 'Number of Orders',
+              data:data.chartData[0].orderCount,
+              borderWidth: 1,
+            }]
+          },
+          options: {
+            scales: {
+              y: {
+                beginAtZero: true
+              }
+            }
+          }
+         });
+        };
+      } else {
+        Swal.fire('Error', data.message || 'Failed to generate report', 'error');
+      }
+    } catch (error) {
+      Swal.fire('Error', error.message || 'An error occurred while generating the report', 'error');
+    }
+  }
+  
+
+//Get Best selling Items
+async function getBestSellingItems(){
+  try{
+    const dateRange = qs("#dateRange").value;
+    let startDate = qs("#startDate").value;
+    let endDate = qs("#endDate").value;
+    const selectedItem =qs("#select-item").value;
+    let url = `/admin/dashboard/topSold?range=${dateRange}&item=${selectedItem}`;
+    if (dateRange === 'custom') {
+      url += `&startDate=${startDate}&endDate=${endDate}`;
+    }
+  const response=await fetch(url);
+if(response.ok){
+  const data= await response.json();
+  const topSoldContainer=qs('#top-sold-container');
+  if(data.topSoldData.length===0){
+    topSoldContainer.innerHTML=`<div class="mt-15 flex justify-center items-center"><h1>No Items to Show</h1></div>`;
+  }else{
+  let html='';
+  data.topSoldData.forEach((x)=>
+html+=` <div class="w-1/5 p-2 flex flex-col">
+              ${selectedItem==='Product'?`<div class="h-2/3">
+              <img src="${x.item.itemImage}" class="h-full">
+                </div>`:''}
+                <div>
+                  <p>
+                   ${x.item.itemName}
+                  </p>
+                  ${selectedItem==='Product'?`<P>
+                    Brand : ${x.item.itemBrand}`:''}
+                  <p>
+                   Order count : ${x.orderCount}
+                  </p>
+                </div>
+              </div>
+            </div>`
+  );
+  topSoldContainer.innerHTML=html;
+          };
+  }else{
+    const result=await response.json();
+    Swal.fire({title:"Error",icon:"error",text:result.message || "An error occured while fetching top Sold Items"})
+  }
+}catch(error){
+  Swal.fire({title:"Error",text:error.message || "An error occured while fetching top sold items",icon:"error"})
+}
+}
+ 
+
+// Event Listeners
+  qs("#dateRange").addEventListener("change", function () {
+    const customDateInputs = qsa("#startDate, #endDate");
+    customDateInputs.forEach(input => {
+      input.classList.toggle("hidden", this.value !== "custom");
     });
+  });
 
-    qs("#generateSummary").addEventListener("click", generateSummary);
+  qs("#generateSummary").addEventListener("click", generateSummary);
 
-    // Initialize summary on page load
-    document.addEventListener("DOMContentLoaded", generateSummary);
-
+  // Initialize summary on page load
+  document.addEventListener("DOMContentLoaded", generateSummary);
+  document.addEventListener("DOMContentLoaded",generateChart)
+  document.addEventListener("DOMContentLoaded",getBestSellingItems)
 </script>

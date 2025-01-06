@@ -353,57 +353,63 @@ selectedForm.querySelector("[data-error-id='status']").addEventListener('input',
 }
  */
 
-function validateOfferForm(formData) {
-      const title = formData.get('title').trim();
+
+
+ //------------------helper function to validate-------------------------------------------
+const validateOffer = (formData,mode) => {
+  const title = formData.get('title').trim();
       const discountPercentage = formData.get('discountPercentage');
       const offerType = formData.get('offerType');
       const applicableItem = formData.get('applicableItem');
       const startDate = new Date(formData.get('startDate'));
-      const endDate = new Date(formData.get('expiryDate'));
-      if (!title || title.length < 3 || title.length > 50) {
-          Swal.fire({
-              icon: 'error',
-              title: 'Validation Error',
-              text: 'Offer title must be between 3 and 50 characters.',
-          });
-          return false;
-      }
+      const expiryDate = new Date(formData.get('expiryDate'));
 
-      if (!discountPercentage || discountPercentage < 0 || discountPercentage > 100) {
-          Swal.fire({
-              icon: 'error',
-              title: 'Validation Error',
-              text: 'Discount percentage must be between 0 and 100.',
-          });
-          return false;
-      }
+    const errors = [];
+    if (!title || typeof title !== 'string' || title.trim() === '' || title.trim().length>50) {
+        errors.push('offer title cannot be empty and must be a string of length less than 50.');
+    }
+    if (!discountPercentage || isNaN(parseFloat(discountPercentage)) || discountPercentage < 0 || discountPercentage > 100) {
+        errors.push('Discount percentage is required and should be a number between 0 and 100');
+    }
+    if (!offerType || !['Product', 'Category'].includes(offerType)) {
+        errors.push('OfferType is required and should be of categories Product or Category')
+    }
+    if (!applicableItem) {
+        errors.push('applicableItem is required');
+    }
+    
+    if (!startDate) {
+        errors.push('startDate is required');
+    } else if (!(startDate instanceof Date) || isNaN(startDate.getTime())) {
+        errors.push('start Date should be a date');
+    };
+    if (!expiryDate) {
+        errors.push('Expiry Date is required');
+    } else if (!(expiryDate instanceof Date) || isNaN(expiryDate.getTime())) {
+        errors.push('Expiry Date should be a date');
+    };
+    if (startDate.getTime() > expiryDate.getTime()) {
+        errors.push('Expiry Date cannot be before StartDate');
+    }
+    if(mode==="ADD"){
+        if (startDate.getTime() < Date.now()) {
+            errors.push('Start date must be after present time');
+        }
+    }
+    return errors;
+}
 
-      if (!offerType || !applicableItem) {
-          Swal.fire({
-              icon: 'error',
-              title: 'Validation Error',
-              text: 'Please select both offer type and applicable item.',
-          });
-          return false;
-      }
-
-      if (startDate.getTime() >= endDate.getTime()) {
-          Swal.fire({
-              icon: 'error',
-              title: 'Validation Error',
-              text: 'Please ensure the start date is before the end date.',
-          });
-          return false;
-      }
-
-      return true;
-  }
 
   document.getElementById('add-offer-form').addEventListener('submit', async function (e) {
       e.preventDefault();
       const formData = new FormData(this);
 
-      if (!validateOfferForm(formData)) return;
+      const validationErrors = validateOffer(formData,"ADD");
+    if(validationErrors.length>0){
+      let errorText=validationErrors.join("<br>");
+      Swal.fire({title:"Error",html:errorText,icon:"error"});
+      return;
+    }
 
       const jsonData = Object.fromEntries(formData.entries());
             try {
@@ -445,8 +451,12 @@ function validateOfferForm(formData) {
       e.preventDefault();
       const formData = new FormData(this);
 
-      if (!validateOfferForm(formData)) return;
-
+      const validationErrors = validateOffer(formData,"EDIT");
+    if(validationErrors.length>0){
+      let errorText=validationErrors.join("<br>");
+      Swal.fire({title:"Error",html:errorText,icon:"error"});
+      return;
+    }
       const jsonData = Object.fromEntries(formData.entries());
       console.log(jsonData)
       const id=document.getElementById('edit-offer-id').value;
