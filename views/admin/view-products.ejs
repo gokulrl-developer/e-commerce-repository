@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/style.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <title>Hello, World!</title>
 </head>
@@ -15,16 +15,22 @@
   <!-- Header Section -->
   <%-include('../partials/admin-header') %>
 
-    <div class="flex">
-      <!-- Sidebar -->
-      <%-include('../partials/admin-sidebar') %>
-
-        <!-- Main Content -->
-        <div class="w-4/5 p-6">
-          <div class="flex justify-between items-center mb-6">
-            <button class="bg-yellow-500 text-black px-4 py-2 rounded hover:bg-yellow-600" onclick="addProduct()">
-              Add New Product
-            </button>
+  <div class="flex">
+    <!-- Sidebar -->
+    <%-include('../partials/admin-sidebar') %>
+    
+    <!-- Main Content -->
+    <div class="w-4/5 p-6">
+      <div class="flex justify-between items-center mb-6">
+        <button class="bg-yellow-500 text-black px-4 py-2 rounded hover:bg-yellow-600" onclick="addProduct()">
+          Add New Product
+        </button>
+        
+        <div class="mb-4">
+          <input type="text" id="search" name="search" class="form-input bg-indigo-500 px-4 py-2 w-[90%]"
+            placeholder="Search an item" oninput="applySearch()">
+          <button onclick="applySearch()">Search</button>
+        </div>
 
           </div>
 
@@ -39,7 +45,7 @@
                   <th class="border-b border-gray-700 py-2">Action</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="product-table-body">
                 <% products.forEach(product=> { %>
                   <tr>
                     <td class="py-2">
@@ -82,7 +88,7 @@
     </div>
     <!-- Pagination -->
     <div class="mt-4 flex justify-center">
-      <nav class="inline-flex">
+      <nav class="inline-flex" id="pagination-container">
         <% if (currentPage> 1) { %>
           <a href="/admin/products?page=<%= currentPage - 1 %>"
             class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-orange-500">Previous</a>
@@ -169,5 +175,91 @@
   function unBlockUser(userId) {
     updateUserStatus(userId, 'unblock');
   }
+//Apply Filters
+async function applySearch(url='/admin/products?page=1&limit=9') {
+    try {
+      const search = document.getElementById('search').value.trim();
+      url=url+`&search=${search}`
+      const response = await fetch(url,{
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (!data.products || data.products.length === 0) {
+          document.getElementById('product-table-body').innerHTML = `
+         <p class="text-gray-400">You haven't added any products yet.</p>`
+        } else {
+          document.getElementById("product-table-body").innerHTML=
+           data.products.map((product) => (
+          ` <tr>
+                    <td class="py-2">
+                      ${ product.productName }
+                    </td>
+                    <td class="py-2">
+                      ${ product.price }
+                    </td>
+                    <td class="py-2">
+                      ${ product.stock }
+                    </td>
+                    <td class="py-2">
+                      ${ product.category.categoryName }
+                    </td>
+                    <td class="py-2 space-x-2">
+                      <button class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+                        onclick="edit('${ product._id }')">
+                        Edit
+                      </button>
+                      ${product.isBlocked===true?
+                        `<button class="px-3 py-1 bg-green-600 rounded text-white hover:bg-green-500"
+                          onclick="blockUnBlockProduct('unblock','${product._id}')">
+                          Unlock
+                        </button>`:
+                          `<button class="px-3 py-1 bg-red-600 rounded text-white hover:bg-red-500"
+                            onclick="blockUnBlockProduct('block','${product._id}')">
+                            Block
+                          </button>`}
+                           </td>
+                  </tr>
+                    `
+           )).join(''); 
+        }
+      //pagination
+      const paginationContainer=document.getElementById('pagination-container');
+      paginationContainer.innerHTML='';
+     let html=` 
+             ${data.currentPage>1 ?`
+               <a onclick="setPaginationDetails(${data.currentPage-1},9)"
+            class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer" >Previous</a>
+            `: ''}
+            `;
+         for (let i=1; i <=data.totalPages; i++) {
+          html+=    `<a onclick="setPaginationDetails(${i},9)"
+                class="${data.currentPage === i ? 'bg-indigo-500' : 'bg-[#222]'} text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer"
+                >
+                ${i}
+              </a>`;
+            }
+              
+           html+= `${data.currentPage<data.totalPages ?
+                 `<a onclick="setPaginationDetails(${data.currentPage+1},9)"
+                    class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer"
+                    >Next</a>`:''}`
+        paginationContainer.innerHTML=html;
+
+    }}catch (error){
+      console.error("error applying filters", error);
+      Swal.fire("Error", error.message || "Error In Filtering Products", "error");
+    }
+  }
+  
+ 
+//----------------------------------------Pagination---------------------------------------------
+async function setPaginationDetails(page,limit){
+const url=`/admin/products?page=${page}&limit=${limit}`
+applySearch(url);
+}
 
 </script>

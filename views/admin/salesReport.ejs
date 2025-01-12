@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Orders</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
@@ -127,18 +127,12 @@
                         </table>
                     </div>
 
-                    <!-- Pagination -->
-                    <div class="mt-8 flex justify-between items-center">
-                        <div>
-                            <span id="paginationInfo" class="text-sm text-gray-400"></span>
-                        </div>
-                        <div class="space-x-2">
-                            <button id="prevPage"
-                                class="bg-orange-500 hover:bg-orange-600 text-black font-semibold px-4 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed">Previous</button>
-                            <button id="nextPage"
-                                class="bg-orange-500 hover:bg-orange-600 text-black font-semibold px-4 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed">Next</button>
-                        </div>
-                    </div>
+                   <!-- Pagination -->
+    <div class="mt-4 flex justify-center">
+        <nav class="inline-flex" id="pagination-container">
+        </nav>
+        </div>
+        
                 </main>
         </div>
 
@@ -162,17 +156,21 @@
     let currentPage = 1;
     let totalPages = 1;
 
+    //Wrapper event listener for generate report
+     async function generateReportWrapper(){
+        await generateReport();
+    } 
+
     // Generate Report
-    async function generateReport() {
+    async function generateReport(url='/admin/sales-report/data?page=1&limit=9') {
         const dateRange = qs("#dateRange").value;
         let startDate = qs("#startDate").value;
         let endDate = qs("#endDate").value;
-
-        let url = `/admin/sales-report/data?range=${dateRange}&page=${currentPage}`;
+        url = url+`&range=${dateRange}&page=${currentPage}`;
         if (dateRange === 'custom') {
             url += `&startDate=${startDate}&endDate=${endDate}`;
         }
-
+console.log(url)
         try {
             const response = await fetch(url);
             const data = await response.json();
@@ -187,7 +185,7 @@
             }
         } catch (error) {
             console.error("Error generating report:", error);
-            Swal.fire('Error', 'An error occurred while generating the report', 'error');
+            Swal.fire('Error', error.message || 'An error occurred while generating the report', 'error');
         }
     }
 
@@ -202,11 +200,12 @@
 
     // Update Sales Table
     function updateSalesTable(salesData) {
+        console.log(salesData[0])
         const tableBody = qs("#salesTableBody");
-        tableBody.innerHTML = salesData.flatMap(day =>
-            day.orders.map(order => `
+        if(salesData.length>0){
+        tableBody.innerHTML = salesData[0].orders.map(order => `
                 <tr class="border-b border-gray-800">
-                    <td class="p-4">${day._id}</td>
+                    <td class="p-4">${salesData[0]._id}</td>
                     <td class="p-4">#${order.orderId.toString().slice(-6)}</td>
                     <td class="p-4">${order.customerName}</td>
                     <td class="p-4">₹${order.totalAmount.toFixed(2)}</td>
@@ -217,17 +216,41 @@
                     <td class="p-4">${order.paymentStatus}</td>
                 </tr>
             `
-            )).join('');
+            ).join('');
+        }else{tableBody.innerHTML='';}
     }
 
 
     function updatePagination(pagination) {
-        currentPage = pagination.currentPage;
-        totalPages = pagination.totalPages;
-        qs("#paginationInfo").textContent = `Page ${currentPage} of ${totalPages}`;
-        qs("#prevPage").disabled = currentPage === 1;
-        qs("#nextPage").disabled = currentPage === totalPages;
+          //pagination
+      const paginationContainer=document.getElementById('pagination-container');
+      paginationContainer.innerHTML='';
+     let html=` 
+             ${pagination.currentPage>1 ?`
+               <a onclick="setPaginationDetails(${pagination.currentPage-1},9)"
+            class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer" >Previous</a>
+            `: ''}
+            `;
+         for (let i=1; i <=pagination.totalPages; i++) {
+          html+=    `<a onclick="setPaginationDetails(${i},9)"
+                class="${pagination.currentPage === i ? 'bg-indigo-500' : 'bg-[#222]'} text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer"
+                >
+                ${i}
+              </a>`;
+            }
+              
+           html+= `${pagination.currentPage<pagination.totalPages ?
+                 `<a onclick="setPaginationDetails(${pagination.currentPage+1},9)"
+                    class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer"
+                    >Next</a>`:''}`
+        paginationContainer.innerHTML=html;
     }
+
+//----------------------------------------Pagination---------------------------------------------
+async function setPaginationDetails(page,limit){
+const url=`/admin/sales-report/data?page=${page}&limit=${limit}`
+generateReport(url);
+}
 
     // Event Listeners
     qs("#dateRange").addEventListener("change", function () {
@@ -237,9 +260,9 @@
         });
     });
 
-    qs("#generateReport").addEventListener("click", generateReport);
+    qs("#generateReport").addEventListener("click", generateReportWrapper);
 
-    qs("#prevPage").addEventListener("click", () => {
+   /*  qs("#prevPage").addEventListener("click", () => {
         if (currentPage > 1) {
             currentPage--;
             generateReport();
@@ -251,7 +274,7 @@
             currentPage++;
             generateReport();
         }
-    });
+    }); */
 
     qs("#downloadPDF").addEventListener("click", async function () {
         const dateRange = qs("#dateRange").value;
@@ -280,5 +303,5 @@
     });
 
     // Initialize report on page load
-    document.addEventListener("DOMContentLoaded", generateReport);
+    document.addEventListener("DOMContentLoaded", generateReportWrapper);
 </script>

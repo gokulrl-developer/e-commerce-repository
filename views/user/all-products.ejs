@@ -7,8 +7,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+   <link rel="stylesheet" href="/style.css">
   <title>Shop All</title>
 </head>
 
@@ -155,8 +155,8 @@
                       <h6 class="text-lg font-normal">Out of Stock</h6>
                       <%}%>
                         <a href="/product/<%= product._id %>"
-                          class="btn bg-blue-500 text-white rounded px-2 py-1 mt-2 inline-block">View</a>
-                        <a class="btn bg-blue-500 text-white rounded px-2 py-1 mt-2 inline-block" id="add-to-cart"
+                          class="btn bg-blue-500 text-white rounded px-2 py-1 mt-2 inline-block cursor-pointer">View</a>
+                        <a class="btn bg-blue-500 text-white rounded px-2 py-1 mt-2 inline-block cursor-pointer" id="add-to-cart"
                           onclick="addToCart('<%=product._id%>')">Add to Cart</a>
                 </div>
               </div>

@@ -62,6 +62,8 @@ const orderSchema = new mongoose.Schema(
       totalAmount: Number,
       discount: Number,
       grandTotal: Number,
+      shippingCost:Number,
+      orderTotal:Number, //incl.GST
       couponDiscount: {
         type: Number,
         default: 0

@@ -4,6 +4,7 @@ const User = require('../../models/userModel');
 const Product = require('../../models/productModel');
 const Coupon = require('../../models/couponModel');
 const Order = require('../../models/orderModel');
+const Wallet = require('../../models/walletModel');
 const {recalculateCart} = require('./cartController');
 const Razorpay = require('razorpay');
 
@@ -25,7 +26,10 @@ exports.getCheckout = async (req, res) => {
                 totalPrice:0,
                 totalDiscount:0,
                 totalPriceAfterDiscount:0,
+                couponDiscount:0,
+                applicableCoupons:[],
                 addresses,
+                appliedCouponCode:null,
                  message:"no items in the cart" });
         }    
     await recalculateCart(cart,req);
@@ -41,11 +45,16 @@ exports.getCheckout = async (req, res) => {
                }
             };
             await cart.save();
+                 const now=new Date();
+    const applicableCoupons=await Coupon.find({startDate:{$lte:now},expiryDate:{$gte:now},isActive:true});
     res.render("user/checkout", {
       totalPrice:cart.totalPrice,
       totalDiscount :cart.totalDiscount,
       grandTotal:cart.grandTotal,
+      couponDiscount:cart.couponDiscount,
+      applicableCoupons,
       addresses,
+      appliedCouponCode:cart.appliedCouponCode,
       user:req.session.user,
     });
   } catch (error) {
@@ -122,7 +131,7 @@ exports.placeOrder = async (req, res) => {
             }
         }
 
-        if (paymentMethod === 'Cash On Delivery' && cart.grandTotal > 1000) {
+        if (paymentMethod === 'Cash On Delivery' && (cart.grandTotal+100)*118/100 > 1000) {
             return res.status(400).json({ message: "Cash On Delivery is not available for orders above Rs 1000" });
         }
         const order = new Order({
@@ -139,10 +148,12 @@ exports.placeOrder = async (req, res) => {
                 paymentStatus: paymentMethod === 'Cash On Delivery' ? 'Pending' : 'Completed',
                 totalAmount:cart.totalPrice,
                 discount:cart.totalDiscount,
-                grandTotal:cart.grandTotal,
+                grandTotal:cart.grandTotal +100,
                 couponDiscount:cart.couponDiscount,
                 appliedCouponCode:cart.appliedCouponCode,
                 couponCode:cart.couponDetails.couponCode,
+                shippingCost:100,
+                orderTotal:(cart.grandTotal)*118/100,
                     
             },
             coupon: cart.appliedCouponCode?._Id
@@ -150,7 +161,7 @@ exports.placeOrder = async (req, res) => {
         const savedOrder = await order.save();
 
         await Promise.all(orderItems.map(async (item) => {
-            await Product.findByIdAndUpdate(item.productId, {
+            await Product.findByIdAndUpdate(item.product, {
                 $inc: { stock: -item.quantity }
             });
         }));
@@ -160,7 +171,7 @@ exports.placeOrder = async (req, res) => {
 
         if (paymentMethod === 'Razorpay') {
             const razorpayOrder = await razorpay.orders.create({
-                amount: Math.round(order.payment.grandTotal * 100),
+                amount: Math.round(order.payment.orderTotal * 100),
                 currency: 'INR',
                 receipt: savedOrder._id.toString()
             });
@@ -178,7 +189,7 @@ exports.placeOrder = async (req, res) => {
                     $inc: { balance: -order.payment.grandTotal },
                     $push: {
                         transactions: {
-                            amount: order.payment.grandTotal,
+                            amount: order.payment.orderTotal,
                             type: 'debit',
                             description: `Payment for order ${savedOrder._id}`,
                             orderId: savedOrder._id
@@ -194,4 +205,104 @@ exports.placeOrder = async (req, res) => {
         res.status(500).json({ message: error.message || 'Failed to place order' });
     }
 }
-    
+ 
+exports.applyCoupon = async (req, res) => {
+    try{
+      const userId = req.session.user._id;
+      const {couponCode}=req.body;
+        const cart = await Cart.findOne({ userId }).populate({
+            path: 'items.product',
+            match: { isBlocked: false },
+            populate: {
+                path: 'category',
+                match: { status: 'Active' }
+            }
+        });
+  
+        if (!cart) {
+            return res.status(404).json({ message: "Cart not found" });
+        }
+        const coupon = await Coupon.findOne({ code: couponCode, isActive: true });
+        if (!coupon) {
+            return res.status(404).json({ message: "Coupon not found or inactive" });
+        }
+  
+        if (coupon.expiryDate && new Date() > coupon.expiryDate) {
+            return res.status(400).json({ message: "Coupon has expired" });
+        }
+        if (req.session.totalPurchaseAmount < coupon.minPurchaseAmount) {
+            return res.status(400).json({ message: `Minimum purchase amount of ₹${coupon.minPurchaseAmount} required for this coupon` });
+        }
+        const usage=coupon.usageByUser.find((usage)=>usage.userId.toString()===userId.toString());
+        if(usage && coupon.totalUsageLimit<=usage.count){
+          return res.status(429).json({message:"total usage limit for this coupon exceeded"});
+        }
+        cart.appliedCouponCode=couponCode;
+        await recalculateCart(cart,req);
+        if(usage){
+          usage.count++;
+        }else{coupon.usageByUser.push({userId,count:1})}
+        await cart.save();
+        await coupon.save();
+        const now=new Date();
+    const applicableCoupons=await Coupon.find({startDate:{$lte:now},expiryDate:{$gte:now},isActive:true});
+        res.status(200).json({
+            message: "Coupon applied successfully",
+            totalPrice:cart.totalPrice,
+            grandTotal:cart.grandTotal,
+            totalDiscount:cart.totalDiscount,
+            couponDiscount: cart.couponDiscount,
+            applicableCoupons,
+            appliedCouponCode:cart.appliedCouponCode
+        });
+    } catch (error) {
+        console.error("Apply coupon error: ", error);
+        res.status(500).json({ message: "An error occurred while applying the coupon" });
+    }
+  
+  };
+  
+  
+  exports.removeCoupon = async (req, res) => {
+    try{
+      const userId = req.user._id;
+      const {couponCode}=req.body;
+        const cart = await Cart.findOne({ userId }).populate({
+            path: 'items.product',
+            match: { isBlocked: false },
+            populate: {
+                path: 'category',
+                match: { status: 'Active' }
+            }
+        });
+  
+        if (!cart) {
+            return res.status(404).json({ message: "Cart not found" });
+        }
+  
+        const coupon = await Coupon.findOne({ code: couponCode, isActive: true });
+        if(!coupon){
+          return res.status(400).json({message:"The coupon is active currently to remove"});
+        }
+        cart.appliedCouponCode=null;
+        await recalculateCart(cart,req);
+        coupon.usageByUser.find((usage)=>usage.userId.toString()===userId.toString()).count--;
+        cart.save();
+        coupon.save();
+        const now=new Date();
+    const applicableCoupons=await Coupon.find({startDate:{$lte:now},expiryDate:{$gte:now},isActive:true});
+        res.json({
+            message: "Coupon deleted successfully",
+            totalPrice:cart.totalPrice,
+            grandTotal:cart.grandTotal,
+            totalDiscount:cart.totalDiscount,
+            couponDiscount: cart.couponDiscount,
+            applicableCoupons,
+            appliedCouponCode:cart.appliedCouponCode
+        });
+    } catch (error) {
+        console.error("Apply coupon error: ", error);
+        res.status(500).json({ message: "An error occurred while removing the coupon" });
+    }
+  
+  };

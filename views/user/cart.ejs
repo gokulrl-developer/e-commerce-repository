@@ -5,7 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cart</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="style.css">
+
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.all.min.js"></script>
 
@@ -117,10 +118,6 @@
                   <%=grandTotal%>
                 </span>
               </div>
-              <div class="flex justify-between text-gray-700">
-                <span>Shipping</span>
-                <span>Free</span>
-              </div>
               <hr class="my-2 border-gray-300">
               <div class="flex justify-between text-gray-800 font-semibold text-lg">
                 <span>Grand Total</span>
@@ -129,29 +126,6 @@
                 </span>
               </div>
             </div>
-            <hr class="my-4 border-gray-300">
-            <div class="relative">
-              <label for="coupon" class="sr-only">Coupon Code</label>
-              <div class="flex items-center border border-gray-300 rounded px-2 py-1 bg-white">
-                <span class="text-gray-500">🎟️</span>
-                <select id="coupon" class="flex-1 ml-2 bg-transparent outline-none text-gray-700"
-                  onchange="toggleCoupon('apply')">
-                  <option value="" disabled selected>Coupons Available</option>
-                  <%if(applicableCoupons && applicableCoupons.length>0){applicableCoupons.forEach((coupon)=>{%>
-                    <option value="<%=coupon.code%>" <%=coupon.code===appliedCouponCode?"selected" :""%>
-                      >
-                      <%=coupon.code%>
-                    </option>
-                    <%})}%>
-                </select>
-              </div>
-            </div>
-            <button
-              class="w-full mt-4 bg-black text-white py-3 rounded text-center font-bold text-sm hover:bg-gray-800 
-              <%=!appliedCouponCode?'hidden':''%>"
-              onclick="toggleCoupon('remove')" id="remove-coupon-btn">
-              Romove Coupon
-            </button>
             <button class="w-full mt-4 bg-black text-white py-3 rounded text-center font-bold text-sm hover:bg-gray-800"
               onclick="proceedToCheckout()">
               CHECKOUT
@@ -170,46 +144,6 @@
 
 </html>
 <script>
-  async function toggleCoupon(mode) {
-    const couponSelect = document.getElementById('coupon');
-    const couponCode = couponSelect.value;
-    const action = mode === 'apply' ? '/apply-coupon' : '/remove-coupon'
-    try {
-      const response = await fetch(action, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ couponCode })
-      });
-
-      const result = await response.json();
-      if (response.ok) {
-        console.log(result.appliedCouponCode)
-        swal.fire("Success", result.message || 'Coupon applied Successfully', "success");
-        fetchCart();
-       /*  document.getElementById('totalPrice').textContent = (result.totalPrice || 0);
-        document.getElementById('coupon-discount').textContent = (result.couponDiscount || 0);
-        const totalDiscountElement = document.querySelector('#discount');
-        if (totalDiscountElement) {
-          totalDiscountElement.textContent = (result.totalDiscount || 0);
-        }
-
-        if (mode === 'apply') {
-          const selectCoupon = document.getElementById('coupon');
-          selectCoupon.querySelector('[value=""]').selected = true;
-          document.getElementById('remove-coupon-btn').classList.remove('hidden');
-          document.getElementById('coupon-discount-line').classList.remove('hidden');
-        }else{
-          document.getElementById('remove-coupon-btn').classList.add('hidden');
-          document.getElementById('coupon-discount-line').classList.add('hidden');
-        } */
-      } else {
-        swal.fire("Error", result.message || 'Error applying coupon', "error");
-      }
-    } catch (error) {
-      const message=mode==='apply'?"An error occured while applying the coupon":"an error occured while removing the coupon";
-      swal.fire("Error", error.message || message, "error");
-    }
-  }
 
   async function fetchCart() {
     try {
@@ -298,10 +232,8 @@
 
 
       cartContent.innerHTML = html;
-    }
-    //Update cart summary
-    html = `
-            const cartSummary=document.getElementById('cart-summary');
+
+      html = `
             <div class="p-6 border rounded-lg shadow bg-gray-50">
             <h3 class="text-lg font-medium mb-4 text-gray-800">Order Summary</h3>
             <div class="space-y-2">
@@ -330,10 +262,6 @@
                   ${data.grandTotal}
                 </span>
               </div>
-              <div class="flex justify-between text-gray-700">
-                <span>Shipping</span>
-                <span>Free</span>
-              </div>
               <hr class="my-2 border-gray-300">
               <div class="flex justify-between text-gray-800 font-semibold text-lg">
                 <span>Grand Total</span>
@@ -342,39 +270,6 @@
                 </span>
               </div>
             </div>
-            <hr class="my-4 border-gray-300">
-            <div class="relative">
-              <label for="coupon" class="sr-only">Coupon Code</label>
-              <div class="flex items-center border border-gray-300 rounded px-2 py-1 bg-white">
-                <span class="text-gray-500">🎟️</span>
-                <select id="coupon" class="flex-1 ml-2 bg-transparent outline-none text-gray-700"
-                onchange="toggleCoupon('apply')">
-                  <option value="" disabled selected>Coupons Available</option>`
-
-    if (data.applicableCoupons && data.applicableCoupons.length > 0) {
-      data.applicableCoupons.forEach((coupon) => {
-          html+=`<option value="${coupon.code}" ${data.appliedCouponCode===coupon.code ? 'selected' : ''}>${coupon.code}</option>`
-      })
-    }
-    html += `
-                </select>
-              </div>
-            </div>
-            <div class="flex justify-between text-gray-800 font-semibold text-lg hidden" id="coupon-discount-line">
-              <span>Coupon Discount</span>
-              <span id="coupon-discount">
-                ${data.couponDiscount}
-              </span>
-            </div>
-            <button
-              class="w-full mt-4 bg-black text-white py-3 rounded text-center font-bold text-sm hover:bg-gray-800"`
-         if(!data.appliedCouponCode){
-          html+="hidden"
-         }                  
-          html+=    `
-              onclick="toggleCoupon('remove')" id="remove-coupon-btn">
-              Romove Coupon
-            </button>
             <button
               class="w-full mt-4 bg-black text-white py-3 rounded text-center font-bold text-sm hover:bg-gray-800"
               onclick="proceedToCheckout()">
@@ -382,8 +277,8 @@
             </button>
           </div>`
     document.getElementById('cart-summary').innerHTML = html;
-/*             document.dispatchEvent(new CustomEvent('cartUpdated', { detail: { count: data.cart.length } }));
- */        }
+    }
+       }
 
 
   async function removeFromCart(cartItemId) {

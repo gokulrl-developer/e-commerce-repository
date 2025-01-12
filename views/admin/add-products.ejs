@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Add Product</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/style.css">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
@@ -74,8 +74,9 @@
                     class="w-full bg-gray-700 text-white border border-gray-600 rounded p-2"></textarea>
                 </div>
                 <div>
-                  <label for="specifications" class="block text-sm font-medium">Specifications</label>
-                  <textarea id="specifications" name="specifications" rows="3" placeholder="Enter specifications"
+                  <label for="features" class="block text-sm font-medium">Features</label>
+                  <p>Give the features separated by ',' (comma)</p>
+                  <textarea id="features" name="features" rows="3" placeholder="Enter features separated by ',' (comma)"
                     class="w-full bg-gray-700 text-white border border-gray-600 rounded p-2"></textarea>
                 </div>
                 <div>
@@ -242,7 +243,7 @@
   }
   
  function validateForm(formData){
-    let  {productName,brand,gender,stock,price,description,specifications,category,rating}=Object.fromEntries(formData.entries());;
+    let  {productName,brand,gender,stock,price,description,features,category,rating}=Object.fromEntries(formData.entries());;
     price=parseFloat(price);
     stock=parseFloat(stock);
     rating=parseFloat(rating);
@@ -259,9 +260,6 @@ if(!gender || typeof gender!== 'string'){
 }
 if(!description || typeof description!== 'string'){
        errors.push('description is required and must be a string');
-}
-if(!specifications || typeof specifications!== 'string'){
-       errors.push('specifications is required and must be a string');
 }
 if(!category || typeof category!== 'string'){
        errors.push('category is required and must be a string');
@@ -295,7 +293,14 @@ if(fileArray.length !==4){
     formData.append("stock", document.getElementById("stock").value);
     formData.append("price", document.getElementById("price").value);
     formData.append("description", document.getElementById("description").value);
-    formData.append("specifications", document.getElementById("specifications").value);
+    const featuresString=document.getElementById("features").value?.trim();
+    let featuresArray =[];
+    if(featuresString && typeof featuresString ==="string"){
+      featuresArray =featuresString.split(',');
+      featuresArray =featuresArray.map((element)=>element.trim());
+      featuresArray =featuresArray.filter((element)=>element!=='');
+    }
+    formData.append("features", JSON.stringify(featuresArray));
     formData.append("category", document.getElementById("category").value);
     formData.append("rating", document.getElementById("rating").value);
 
@@ -333,5 +338,6 @@ if(errors && errors.length>0){
     }
 
   });
+
 
 </script>

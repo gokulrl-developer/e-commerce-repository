@@ -6,8 +6,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/style.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  
 </head>
 
 <body class="bg-gray-900 text-white">
@@ -35,7 +36,7 @@
               <input type="date" id="startDate" class="bg-[#111] text-white px-4 py-2 rounded-md hidden">
               <input type="date" id="endDate" class="bg-[#111] text-white px-4 py-2 rounded-md hidden">
               <button id="generateSummary"
-                class="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold px-4 py-2 rounded-md">
+                class="bg-indigo-500 hover:bg-indigo-600 text-sm text-black font-semibold px-4 py-1 ">
                 Apply
               </button>
             </div>
@@ -73,16 +74,15 @@
           </div>
 
           <!-- Chart -->
-          <div>
-            <select id="chart-range" class="bg-[#111] text-white px-4 py-2 rounded-md">
+          <div class="m-5">
+            <select id="chart-range" class="bg-[#111] text-white px-4 py-2 text-sm rounded-md">
               <option value="Year">Yearly</option>
               <option value="Month">Monthly</option>
-              <option value="Week">Weekly</option>
               <option value="Day">Daily</option>
               <option value="Hour">Hoursly</option>
             </select>
             <button id="generate-chart" onclick="generateChart()"
-                class="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold px-4 py-2 rounded-md">
+                class="bg-indigo-500 hover:bg-indigo-600 text-black text-sm font-semibold px-4 py-1">
                 Apply
             </button>
             <div id="sales-chart">
@@ -91,16 +91,18 @@
           </div>
          
           <!-- Top Selling Items -->
-           <div >
-                 <h3>Select Top Selling Items</h3>
-            <select id="select-item" class="bg-[#111] text-white px-4 py-2 rounded-md"
+           <div class="m-5">
+            <div class="flex flex-row mt-4">
+                 <h3>Select Top Selling Items : </h3>
+            <select id="select-item" class="bg-[#111] text-white text-sm px-4 py-2 rounded-md"
             onchange="getBestSellingItems()">
               <option value="Product">Products</option>
               <option value="Brand">Brands</option>
-              <option value="Category">Categorys</option>
+              <option value="Category">Categories</option>
             </select>
-            <div id="top-sold-container" class="flex w-full h-auto flex-wrap">
-             
+            </div>
+            <div id="top-sold-container" class="w-full h-auto mt-4">
+            
            </div>
 
         </main>
@@ -109,8 +111,12 @@
 
     <!-- Footer -->
     <%-include('../partials/admin-footer')%>
-      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</body>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@2.5.1/build/global/luxon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon"></script>
+    
+
+  </body>
 
 </html>
 <script>
@@ -152,51 +158,86 @@
 
 
   //Get Chart Data
+  Chart.defaults.set('scales.x.time.adapter', luxon.DateTime);
+
   async function generateChart() {
     const dateRange = qs("#dateRange").value;
     let startDate = qs("#startDate").value;
     let endDate = qs("#endDate").value;
-    let chartRange =qs('#chart-range');
+    let chartRange = qs('#chart-range').value;
     let url = `/admin/dashboard/chartData?range=${dateRange}&chartRange=${chartRange}`;
+    
     if (dateRange === 'custom') {
-      url += `&startDate=${startDate}&endDate=${endDate}`;
+        url += `&startDate=${startDate}&endDate=${endDate}`;
     }
-   try {
-      const response = await fetch(url);
-      if (response.ok) {
-        const data=await response.json();
-        const chartContainer=document.getElementById('sales-chart');
-        chartContainer.innerHTML='';
-        if(data.chartData.length>0){
-        chartContainer.innerHTML='<canvas id="chart-canvas"></canvas>'
-         const ctx=qs("#chart-canvas");
-        var chart=new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: data.chartData[0].label,
-            datasets: [{
-              label: 'Number of Orders',
-              data:data.chartData[0].orderCount,
-              borderWidth: 1,
-            }]
-          },
-          options: {
-            scales: {
-              y: {
-                beginAtZero: true
-              }
+    
+    try {
+        const response = await fetch(url);
+        if (response.ok) {
+            const data = await response.json();
+            const chartContainer = document.getElementById('sales-chart');
+            chartContainer.innerHTML = '';
+            
+            if (data.chartData.length > 0) {
+                chartContainer.innerHTML = '<canvas id="chart-canvas"></canvas>';
+                const ctx = qs("#chart-canvas");
+                if (window.chartInstance) {
+                    window.chartInstance.destroy();
+                }
+
+                let timeUnit, displayFormats;
+
+                if (chartRange === 'Month') {
+                    timeUnit = 'month';
+                    displayFormats = { month: 'MMM yyyy' };
+                } else if (chartRange === 'Hour') {
+                    timeUnit = 'hour';
+                    displayFormats = { hour: 'H:mm D' };
+                } else if (chartRange === 'Year') {
+                    timeUnit = 'year';
+                    displayFormats = { year: 'yyyy' };
+                } else {
+                    // Default to day view if not specified
+                    timeUnit = 'day';
+                    displayFormats = { day: 'MMM D' };
+                }
+
+                var chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.chartData[0].label,
+                        datasets: [{
+                            label: 'Number of Orders',
+                            data: data.chartData[0].orderCount,
+                            borderWidth: 1,
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            x: {
+                                type: 'time',
+                                time: {
+                                    unit: timeUnit,
+                                    displayFormats: displayFormats
+                                },
+                                ticks: {
+                                    source: 'auto',
+                                }
+                            },
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
             }
-          }
-         });
-        };
-      } else {
-        Swal.fire('Error', data.message || 'Failed to generate report', 'error');
-      }
+        } else {
+            Swal.fire('Error', data.message || 'Failed to generate report', 'error');
+        }
     } catch (error) {
-      Swal.fire('Error', error.message || 'An error occurred while generating the report', 'error');
+        Swal.fire('Error', error.message || 'An error occurred while generating the report', 'error');
     }
-  }
-  
+}
 
 //Get Best selling Items
 async function getBestSellingItems(){
@@ -217,24 +258,25 @@ if(response.ok){
     topSoldContainer.innerHTML=`<div class="mt-15 flex justify-center items-center"><h1>No Items to Show</h1></div>`;
   }else{
   let html='';
-  data.topSoldData.forEach((x)=>
-html+=` <div class="w-1/5 p-2 flex flex-col">
-              ${selectedItem==='Product'?`<div class="h-2/3">
-              <img src="${x.item.itemImage}" class="h-full">
-                </div>`:''}
-                <div>
-                  <p>
-                   ${x.item.itemName}
-                  </p>
-                  ${selectedItem==='Product'?`<P>
-                    Brand : ${x.item.itemBrand}`:''}
-                  <p>
-                   Order count : ${x.orderCount}
-                  </p>
-                </div>
-              </div>
-            </div>`
+  html+= `<table class="border">
+              <thead>
+               <tr class="border-b">
+                <th class="px-6 py-3 border-r">No:</th>
+                ${selectedItem==='Product'?'<th class="px-6 py-3 border-r" >Name and Brand</th>':'<th class="px-6 py-3 border-r">Name</th>'}
+                <th class="px-6 py-3">Total Sales</th>
+               </tr>
+              </thead>
+              <tbody>`
+  data.topSoldData.forEach((x,index)=>
+html+=` <tr >
+         <td class="px-6 py-3 border-r">${index+1}</td>
+        <td class="px-6 py-3 border-r">${selectedItem==='Product'? x.item.itemName + '|' + x.item.itemBrand : x.item.itemName}</td>
+        <td class="px-6 py-3 ">${x.orderCount}</td>
+        </tr>`
+          
   );
+   html+=`</tbody>
+         </table>`
   topSoldContainer.innerHTML=html;
           };
   }else{

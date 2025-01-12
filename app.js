@@ -10,9 +10,11 @@ const User = require('./models/userModel');
 const passport = require("passport");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const nocache = require("nocache");
+const PORT =process.env.PORT ||3000; 
+const sessionKey =process.env.SESSION_KEY;
 
 app.use(session({
-  secret: "123456755",
+  secret:sessionKey,
   resave: false,
   saveUninitialized: true,
 })
@@ -112,7 +114,29 @@ app.get("/auth/google/callback", (req, res, next) => {
 
 app.use('/', userRoutes);
 app.use('/admin', adminRoutes);
-/* const PORT =process.env.PORT||3000; */
-app.listen(8000, () => {
+
+/* app.on('error', (error) => {
+  if (error.syscall !== 'listen') {
+    throw error;
+  }
+
+  const bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port;
+
+  // Handle specific listen errors with friendly messages
+  switch (error.code) {
+    case 'EACCES':
+      console.error(`${bind} requires elevated privileges.`);
+      process.exit(1);
+      break;
+    case 'EADDRINUSE':
+      console.error(`${bind} is already in use.`);
+      process.exit(1);
+      break;
+    default:
+      throw error;
+  }
+}); */
+
+app.listen(PORT, () => {
   console.log("...server starts running")
 })

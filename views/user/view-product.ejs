@@ -4,22 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Product </title>
-    <!-- Updated TailwindCSS Version -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="/style.css">
   </head>
   <body class="bg-blue-200">
     <style>
     
   #add-to-cart:disabled {
     cursor: not-allowed;
-    background-color: gray; /* Optional: Dim the button to indicate it's disabled */
-    color: lightgray; /* Optional: Change text color for disabled state */
+    background-color: gray; 
+    color: lightgray; 
   }
   #buy-now:disabled {
     cursor: not-allowed;
-    background-color: gray; /* Optional: Dim the button to indicate it's disabled */
-    color: lightgray; /* Optional: Change text color for disabled state */
+    background-color: gray; 
+    color: lightgray; 
   }
       #main-image {
             width: 100%;
@@ -66,6 +65,36 @@
       <%- include('../partials/user-header') %>
 
       <div class="container mx-auto my-5">
+
+        <!-- Breadcrumbs -->
+        <div class="grid grid-cols-1 mb-4">
+          <nav class="flex" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+              <li class="inline-flex items-center">
+                <a href="/home" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
+                  Home
+                </a>
+              </li>
+              <li>
+                <div class="flex items-center">
+                  <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M10 3a1 1 0 01.894.553l3 6a1 1 0 01-.27 1.173l-5 4a1 1 0 01-1.448-1.41l4.63-3.72L7.66 4.053A1 1 0 0110 3z" clip-rule="evenodd"></path>
+                  </svg>
+                  <a href="/shopAll" class="ml-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ml-2">Shop All</a>
+                </div>
+              </li>
+              <li>
+                <div class="flex items-center">
+                  <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M10 3a1 1 0 01.894.553l3 6a1 1 0 01-.27 1.173l-5 4a1 1 0 01-1.448-1.41l4.63-3.72L7.66 4.053A1 1 0 0110 3z" clip-rule="evenodd"></path>
+                  </svg>
+                  <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2"><%=product.productName%></span>
+                </div>
+              </li>
+            </ol>
+          </nav>
+          
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-[1fr_4fr_4fr] gap-5">
           
           <!-- Product Image Thumbnails -->
@@ -195,8 +224,8 @@
                       <h6 class="text-lg font-normal">Out of Stock</h6>
                       <%}%>
                         <a href="/product/<%= product._id %>"
-                          class="btn bg-blue-500 text-white rounded px-2 py-1 mt-2 inline-block">View</a>
-                        <a class="btn bg-blue-500 text-white rounded px-2 py-1 mt-2 inline-block" id="add-to-cart"
+                          class="btn bg-blue-500 text-white rounded px-2 py-1 mt-2 inline-block cursor-pointer">View</a>
+                        <a class="btn bg-blue-500 text-white rounded px-2 py-1 mt-2 inline-block cursor-pointer" id="add-to-cart"
                           onclick="addToCart('<%=product._id%>')">Add to Cart</a>
                 </div>
               </div>

@@ -7,7 +7,7 @@ gender:{type:String,required:true},
 brand:{type:String,required:true},
 stock:{type:Number,required:true},
 rating: { type: Number, required: true },
-specifications:{type:String,required:true},
+features:[{type:String}],
 description:{type:String,required:true},
 isBlocked: {
   type: Boolean,
@@ -23,14 +23,5 @@ category: {
   imageUrl: [String],
 });
 
-// Pre-save hook to calculate and set discountPrice
-productSchema.pre('save', function (next) {
-  if (this.discount > 0 && this.price) {
-    this.discountPrice = Math.round(this.price - (this.price * this.discount) / 100);
-  } else {
-    this.discountPrice = this.price;
-  }
-  next();
-});
 const Product=mongoose.model('Product',productSchema);
 module.exports=Product; 

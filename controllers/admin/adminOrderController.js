@@ -6,16 +6,32 @@ const { format } = require('date-fns');
 exports.getOrders = async function (req, res) {
     try {
         const { skip, limit, currentPage } = req.pagination;
+        let filterObj={};
+      if(req.xhr){
+        const {search} =req.query;
+        const regex = new RegExp("^" + search, "i");
+        filterObj={'orderItems.productName': { $regex: regex } }
+      }else{
+        filterObj={}
+      }
         const [orders, totalOrders] = await Promise.all([
-            Order.find().lean().sort({ createdAt: -1 }).skip(skip).limit(limit),
-            Order.countDocuments(),
+            Order.find(filterObj).lean().sort({ createdAt: -1 }).skip(skip).limit(limit),
+            Order.countDocuments(filterObj),
         ]);
         const totalPages = Math.ceil(totalOrders / limit);
 
         if (!orders || orders.length === 0) {
-            return res.render('admin/admin-error',{statusCode:404, message: "No orders is found" })
+            if(req.xhr){
+                return res.status(200).json({orders:[],currentPage:1,totalPages:1});
+            }else{
+            return res.render('admin/admin-error',{statusCode:404, message: "No orders is found" });
+            }
         };
-        res.render("admin/admin-orders", { orders, currentPage, totalPages })
+        if(req.xhr){
+            return res.status(200).json({orders,currentPage,totalPages});
+        }else{
+         return res.render("admin/admin-orders", { orders, currentPage, totalPages });
+        }
     } catch (error) {
         console.error("error on showing orders", error);
         return res.render('admin/admin-error',{statusCode:500, message: error.message || " Error on showing orders" });
@@ -101,9 +117,6 @@ exports.updateOrderStatus = async (req, res) => {
                 $inc: { stock: item.quantity }
             });
 
-            order.payment.totalAmount -= item.price * item.quantity;
-            order.payment.grandTotal -= item.totalPrice;
-            order.payment.discount = order.payment.totalAmount - order.payment.grandTotal;
            // Calculate refund amount
       let refundAmount = item.totalPrice;
       // If there's a coupon applied, calculate the proportional discount
@@ -115,14 +128,13 @@ exports.updateOrderStatus = async (req, res) => {
           refundAmount = item.totalPrice - discountProportion;
 
           // Check if this is the last item being returned
-         /*  const activeItems = order.orderItems.filter(i => !['Cancelled', 'Returned'].includes(i.status));
+          const activeItems = order.orderItems.filter(i => !['Cancelled', 'Returned'].includes(i.status));
           if (activeItems.length === 1 && activeItems[0]._id.toString() === itemId) {
               // This is the last item, include any remaining coupon discount
               const remainingCouponDiscount = order.payment.couponDiscount - discountProportion;
-              refundAmount -= remainingCouponDiscount;
-          } */
+              refundAmount += remainingCouponDiscount;
+          } 
       }
-          console.log(refundAmount)
             // Process refund to wallet
             await Wallet.findOneAndUpdate(
                 { user: order.user.userId },
@@ -142,6 +154,7 @@ exports.updateOrderStatus = async (req, res) => {
 
             //update refunded amount in order records
 
+            
             order.payment.refundedAmount = (order.payment.refundedAmount || 0) + refundAmount;
             if (order.payment.totalAmount <= 0) {
                 order.payment.paymentStatus = 'Refunded';

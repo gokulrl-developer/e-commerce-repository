@@ -106,22 +106,20 @@ exports.getSalesSummary = async (req, res) => {
     }
 };
 
-exports.getChartData = async (req, res) => {
+/* exports.getChartData = async (req, res) => {
     try {
-        const { chartRange, range} = req.query;
-        const startDate=req.query.startDate?req.query.startDate:null;
-        const endDate=req.query.endDate?req.query.endDate:null; 
+        const { chartRange, range } = req.query;
+        const startDate = req.query.startDate ? req.query.startDate : null;
+        const endDate = req.query.endDate ? req.query.endDate : null;
         const dateRange = getDateRange(range, startDate, endDate);
         let timeField;
+
         switch (chartRange) {
             case "Year":
                 timeField = { $year: "$orderDate" };
                 break;
             case "Month":
                 timeField = { $month: "$orderDate" };
-                break;
-            case "Week":
-                timeField = { $isoWeek: "$orderDate" };
                 break;
             case "Day":
                 timeField = { $dayOfMonth: "$orderDate" };
@@ -137,12 +135,102 @@ exports.getChartData = async (req, res) => {
                     'payment.paymentStatus': 'Completed'
                 }
             },
-            {
+             {
                 $group: {
                     _id: timeField,
+                    orderDate:{$first:"$orderDate"},
                     orderCount: { $sum: 1 }
                 }
             },
+            {
+                $addFields: {
+                    label: {
+                        $switch: {
+                            branches: [
+                                {
+                                    case: { $eq: [chartRange, "Year"] },
+                                    then: { $toString: "$_id" }
+                                },
+                                {
+                                    case: { $eq: [chartRange, "Month"] },
+                                    then: {
+                                        $arrayElemAt: [
+                                            ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+                                            { $subtract: ["$_id", 1] }
+                                        ]
+                                    }
+                                },
+                                {
+                                    case: { $eq: [chartRange, "Day"] },
+                                    then: { $concat: [{ $toString: "$_id" }, " Day"] }
+                                },
+                                {
+                                    case: { $eq: [chartRange, "Hour"] },
+                                    then: { $concat: [{ $toString: "$_id" }, ":00"] }
+                                }
+                            ],
+                            default: "$_id"
+                        }
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    label: { $push: "$label" },
+                    orderCount: { $push: "$orderCount" }
+                }
+            } 
+        ]);
+  console.log(chartData[0])
+        res.status(200).json({ chartData });
+    } catch (error) {
+        console.error("Error occurred while fetching chart data:", error);
+        res.status(500).json({
+            message: "Error occurred while fetching chart data",
+            error: error.message
+        });
+    }
+}; */
+
+  exports.getChartData = async (req, res) => {
+    try {
+        const { chartRange, range} = req.query;
+        const startDate=req.query.startDate?req.query.startDate:null;
+        const endDate=req.query.endDate?req.query.endDate:null; 
+        const dateRange = getDateRange(range, startDate, endDate);
+        let timeField;
+        switch (chartRange) {
+            case "Year":
+                timeField = { format: "%Y-01-01T00:00:00.000Z", date: "$orderDate" };
+                break;
+            case "Month":
+                timeField = { format: "%Y-%m-01T00:00:00.000Z", date: "$orderDate" };
+                break;
+            case "Day":
+                timeField = { format: "%Y-%m-%dT00:00:00.000Z", date: "$orderDate" };
+                break;
+            default:
+                timeField = { format: "%Y-%m-%dT%H:00:00.000Z", date: "$orderDate" };
+        }
+
+        const chartData = await Order.aggregate([
+            {
+                $match: {
+                    orderDate: { $gte: dateRange.start, $lte: dateRange.end },
+                    'payment.paymentStatus': 'Completed'
+                }
+            },
+            {
+                $group: {
+                    _id: {
+                        $dateToString: timeField
+                    },
+                    orderCount: { $sum: 1 }
+                }
+            },
+            {$sort:{_id:-1}
+        },
             {
                 $group: {
                     _id: null,
@@ -159,7 +247,7 @@ exports.getChartData = async (req, res) => {
             error: error.message
         });
     }
-};
+};  
 
 exports.getTopSoldItems = async (req,res) => {
 try{
@@ -192,8 +280,6 @@ try{
         _id:0,
         itemName : "$item.productName",
         itemBrand : "$item.brand",
-        itemImage:{$arrayElemAt:["$item.imageUrl",0]}
-        
        } 
     })
    };  
@@ -240,7 +326,6 @@ try{
         $limit:10
     }) 
     const topSoldData=await Order.aggregate(aggregationPipeline);
-    console.log(topSoldData)
     res.status(200).json({topSoldData});
 }catch(error){
     console.error("error while getting top sold items",error.message);

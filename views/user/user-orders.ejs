@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Orders</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/style.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
@@ -23,17 +23,18 @@
  
     <!-- Orders Section -->
     <div class="w-full md:w-4/5 bg-white shadow-md rounded-md p-4">
+      <div class="mb-4">
+        <input type="text" id="search" name="search" class="form-input bg-indigo-500 px-4 py-2 w-[90%]"
+          placeholder="Search an item" oninput="applySearch()">
+        <button onclick="applySearch()">Search</button>
+      </div>
       <div class="flex justify-between items-center mb-4">
         <h2 class="text-lg font-semibold">My Orders</h2>
-        <!--  <select class="border border-gray-300 rounded px-3 py-1">
-        <option>Last 6 months</option>
-        <option>Last Year</option>
-      </select> -->
       </div>
 
       <!-- Orders Table -->
       <div class="overflow-x-auto">
-        <table class="table-auto w-full border border-gray-300">
+        <table class="table-auto w-full border border-gray-300" id="order-table">
           <thead class="bg-gray-100">
             <tr>
               <% if (orders.length===0) { %>
@@ -71,7 +72,7 @@
                     RePay
                 </button>
                 <%}%>
-                <% if (order.orderStatus==='Pending' || order.orderStatus==='Processing' ) { %>
+                <% if (order.orderStatus==='Pending' || order.orderStatus==='Processing' || order.orderStatus ==='Partially Cancelled') { %>
                   <button class="bg-red-500 text-white px-3 py-2 m-2 rounded hover:bg-red-600"
                     onclick="cancelOrder('<%= order._id %>')">
                     Cancel Order
@@ -227,20 +228,26 @@
                           class="bg-orange-700 text-black  font-semibold px-3 py-2 rounded hover:bg-orange-800">
                           Return
                       </button>` : ''} 
+                      ${item.status === 'Pending' || item.status === 'Processing'?
+                      `<button 
+                          onclick="cancelOrderItem('${data.order._id}','${item._id}')" 
+                          class="bg-orange-700 text-black  font-semibold px-3 py-2 rounded hover:bg-orange-800">
+                          Cancel Item
+                      </button>` : ''} 
                             </div>
                         `;
           productList.appendChild(productElement);
-                          });
+        });
         // Populate payment details
         document.getElementById('paymentMethod').textContent = data.order.payment.paymentMethod;
         document.getElementById('paymentStatus').textContent = data.order.payment.paymentStatus;
         document.getElementById('totalPrice').textContent =Number(data.order.payment.totalAmount).toFixed(2);
         document.getElementById('discount').textContent = (Number(data.order.payment.discount)).toFixed(2);
         document.getElementById('total').textContent =Number(data.order.payment.grandTotal).toFixed(2);
-      
+        
         // Add cancel button if order is cancellable
         const cancelOrderContainer = document.getElementById('cancelOrderContainer');
-        if (data.order.orderStatus === 'Pending' || data.order.orderStatus === 'Processing') {
+        if (data.order.orderStatus === 'Pending' || data.order.orderStatus === 'Processing' || data.order.orderStatus === 'Partially Cancelled') {
           cancelOrderContainer.innerHTML = `
                             <button 
                                 onclick="cancelOrder('${data.order._id}')" 
@@ -289,6 +296,48 @@
     if (result.isConfirmed) {
       try {
         const response = await fetch(`/order/cancel/${orderId}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        
+        if (response.ok) {
+          const data = await response.json();
+          await Swal.fire('Cancelled!', data.message, 'success');
+          location.reload();
+        } else {
+          let errMessage="Failed to cancel order";
+          try{
+          const data = await response.json();
+          errMessage=data.message || errMessage;
+        }catch(error){
+          errMessage="Unexpected error occured.Please try again later."
+        }
+        Swal.fire('Error!', errMessage, 'error');
+        }
+      } catch (error) {
+        console.error('Error cancelling order:', error);
+        Swal.fire('Error!', 'An error occurred while cancelling the order', 'error');
+      }
+    }
+  }
+
+  async function cancelOrderItem(orderId,itemId) {
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, cancel it!'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const response = await fetch(`/order/cancel-item/${orderId}/${itemId}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -458,6 +507,105 @@
                 Swal.fire('Error', 'An error occurred while submitting the return request', 'error');
             }
         });
-        
+
+//Apply Filters
+async function applySearch(url='/orders?page=1&limit=9') {
+    try {
+      const search = document.getElementById('search').value.trim();
+      url=url+`&search=${search}`
+      const response = await fetch(url,{
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log(data)
+        if (!data.orders || data.orders.length === 0) {
+          document.getElementById('order-table').innerHTML = `
+         <p class="text-gray-400">You haven't placed any orders yet.</p>`
+        } else {
+          document.getElementById("order-table").innerHTML=
+          ` <thead class="bg-gray-100">
+            <tr>`+
+           data.orders.map((order) => (
+          `  <th class="px-4 py-2 text-left border">Order Id& Date</th>
+                  <th class="px-4 py-2 text-left border">Order Details</th>
+                  <th class="px-4 py-2 text-left border">Order Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="px-4 py-2 border">
+                Id : #${order._id.toString().slice(-6)}<br>
+                  Date : ${ order.formattedDate }
+              </td>
+              <td class="px-4 py-2 border">
+                Total items : ${order.orderItems.length}<br>
+                  Total price : ${order.payment.totalAmount}<br>
+                  Total Discount : ${order.payment.discount}<br>
+                  Grand Total : ${order.payment.grandTotal}<br>
+                  Order status : ${order.orderStatus}<br>
+                        Payment method : ${order.payment.paymentMethod}<br>
+                          Payment Status : ${order.payment.paymentStatus}<br>
+              </td>
+              <td class="px-4 py-2 border">
+                <button onclick="viewDetails('${ order._id }')"
+                  class="bg-blue-500 text-white px-3 py-2 m-2 rounded hover:bg-blue-600">
+                  View Details
+                </button><br>
+                ${((order.payment.paymentStatus === 'Failed' || order.payment.paymentStatus === 'Pending' )&&order.payment.paymentMethod === 'Razorpay')?
+                `<button 
+                    onclick="resumePayment('${order._id}','${user}')" 
+                    class="bg-orange-700 text-black  font-semibold px-3 py-2 rounded hover:bg-orange-800">
+                    RePay
+                </button>`:''}
+                ${(order.orderStatus==='Pending' || order.orderStatus==='Processing' || order.orderStatus ==='Partially Cancelled')?
+                  `<button class="bg-red-500 text-white px-3 py-2 m-2 rounded hover:bg-red-600"
+                    onclick="cancelOrder('${ order._id }')">
+                    Cancel Order
+                  </button>`:''}
+                    </td>
+            </tr>
+            </tbody>`
+           )).join(''); 
+        }
+      //pagination
+      const paginationContainer=document.getElementById('pagination-container');
+      paginationContainer.innerHTML='';
+     let html=` 
+             ${data.currentPage>1 ?`
+               <a onclick="setPaginationDetails(${data.currentPage-1},9)"
+            class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer" >Previous</a>
+            `: ''}
+            `;
+         for (let i=1; i <=data.totalPages; i++) {
+          html+=    `<a onclick="setPaginationDetails(${i},9)"
+                class="${data.currentPage === i ? 'bg-indigo-500' : 'bg-[#222]'} text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer"
+                >
+                ${i}
+              </a>`;
+            }
+              
+           html+= `${data.currentPage<data.totalPages ?
+                 `<a onclick="setPaginationDetails(${data.currentPage+1},9)"
+                    class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer"
+                    >Next</a>`:''}`
+        paginationContainer.innerHTML=html;
+
+    }}catch (error){
+      console.error("error applying filters", error);
+      Swal.fire("Error", error.message || "Error In Filtering Products", "error");
+    }
+  }
+  
+ 
+//----------------------------------------Pagination---------------------------------------------
+async function setPaginationDetails(page,limit){
+const url=`/orders?page=${page}&limit=${limit}`
+applySearch(url);
+}
+
     
 </script>

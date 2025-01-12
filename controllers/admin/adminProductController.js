@@ -20,16 +20,22 @@ module.exports = {
   },
   postAddProduct: async (req, res) => {
     try {
-      let { productName, brand, gender, category, imageUrls, stock, price, specifications,description,rating} = req.body;
+      let { productName, brand, gender, category, imageUrls, stock, price, features,description,rating} = req.body;
 
      if(!imageUrls || imageUrls.length<4){
       return res.status(400).json({message:"Requires 4 images while adding product"});
      }
 
-      if (!productName || !brand || !gender || !imageUrls || !description || !specifications ||
+      if (!productName || !brand || !gender || !imageUrls || !description || !features ||
         !stock || !price || !category || !rating || imageUrls.length < 4) {
         return res.status(400).json({ message: "Missing required fields" });
       }
+      features=JSON.parse(features)
+ if(!Array.isArray(features) || !features.every((element)=>typeof element === "string")){
+    return res.status(400).json({message:"The features field has invalid value"})
+ };
+ features =features.map((element)=>element.trim());
+      features =features.filter((element)=>element!=='');
 
       const newProduct = new Product({
         productName,
@@ -39,7 +45,7 @@ module.exports = {
         imageUrls,
         stock,
         price,
-        specifications,
+        features,
         description,
         imageUrl: imageUrls,
         rating
@@ -74,9 +80,9 @@ module.exports = {
   },
   putEditProduct: async (req, res) => {
     try {
-      let { productName, brand, gender, category, imageUrls, stock, price,rating,specifications,description,indicesEdited} = req.body;
+      let { productName, brand, gender, category, imageUrls, stock, price,rating,features,description,indicesEdited} = req.body;
 
-       if (!productName ||!brand||!gender||!specifications|| !description || !category || !price || !stock ||!rating) {
+       if (!productName ||!brand||!gender||!features|| !description || !category || !price || !stock ||!rating) {
         return res.status(400).json({message: 'Some fields are missing.' });
       } 
       let product = await Product.findById(req.params.id);
@@ -94,6 +100,12 @@ module.exports = {
           editedImageUrls[index]=product.imageUrl[index];
         }
       });
+      features=JSON.parse(features)
+      if(!Array.isArray(features) || !features.every((element)=>typeof element === "string")){
+         return res.status(400).json({message:"The features field has invalid value"})
+      };
+      features =features.map((element)=>element.trim());
+      features =features.filter((element)=>element!=='');
        const editedProduct = await Product.findByIdAndUpdate(
         req.params.id,
           {
@@ -104,7 +116,7 @@ module.exports = {
             imageUrls,
             stock,
             price,
-            specifications,
+            features,
             description,
             imageUrl: editedImageUrls,
             rating
@@ -122,14 +134,25 @@ module.exports = {
     const products = req.products;
     const totalPages=req.totalPages;
     const {currentPage}=req.pagination;
-    res.render('admin/view-products', {products,currentPage,totalPages})
+    if(req.xhr){
+      return res.status(200).json({products,currentPage,totalPages})
+    }else{
+     return res.render('admin/view-products', {products,currentPage,totalPages})
+    }
   },
   filterProducts: async (req, res, next) => {
     try {
       const { skip, limit} = req.pagination;
+      if(req.xhr){
+        const {search} =req.query;
+        const regex = new RegExp("^" + search, "i");
+        filterObj={'productName': { $regex: regex } }
+      }else{
+        filterObj={}
+      }
       const [products, totalProducts] = await Promise.all([
-        Product.find({}).populate('category','categoryName').lean().sort({ createdAt: -1 }).skip(skip).limit(limit).exec(),
-        Product.countDocuments(),
+        Product.find(filterObj).populate('category','categoryName').lean().sort({ createdAt: -1 }).skip(skip).limit(limit).exec(),
+        Product.find(filterObj).countDocuments(),
       ]);
       const totalPages = Math.ceil(totalProducts / limit);
       req.products = products;

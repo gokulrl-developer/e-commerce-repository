@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Checkout</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="/style.css">
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.9/dist/sweetalert2.all.min.js"></script>
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
@@ -128,6 +128,7 @@
 
           <!-- Order Summary -->
 
+          <section class="col-span-1" id="order-summary">
           <div class="p-6 border rounded-lg shadow bg-gray-50">
             <h3 class="text-lg font-medium mb-4 text-gray-800">Order Summary</h3>
             <div class="space-y-2">
@@ -135,6 +136,12 @@
                 <span>Total Price</span>
                 <span id="totalPrice">
                   <%=totalPrice%>
+                </span>
+              </div>
+              <div class="flex justify-between text-gray-700 <%=!appliedCouponCode?'hidden':''%>" id="coupon-discount-line">
+                <span>Coupon Discount</span>
+                <span id="coupon-discount">
+                  <%=couponDiscount%>
                 </span>
               </div>
               <div class="flex justify-between text-gray-700">
@@ -151,17 +158,45 @@
               </div>
               <div class="flex justify-between text-gray-700">
                 <span>Shipping</span>
-                <span>Free</span>
+                <span>₹100</span>
               </div>
               <hr class="my-2 border-gray-300">
               <div class="flex justify-between text-gray-800 font-semibold text-lg">
                 <span>Grand Total</span>
                 <span id="grandTotal">
-                  <%=grandTotal%>
+                  <%=grandTotal + 100%>
+                </span>
+              </div>
+              <div class="flex justify-between text-gray-800 font-semibold text-lg">
+                <span>Order Total(incl.GST) : </span>
+                <span id="grandTotal">
+                  <%=(grandTotal+100)*118/100%>
                 </span>
               </div>
             </div>
-
+            <hr class="my-4 border-gray-300">
+            <div class="relative">
+              <label for="coupon" class="sr-only">Coupon Code</label>
+              <div class="flex items-center border border-gray-300 rounded px-2 py-1 bg-white">
+                <span class="text-gray-500">🎟️</span>
+                <select id="coupon" class="flex-1 ml-2 bg-transparent outline-none text-gray-700"
+                  onchange="toggleCoupon('apply')">
+                  <option value="" disabled selected>Coupons Available</option>
+                  <%if(applicableCoupons && applicableCoupons.length>0){applicableCoupons.forEach((coupon)=>{%>
+                    <option value="<%=coupon.code%>" <%=coupon.code===appliedCouponCode?"selected" :""%>
+                      >
+                      <%=coupon.code%>
+                    </option>
+                    <%})}%>
+                </select>
+              </div>
+            </div>
+            <button
+              class="w-full mt-4 bg-black text-white py-3 rounded text-center font-bold text-sm hover:bg-gray-800 
+              <%=!appliedCouponCode?'hidden':''%>"
+              onclick="toggleCoupon('remove')" id="remove-coupon-btn">
+              Romove Coupon
+            </button>
             <button class="w-full mt-4 bg-black text-white py-3 rounded text-center font-bold text-sm hover:bg-gray-800"
               onclick="placeOrder()">
               CONTINUE
@@ -292,6 +327,123 @@
   const openAddAddressModalButton = document.getElementById("openAddAddressModalButton");
   const closeAddAddressModalButton = document.getElementById("closeAddAddressModalButton");
 
+  //////////Toggle coupon//////////////////////////////////
+
+  async function toggleCoupon(mode) {
+    const couponSelect = document.getElementById('coupon');
+    const couponCode = couponSelect.value;
+    const action = mode === 'apply' ? '/apply-coupon' : '/remove-coupon'
+    try {
+      const response = await fetch(action, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ couponCode })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        swal.fire("Success", result.message || 'Coupon applied Successfully', "success");
+        renderSummary(result);
+      } else {
+        const result = await response.json();
+        swal.fire("Error", result.message || 'Error applying coupon', "error");
+      }
+    } catch (error) {
+      const message=mode==='apply'?"An error occured while applying the coupon":"an error occured while removing the coupon";
+      swal.fire("Error", error.message || message, "error");
+    }
+  }
+
+  //////////////Render Order Summary//////////////////////////
+  function renderSummary(data){
+    html = `
+            <div class="p-6 border rounded-lg shadow bg-gray-50">
+            <h3 class="text-lg font-medium mb-4 text-gray-800">Order Summary</h3>
+            <div class="space-y-2">
+              <div class="flex justify-between text-gray-700">
+                <span>Total Price</span>
+                <span id="totalPrice">
+                  ${data.totalPrice}
+                </span>
+              </div>
+               <div class="flex justify-between text-gray-700 ${!data.appliedCouponCode ? 'hidden' : ''}"
+               id="coupon-discount-line">
+                <span>Coupon Discount</span>
+                <span id="coupon-discount">
+                  ${data.couponDiscount}
+                </span>
+              </div>
+              <div class="flex justify-between text-gray-700">
+                <span>Discount</span>
+                <span id="discount">
+                  ${data.totalDiscount}
+                </span>
+              </div>
+              <div class="flex justify-between text-gray-700">
+                <span>Final Price</span>
+                <span id="finalPrice">
+                  ${data.grandTotal}
+                </span>
+              </div>
+              <div class="flex justify-between text-gray-700">
+                <span>Shipping</span>
+                <span>₹100</span>
+              </div>
+              <hr class="my-2 border-gray-300">
+              <div class="flex justify-between text-gray-800 font-semibold text-lg">
+                <span>Grand Total</span>
+                <span id="grandTotal">
+                  ${data.grandTotal+100}
+                </span>
+              </div>
+              <div class="flex justify-between text-gray-800 font-semibold text-lg">
+                <span>Order Total(incl.GST) : </span>
+                <span id="grandTotal">
+                  ${(data.grandTotal+100)*118/100}
+                </span>
+              </div>
+            </div>
+            <hr class="my-4 border-gray-300">
+            <div class="relative">
+              <label for="coupon" class="sr-only">Coupon Code</label>
+              <div class="flex items-center border border-gray-300 rounded px-2 py-1 bg-white">
+                <span class="text-gray-500">🎟️</span>
+                <select id="coupon" class="flex-1 ml-2 bg-transparent outline-none text-gray-700"
+                onchange="toggleCoupon('apply')">
+                  <option value="" disabled selected>Coupons Available</option>`
+
+    if (data.applicableCoupons && data.applicableCoupons.length > 0) {
+      data.applicableCoupons.forEach((coupon) => {
+          html+=`<option value="${coupon.code}" ${data.appliedCouponCode===coupon.code ? 'selected' : ''}>${coupon.code}</option>`
+      })
+    }
+    html += `
+                </select>
+              </div>
+            </div>
+            <div class="flex justify-between text-gray-800 font-semibold text-lg hidden" id="coupon-discount-line">
+              <span>Coupon Discount</span>
+              <span id="coupon-discount">
+                ${data.couponDiscount}
+              </span>
+            </div>
+            <button
+              class="w-full mt-4 bg-black text-white py-3 rounded text-center font-bold text-sm hover:bg-gray-800"`
+         if(!data.appliedCouponCode){
+          html+="hidden"
+         }                  
+          html+=    `
+              onclick="toggleCoupon('remove')" id="remove-coupon-btn">
+              Romove Coupon
+            </button>
+            <button
+              class="w-full mt-4 bg-black text-white py-3 rounded text-center font-bold text-sm hover:bg-gray-800"
+              onclick="placeOrder()">
+              CONTINUE
+            </button>
+          </div>`
+    document.getElementById('order-summary').innerHTML = html;
+  }
   // Open modal
   openAddAddressModalButton.addEventListener("click", () => {
     addAddressmodal.classList.remove("hidden");

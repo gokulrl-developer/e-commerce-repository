@@ -74,11 +74,13 @@ exports.renderSalesReportPage = async (req, res) => {
 
 exports.getSalesReport = async (req, res) => {
     try {
-        const { range, startDate, endDate, page = 1, limit = 10 } = req.query;
+        let { range, startDate, endDate, page = 1, limit = 10 } = req.query;
         const dateRange = getDateRange(range, startDate, endDate);
-
+       page=parseInt(page);
+       limit=parseInt(limit);
         const skip = (page - 1) * limit;
-
+         console.log(skip);
+         console.log(limit)
         const salesData = await Order.aggregate([
             {
                 $match: {
@@ -108,8 +110,8 @@ exports.getSalesReport = async (req, res) => {
                 }
             },
             { $sort: { _id: -1 } },
-            { $skip: parseInt(skip) },
-            { $limit: parseInt(limit) }
+             { $skip: skip},
+            { $limit: limit } 
         ]);
 
         const totalCount = await Order.countDocuments({
