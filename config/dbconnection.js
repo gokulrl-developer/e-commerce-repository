@@ -1,9 +1,10 @@
 
 const mongoose = require('mongoose');
+const connectionString=process.env.CONNECTION_STRING;
 
 const connectDB = async () => {
     try {
-        await mongoose.connect('mongodb://localhost:27017/carrymart', {
+        await mongoose.connect(connectionString, {
             useNewUrlParser: true,
             useUnifiedTopology: true
         });
