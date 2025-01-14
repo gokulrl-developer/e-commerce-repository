@@ -273,7 +273,8 @@
  updateApplicableItems('add');
   }
 )
-  function openEditOfferModal(offerData) {
+ 
+function openEditOfferModal(offerData) {
       const offer = JSON.parse(offerData);
       document.getElementById('edit-offer-id').value = offer._id;
       document.getElementById('edit-title').value = offer.title;

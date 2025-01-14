@@ -12,6 +12,7 @@ const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const nocache = require("nocache");
 const PORT =process.env.PORT ||3000; 
 const sessionKey =process.env.SESSION_KEY;
+const googleCallbackUrl=process.env.GOOGLE_CLIENT_CALLBACK_URL;
 
 app.use(session({
   secret:sessionKey,
@@ -36,7 +37,7 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "http://localhost:8000/auth/google/callback",
+      callbackURL: googleCallbackUrl,
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
