@@ -114,11 +114,11 @@
 </html>
 <script>
   function edit(productId) {
-    window.location.href = `http://localhost:8000/admin/products/edit/${productId}`
+    window.location.href = `/admin/products/edit/${productId}`
   }
 
   function addProduct() {
-    window.location.href = 'http://localhost:8000/admin/products/add';
+    window.location.href = '/admin/products/add';
   }
   async function blockUnBlockProduct(action, productId) {
     const actionText = action === 'block' ? 'blocked' : 'unblocked';
