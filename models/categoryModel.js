@@ -1,34 +1,27 @@
 const mongoose = require("mongoose");
 
-const categorySchema = new mongoose.Schema({
-  _id: {
-    type: mongoose.Schema.Types.ObjectId,
-    auto: true,
-  },
-  categoryName: {
-    type: String,
-    required: true,
-    unique: true,
-    index: {
+const categorySchema = new mongoose.Schema(
+  {
+    _id: {
+      type: mongoose.Schema.Types.ObjectId,
+      auto: true,
+    },
+    categoryName: {
+      type: String,
+      required: true,
       unique: true,
-      collation: { locale: "en", strength: 2 },
+    },
+    status: {
+      type: String,
+      required: true,
+      enum: ["Active", "Inactive"],
+      default: "Active",
     },
   },
-  createdAt: {
-    type: Date,
-    default: Date.now(),
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now(),
-  },
-  status:{
-    type:String,
-    required:true,
-    enum:["Active","Inactive"],
-    default:"Active",
+  {
+    timestamps: true, // Automatically add createdAt and updatedAt fields
   }
-});
+);
 
 // Create index with collation for case insensitivity
 categorySchema.index(
