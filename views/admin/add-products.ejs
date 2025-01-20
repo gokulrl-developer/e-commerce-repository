@@ -129,7 +129,6 @@
       </div>
 
       <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
-      <script src="/js/product-form.js"></script>
 </body>
 
 </html>
@@ -329,8 +328,13 @@ if(errors && errors.length>0){
         }
       } else {
         const result = await response.json();
+        if(result.validationErrors !==undefined){
+          const errorHtml=result.validationErrors.join("</br>")
+          Swal.fire({title:'Failed',icon:'error',html:errorHtml})
+        }else{
          userConfirmation =await Swal.fire({title:'Failed',icon:'error',text:result.message || 'Product Addition Failed.Please Try Again Later',confirmButtonText:'OK'})
-       }
+        }
+        }
     } catch (error) {
       Swal.fire({title:"Error",icon:"error",text:error.message||"An Unexected Error Occured.Please Try again.Later",confirmButtonText:"OK"})
     } finally {

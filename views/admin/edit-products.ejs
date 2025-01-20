@@ -179,7 +179,6 @@
       </div>
 
       <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
-      <script src="/js/product-form.js"></script>
 
 </body>
 
@@ -207,7 +206,7 @@
     // Show the crop modal
     openCropModal(selectedFile);
   }
-
+ 
   function openCropModal(file) {
 
     document.getElementById("cropModal").classList.remove("hidden");
@@ -232,6 +231,7 @@
 
   }
 
+ 
   function closeCropModal() {
     document.getElementById("cropModal").classList.add("hidden");
     if (cropper) {
@@ -293,10 +293,10 @@
     if (!price || typeof price !== 'number' || price < 0) {
       errors.push('Price should be a positive number');
     }
-    if (!stock || typeof stock !== 'number' || price < 0) {
+    if (!stock || typeof stock !== 'number' || stock < 0) {
       errors.push('stock should be a positive number');
     }
-    if (!rating || typeof rating !== 'number' || price < 0) {
+    if (!rating || typeof rating !== 'number' || rating < 0 || rating>5) {
       errors.push('rating should be a positive number');
     }
     return errors;
@@ -347,23 +347,27 @@
       Swal.fire("Error", errors, 'error');
       return
     }
-
+    console.log("afisudlfdskjl")
+console.log(this.action)
     try {
       const response = await fetch(this.action, {
         method: "PUT",
         body: formData,
       });
-
-
       if (response.ok) {
         const result = await response.json();
-        userConfirmation = await Swal.fire({ title: 'Success', icon: 'success', text: result.message || 'Product Edited successfully', confirmButtonText: 'OK' })
+        const userConfirmation = await Swal.fire({ title: 'Success', icon: 'success', text: result.message || 'Product Edited successfully', confirmButtonText: 'OK' })
         if (userConfirmation.isConfirmed) {
           location.reload();
         }
       } else {
         const result = await response.json();
-        userConfirmation = await Swal.fire({ title: 'Failed', icon: 'error', text: result.message || 'Product Editing Failed.Please Try Again Later', confirmButtonText: 'OK' })
+        if(result.validationErrors !==undefined){
+          const errorHtml=result.validationErrors.join("</br>")
+          Swal.fire({title:'Failed',icon:'error',html:errorHtml})
+        }else{
+        Swal.fire({ title: 'Failed', icon: 'error', text: result.message || 'Product Editing Failed.Please Try Again Later', confirmButtonText: 'OK' })
+        }
       }
     } catch (error) {
       Swal.fire({ title: "Error", icon: "error", text: error.message || "An Unexected Error Occured.Please Try again.Later", confirmButtonText: "OK" })

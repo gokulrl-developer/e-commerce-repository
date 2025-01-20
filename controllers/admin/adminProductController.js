@@ -4,6 +4,42 @@ const Category = require('../../models/categoryModel');
 const path = require('path');
 const { render } = require('ejs');
 
+function validateFields(object){
+  let  {productName,brand,gender,stock,price,imageUrls,description,features,category,rating}=object;
+  price=parseFloat(price);
+  stock=parseFloat(stock);
+  rating=parseFloat(rating);
+  const errors=[];
+  if(!productName || typeof productName!== 'string'){
+     errors.push('product name is required and must be a string');
+}
+if(!brand || typeof brand!== 'string'){
+     errors.push('brand is required and must be a string');
+}
+if(!gender || typeof gender!== 'string'){
+     errors.push('gender is required and must be a string');
+}
+if(!description || typeof description!== 'string'){
+     errors.push('description is required and must be a string');
+}
+if(!category || typeof category!== 'string'){
+     errors.push('category is required and must be a string');
+}
+if(!price || typeof price!=='number' || price<0){
+     errors.push('Price should be a positive number');
+}
+if(!stock || typeof stock!=='number' || stock<0){
+     errors.push('stock should be a positive number');
+}
+if(!rating || typeof rating!=='number' || rating<0 || rating>5){
+     errors.push('rating should be a positive number');
+}
+features=JSON.parse(features)
+if(!Array.isArray(features) || !features.every((element)=>typeof element === "string")){
+   errors.push({message:"The features field has invalid value"})
+};
+return errors;
+}
 
 module.exports = {
   getAddProduct: async (req, res) => {
@@ -21,20 +57,24 @@ module.exports = {
   postAddProduct: async (req, res) => {
     try {
       let { productName, brand, gender, category, imageUrls, stock, price, features,description,rating} = req.body;
-
-     if(!imageUrls || imageUrls.length<4){
-      return res.status(400).json({message:"Requires 4 images while adding product"});
-     }
-
-      if (!productName || !brand || !gender || !imageUrls || !description || !features ||
-        !stock || !price || !category || !rating || imageUrls.length < 4) {
-        return res.status(400).json({ message: "Missing required fields" });
-      }
+  
+      const validationErrors=validateFields({productName:productName.trim(),
+        brand:brand.trim(),
+        gender:gender.trim(),
+        category:category.trim(),
+        stock:stock.trim(),
+        price:price.trim(),
+        features:features.trim(),
+        description:description.trim(),
+        rating:rating.trim()});
+      if(!imageUrls || imageUrls.length !==4){
+        validationErrors.push('Four Images should be uploaded');
+        }
+      if(validationErrors.length!==0){
+        return res.status(400).json({validationErrors})
+      } 
       features=JSON.parse(features)
- if(!Array.isArray(features) || !features.every((element)=>typeof element === "string")){
-    return res.status(400).json({message:"The features field has invalid value"})
- };
- features =features.map((element)=>element.trim());
+      features =features.map((element)=>element.trim());
       features =features.filter((element)=>element!=='');
 
       const newProduct = new Product({
@@ -80,10 +120,20 @@ module.exports = {
   },
   putEditProduct: async (req, res) => {
     try {
+      console.log("dfslakh")
       let { productName, brand, gender, category, imageUrls, stock, price,rating,features,description,indicesEdited} = req.body;
 
-       if (!productName ||!brand||!gender||!features|| !description || !category || !price || !stock ||!rating) {
-        return res.status(400).json({message: 'Some fields are missing.' });
+      const validationErrors=validateFields({productName:productName.trim(),
+        brand:brand.trim(),
+        gender:gender.trim(),
+        category:category.trim(),
+        stock:stock.trim(),
+        price:price.trim(),
+        features:features.trim(),
+        description:description.trim(),
+        rating:rating.trim()});
+      if(validationErrors.length!==0){
+        return res.status(400).json({validationErrors})
       } 
       let product = await Product.findById(req.params.id);
     if (!product) {
@@ -101,9 +151,6 @@ module.exports = {
         }
       });
       features=JSON.parse(features)
-      if(!Array.isArray(features) || !features.every((element)=>typeof element === "string")){
-         return res.status(400).json({message:"The features field has invalid value"})
-      };
       features =features.map((element)=>element.trim());
       features =features.filter((element)=>element!=='');
        const editedProduct = await Product.findByIdAndUpdate(
