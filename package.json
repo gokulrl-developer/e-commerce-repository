@@ -30,7 +30,8 @@
   "main": "app.js",
   "scripts": {
     "tailwindBuild": "tailwindcss -i ./src/input.css -o ./public/style.css --watch",
-    "start":"nodemon app.js"
+    "start":"node app.js",
+    "dev":"nodemon app.js"
   },
   "keywords": [],
   "author": "",
