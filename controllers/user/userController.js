@@ -9,8 +9,8 @@ const mongoose = require("mongoose");
 
 async function getHome(req, res) {
   try {
-    const newProducts = await Product.find({}).limit(8).lean();
-    const topSoldProducts = await Product.find({}).limit(4).lean();
+    const newProducts = await Product.find({isBlocked:false}).limit(8).lean();
+    const topSoldProducts = await Product.find({isBlocked:false}).limit(4).lean();
     for (let product of newProducts) {
       const productOffer = await Offer.findOne({
         offerType: 'Product', applicableProduct: product._id, isActive: true,
@@ -135,9 +135,9 @@ async function signUpPost(req, res) {
 
 async function shopAll(req, res) {
   const {currentPage,limit,skip}=req.pagination;
-  const products = await Product.find({}).skip(skip).limit(limit).lean();
+  const products = await Product.find({isBlocked:false}).skip(skip).limit(limit).lean();
   const categories = await Category.find({}).lean();
-  const totalProducts=await Product.find({}).countDocuments();
+  const totalProducts=await Product.find({isBlocked:false}).countDocuments();
   const totalPages=Math.ceil(totalProducts/limit);
   for (let product of products) {
     const productOffer = await Offer.findOne({
@@ -174,7 +174,7 @@ async function filterProducts(req, res) {
   try {
     const { categories, filters, sort } = req.body;
     if (categories.length === 0 && filters.length === 0 && !sort) { return res.redirect('/shopAll') }
-    const filter = [];
+    const filter = [{isBlocked:false}];
     if (categories.length !== 0) { filter.push({ category: { $in: [...categories] } }) };
     if (filters.gender) { filter.push({ gender: filters.gender }) };
     if (filters.minPrice) { filter.push({ price: { $gte: filters.minPrice } }) };
@@ -396,7 +396,7 @@ async function getProduct(req, res) {
       return res.render('user/user-error', { statusCode: 400, message: "invalid Product Id" })
     }
 
-    const product = await Product.findOne({ _id: productId });
+    const product = await Product.findOne({ _id: productId,isBlocked:false });
     if (!product) {
       return res.render('user/user-error', { statusCode: 404, message: "No product found" })
     }
@@ -429,7 +429,7 @@ async function getProduct(req, res) {
     product.finalDiscountedPrice = finalDiscountedPrice;
     product.appliedOffer=appliedOffer;
     
-    const products = await Product.find({}).lean().limit(8);
+    const products = await Product.find({isBlocked:false}).lean().limit(8);
     for (let product of products) {
       const productOffer = await Offer.findOne({
         offerType: 'Product', applicableProduct: product._id, isActive: true,
