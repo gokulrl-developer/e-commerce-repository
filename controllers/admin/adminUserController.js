@@ -9,13 +9,13 @@ exports.getUsers = async (req, res) => {
       User.countDocuments(),
     ]);
     if (!users) {
-      return res.render('admin/admin-error', { statusCode: 404, message: "no users to show" })
+      return res.render('admin/view-users', {message: "no users to show" })
     }
     const totalPages = Math.ceil(totalUsers / limit);
 
     res.render('admin/view-users', { users, currentPage, totalPages });
   } catch (error) {
-    console.error('Error fetching categories:', error);
+    console.error('Error fetching users:', error);
     res.render('admin/admin-error', { statusCode: 500, message: "error on retrieving users" })
   }
 };
@@ -42,6 +42,6 @@ exports.unBlockUser = async (req, res) => {
     res.status(200).json({ message: 'User has been successfully blocked.' });
   } catch (err) {
     console.error("Error blocking user:", err);
-    res.status(500).json({ message: 'Failed to block user.' });
+    res.status(500).json({ message:'Failed to block user.' });
   }
 }

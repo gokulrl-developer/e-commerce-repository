@@ -114,11 +114,11 @@
 </html>
 <script>
   function edit(productId) {
-    window.location.href = `/admin/products/edit/${productId}`
+    window.location.href = `/admin/products/${productId}`
   }
 
   function addProduct() {
-    window.location.href = '/admin/products/add';
+    window.location.href = '/admin/products-add';
   }
   async function blockUnBlockProduct(action, productId) {
     const actionText = action === 'block' ? 'blocked' : 'unblocked';
@@ -134,7 +134,7 @@
       if (result.isConfirmed) {
         try {
           const response = await fetch(`/admin/products/status/${action}/${productId}`, {
-            method: 'PUT',
+            method: 'PATCH',
             headers: {
               'Content-Type': 'application/json',
             },

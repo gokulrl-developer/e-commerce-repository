@@ -24,17 +24,19 @@ router.get('/dashboard/topSold',adminAuth.checkSession,adminController.getTopSol
 router.post("/logout", adminController.logout);
 
 
-router.get('/products', adminAuth.checkSession,paginate,adminProductController.filterProducts, adminProductController.viewProducts)
-router.get('/products/add', adminAuth.checkSession, adminProductController.getAddProduct);
-router.get('/products/edit/:id', adminAuth.checkSession, adminProductController.getEditProduct);
-router.put('/products/edit/:id', adminAuth.checkSession, uploadMiddleware, adminProductController.putEditProduct);
-router.post('/products/add', adminAuth.checkSession, uploadMiddleware, adminProductController.postAddProduct);
-router.put('/products/status/:action/:id',adminAuth.checkSession,adminProductController.updateProductStatus);
+//---------------------------PRODUCTS-----------------------------------------------------------------------------//////
+
+router.get('/products', adminAuth.checkSession,paginate,adminProductController.viewProducts)
+router.get('/products-add', adminAuth.checkSession, adminProductController.getAddProduct);
+router.get('/products/:id', adminAuth.checkSession, adminProductController.getEditProduct);
+router.put('/products/:id', adminAuth.checkSession, uploadMiddleware, adminProductController.putEditProduct);
+router.post('/products', adminAuth.checkSession, uploadMiddleware, adminProductController.postAddProduct);
+router.patch('/products/status/:action/:id',adminAuth.checkSession,adminProductController.updateProductStatus);
 
 
 router.get('/users', adminAuth.checkSession, paginate, adminUserController.getUsers)
-router.put('/users/block/:id', adminAuth.checkSession, adminUserController.blockUser)
-router.put('/users/unblock/:id', adminAuth.checkSession, adminUserController.unBlockUser)
+router.patch('/users/block/:id', adminAuth.checkSession, adminUserController.blockUser)
+router.patch('/users/unblock/:id', adminAuth.checkSession, adminUserController.unBlockUser)
 
 
 

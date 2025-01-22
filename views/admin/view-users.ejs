@@ -84,7 +84,6 @@
 </html>
  <script>
   async function blockUser(userId) {
-    console.log("djaksf")
     Swal.fire({
       title: 'Are you sure?',
       text: "The user will be blocked!",
@@ -95,17 +94,14 @@
       confirmButtonText: 'Yes, block him!'
     }).then(async (result) => {
       if (result.isConfirmed) {
-        console.log("kfjh")
         try {
           const response = await fetch(`/admin/users/block/${userId}`, {
-            method: 'PUT',
+            method: 'PATCH',
             headers: {
               'Content-Type': 'application/json',
             },
           });
-          console.log(response);
           const result = await response.json();
-         console.log(result)
           if (response.ok) {
 
             await Swal.fire(
@@ -148,7 +144,7 @@
       if (result.isConfirmed) {
         
           const response = await fetch(`/admin/users/unblock/${userId}`, {
-            method: 'PUT',
+            method: 'PATCH',
             headers: {
               'Content-Type': 'application/json',
             },
@@ -164,6 +160,11 @@
             ).then(() => {
               location.reload();
             });
+          }else{
+            Swal.fire('Error',
+              result.message || "Error on Unblocking the user",
+              'error'
+            )
           }
         }
       }) 

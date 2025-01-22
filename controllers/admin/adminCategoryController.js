@@ -19,30 +19,32 @@ exports.getCategories = async (req, res) => {
     res.render('admin/view-categories', { categories, currentPage, totalPages });
   } catch (error) {
     console.error('Error fetching categories:', error);
-    res.status(500).send('Internal Server Error');
+   res.render('admin/admin-error',{statusCode:500,message:"Server Error on showing Categories"})
   }
 };
 
 exports.addCategory = async (req, res) => {
   try {
     const { categoryName, status } = req.body;
-
-    if (!categoryName || !status) {
-      return res.status(400).json({ success: false, message: "Category name and status are required" });
+  if (!categoryName || typeof categoryName !=="string" || categoryName.length<3 || categoryName.length>50 || /^[A-Za-z0-9]+$/.test(categoryName) !==true){
+    return res.status(400).json({message:"Category must be a string with 3 to 50 characters containing numbers/letters"})
+  }
+    if (!status || !["Active","Inactive"].includes(status)) {
+      return res.status(400).json({ message: "Status is required and must be a Active/Inactive" });
     }
 
     const categoryExists = await Category.findOne({ name: { $regex: new RegExp(`^${categoryName}$`, 'i') } });
     if (categoryExists) {
-      return res.status(400).json({ success: false, message: "Category already exists" });
+      return res.status(400).json({message: "Category already exists" });
     }
 
     const newCategory = new Category({ categoryName, status });
     await newCategory.save();
 
-    res.status(201).json({ success: true, message: "Category added successfully" });
+    res.status(201).json({message: "Category added successfully" });
   } catch (error) {
     console.error("Error adding category:", error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
+    res.status(500).json({message: "Internal Server Error" });
   }
 };
 
@@ -51,13 +53,16 @@ exports.editCategory = async (req, res) => {
     const { id } = req.params;
     const { categoryName, status } = req.body;
 
-    if (!categoryName || !status) {
-      return res.status(400).json({ success: false, message: "Category name and status are required" });
+    if (!categoryName || typeof categoryName !=="string" || categoryName.length<3 || categoryName.length>50 || /^[A-Za-z0-9]+$/.test(categoryName) !==true){
+      return res.status(400).json({message:"Category must be a string with 3 to 50 characters containing numbers/letters"})
     }
+      if (!status || !["Active","Inactive"].includes(status)) {
+        return res.status(400).json({ message: "Status is required and must be a Active/Inactive" });
+      }
 
     const category = await Category.findById(id);
     if (!category) {
-      return res.status(404).json({ success: false, message: "Category not found" });
+      return res.status(404).json({message: "Category not found" });
     }
 
     const categoryExists = await Category.findOne({
@@ -65,17 +70,17 @@ exports.editCategory = async (req, res) => {
       categoryName: { $regex: new RegExp(`^${categoryName}$`, 'i') }
     });
     if (categoryExists) {
-      return res.status(400).json({ success: false, message: "Category name already exists" });
+      return res.status(400).json({message: "Category name already exists" });
     }
 
     category.categoryName = categoryName;
     category.status = status;
     await category.save();
 
-    res.status(200).json({ success: true, message: "Category updated successfully" });
+    res.status(200).json({ message: "Category updated successfully" });
   } catch (error) {
     console.error("Error editing category:", error);
-    res.status(500).json({ success: false, message: "Internal Server Error" });
+    res.status(500).json({ message: "Internal Server Error" });
   }
 };
 
@@ -84,15 +89,15 @@ exports.softDeleteCategory = async (req, res) => {
     const { id } = req.params;
     const category = await Category.findById(id);
     if (!category) {
-      return res.status(404).json({ success: false, message: "Category not found" });
+      return res.status(404).json({ message: "Category not found" });
     }
 
     category.status = 'Inactive';
     await category.save();
 
-    res.json({ success: true, message: 'Category has been successfully deactivated.' });
+    res.json({ message: 'Category has been successfully deactivated.' });
   } catch (err) {
     console.error("Error deactivating category:", err);
-    res.status(500).json({ success: false, message: 'Failed to deactivate category.' });
+    res.status(500).json({ message: 'Failed to deactivate category.' });
   }
 };

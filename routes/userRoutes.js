@@ -15,13 +15,11 @@ const paginate = require('../middlewares/paginate');
 
 
 
-// GENERAL USERS
-router.get('/home',userController.getHome)
+// HOME PAGE ----------------------------------------------////////////////////
+router.get('/',userAuth.generalPageCheckSession,userController.getHome)
 
 
 
-///Home
-router.get('/',userAuth.checkSession,userController.getHome);
 
 ///Login&Profile
 router.get('/login',userAuth.isLoggedIn,userController.getLogin);
@@ -52,12 +50,12 @@ router.get('/reset-password',userController.getResetPassword);
 router.post('/reset-password',userController.postResetPassword);
 
 
-router.get('/shopAll',userAuth.checkSession,paginate,userController.shopAll);
-router.post('/filter',userAuth.checkSession,paginate,userController.filterProducts)
+//-----------------------SHOP ALL & PRODUCT DETAILS PAGE-------------------------------------------------------///
+router.get('/shopAll',userAuth.generalPageCheckSession,paginate,userController.shopAll);
+router.post('/filter',userAuth.generalPageCheckSession,paginate,userController.filterProducts)
+router.get('/product/:id',userAuth.generalPageCheckSession,userController.getProduct);
 
-router.get('/product/:id',userAuth.checkSession,userController.getProduct);
-
-//User Dashboard 
+//------------------------User Dashboard ---------------------------------------------------//////////////////////
 //-------------------- Personal info Dashboard --------------------
 router.get("/profile",userAuth.checkSession,userProfileController.getPersonalInformation);
 router.post("/profile",userAuth.checkSession,userProfileController.updatePersonalInformation)

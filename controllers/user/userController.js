@@ -18,6 +18,7 @@ async function getHome(req, res) {
     console.error("Server down : ", err)
   }
 }
+
 async function getLogin(req, res) {
   try {
     res.render('user/user-login');
@@ -26,8 +27,6 @@ async function getLogin(req, res) {
     console.error("Error on retrieving login page : ", error)
   }
 }
-
-
 
 async function postLogin(req, res) {
   try {
@@ -41,7 +40,7 @@ async function postLogin(req, res) {
     }
     const isMatch = await bcrypt.compare(password, matchedUser.password);
     if (!isMatch) {
-      return res.render('user/user-error', { statusCode: 401, message: "Invalid Credentials" })
+      return res.status(401).json({message:"Invalid Credentials"});
     } else {
       req.session.user = matchedUser;
       res.status(200).json({ redirectUrl: "/" });
@@ -294,7 +293,7 @@ async function postChangePassword(req, res) {
     req.session.tempEmail = null;
     req.session.isForgotPasswordVerified = null;
     return res.status(200).json({
-      redirectUrl: "/home",
+      redirectUrl: "/",
     });
   } catch (error) {
     res.status(500).json({ message: "Server error on changing password" });

@@ -46,11 +46,11 @@ module.exports = {
     try{
     const categories = await Category.find({}, { _id: 1, categoryName: 1 }).lean();
     if(!categories){
-      return res.render('admin/admin-error',{statusCode:404,message:"Add category before adding product"})
+      return res.render('admin/admin-error',{statusCode:404,message:"Add some categories before adding product"})
     }
     res.render('admin/add-products', { admin: true, categories });
     }catch(error){
-      res.render('admin/admin-error',{statusCode:500,message:error.message|| 'error on showing add product page'})
+      res.render('admin/admin-error',{statusCode:500,message:'error on showing add product page'})
       console.error("Error on Showing Product Add page : ",error)
     }
   },
@@ -110,17 +110,16 @@ module.exports = {
     }
     const product=await Product.findOne({_id:productId}).populate('category','categoryName').exec();
     if(!product){
-      await render('admin/admin-error',{statusCode:404,message:"Error retrieving the product"});
+      return res.status(404).json({message:"Error retrieving the product"});
     }
     res.render('admin/edit-products',{product,categories});
     }catch(error){
       console.error("Error on showing the Edit page : ",error);
-      res.render('admin/admin-error',{statusCode:500,message:"some unexpected error occured"})
+      res.render('admin/admin-error',{statusCode:500,message:"server error on showing the product edit page"})
     }
   },
   putEditProduct: async (req, res) => {
     try {
-      console.log("dfslakh")
       let { productName, brand, gender, category, imageUrls, stock, price,rating,features,description,indicesEdited} = req.body;
 
       const validationErrors=validateFields({productName:productName.trim(),
@@ -176,20 +175,9 @@ module.exports = {
       return res.status(500).json({message: 'Failed to update product' });
     }
   },
-
-  viewProducts: async (req, res, next) => {
-    const products = req.products;
-    const totalPages=req.totalPages;
-    const {currentPage}=req.pagination;
-    if(req.xhr){
-      return res.status(200).json({products,currentPage,totalPages})
-    }else{
-     return res.render('admin/view-products', {products,currentPage,totalPages})
-    }
-  },
-  filterProducts: async (req, res, next) => {
+viewProducts: async (req, res, next) => {
     try {
-      const { skip, limit} = req.pagination;
+      const { skip, limit,currentPage} = req.pagination;
       if(req.xhr){
         const {search} =req.query;
         const regex = new RegExp("^" + search, "i");
@@ -202,13 +190,19 @@ module.exports = {
         Product.find(filterObj).countDocuments(),
       ]);
       const totalPages = Math.ceil(totalProducts / limit);
-      req.products = products;
-      req.totalPages=totalPages;
-      next();
+      if(req.xhr){
+        return res.status(200).json({products,currentPage,totalPages})
+      }else{
+       return res.render('admin/view-products', {products,currentPage,totalPages})
+      }
       
     } catch (error) {
-      console.error('Error in retrieving products from db : ', error);
-      res.render('admin/admin-error',{statusCode:500,message:"some unexpected error while filtering the products"})
+      console.error('Error in showing products : ', error);
+      if(req.xhr){
+        return res.status(500).json({message:"server error while filtering products"})
+      }else{
+      res.render('admin/admin-error',{statusCode:500,message:"some unexpected error while showing the products"});
+      }
     }
   },
   

@@ -316,7 +316,7 @@ if(errors && errors.length>0){
 } 
 
     try {
-      const response = await fetch("/admin/products/add", {
+      const response = await fetch("/admin/products", {
         method: "POST",
         body: formData,
       });

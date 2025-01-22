@@ -46,7 +46,6 @@ function validateEmail() {
   
   async function handleLogin(event) {
     event.preventDefault();
-  
     const isFormValid = validateForm();
     if (!isFormValid) {
       return;
@@ -62,14 +61,16 @@ function validateEmail() {
         },
         body: JSON.stringify({email, password}),
       });
-      const data = await response.json();
+      
       if (response.ok) {
+        const data = await response.json();
           location.href = data.redirectUrl;
       } else {
-        window.alert(data.message);
+        const data = await response.json();
+        Swal.fire("Error",data.message,"error");
       }
     } catch (error) {
-      console.log('error');
+      Swal.fire("Error","Error while login","error");
     }
   }
   
