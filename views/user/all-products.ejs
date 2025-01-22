@@ -335,6 +335,7 @@ applyFilters(url);
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        'X-Requested-With': 'XMLHttpRequest'
       },
       body: JSON.stringify({
         productId,
@@ -343,6 +344,7 @@ applyFilters(url);
     })
       .then((response) => {
         if (response.ok) {
+          console.log(response)
           return response.json();
         } else {
           return response.json().then((data) => {
@@ -354,7 +356,7 @@ applyFilters(url);
       })
       .catch((error) => {
         console.error("Error adding to cart:", error.message);
-        Swal.fire("Error","Error In adding products to cart", "error");
+        Swal.fire("Error",error.message || "Error In adding products to cart", "error");
       });
   };
 

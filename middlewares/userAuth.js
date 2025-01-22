@@ -20,8 +20,9 @@ module.exports={
         }else{
             if(req.xhr){
                 return res.status(401).json({message:"You cannot access without login"});
+            }else{
+              return res.redirect('/login');
             }
-            res.redirect('/login');
         }
     },
     isLoggedIn:async (req,res,next)=>{
