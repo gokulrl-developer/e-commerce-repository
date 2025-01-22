@@ -11,7 +11,58 @@ async function getHome(req, res) {
   try {
     const newProducts = await Product.find({}).limit(8).lean();
     const topSoldProducts = await Product.find({}).limit(4).lean();
-
+    for (let product of newProducts) {
+      const productOffer = await Offer.findOne({
+        offerType: 'Product', applicableProduct: product._id, isActive: true,
+        startDate: { $lte: Date.now() }, expiryDate: { $gte: Date.now() }
+      });
+      const categoryOffer = await Offer.findOne({
+        offerType: 'Category', applicableCategory: product.category, isActive: true,
+        startDate: { $lte: Date.now() }, expiryDate: { $gte: Date.now() }
+      });
+  
+      let bestDiscount = 0;
+      if (productOffer) {
+        bestDiscount = Math.max(bestDiscount, productOffer.discountPercentage);
+      }
+  
+      if (categoryOffer) {
+        if (categoryOffer.discountPercentage > bestDiscount) {
+          bestDiscount = categoryOffer.discountPercentage;
+        }
+      }
+      let finalDiscountedPrice = product.price;
+      if (bestDiscount > 0) {
+        finalDiscountedPrice = product.price * (1 - bestDiscount / 100);
+      }
+      product.finalDiscountedPrice = finalDiscountedPrice;
+    };
+    for (let product of topSoldProducts) {
+      const productOffer = await Offer.findOne({
+        offerType: 'Product', applicableProduct: product._id, isActive: true,
+        startDate: { $lte: Date.now() }, expiryDate: { $gte: Date.now() }
+      });
+      const categoryOffer = await Offer.findOne({
+        offerType: 'Category', applicableCategory: product.category, isActive: true,
+        startDate: { $lte: Date.now() }, expiryDate: { $gte: Date.now() }
+      });
+  
+      let bestDiscount = 0;
+      if (productOffer) {
+        bestDiscount = Math.max(bestDiscount, productOffer.discountPercentage);
+      }
+  
+      if (categoryOffer) {
+        if (categoryOffer.discountPercentage > bestDiscount) {
+          bestDiscount = categoryOffer.discountPercentage;
+        }
+      }
+      let finalDiscountedPrice = product.price;
+      if (bestDiscount > 0) {
+        finalDiscountedPrice = product.price * (1 - bestDiscount / 100);
+      }
+      product.finalDiscountedPrice = finalDiscountedPrice;
+    };
     res.render('user/user-home', { newProducts, topSoldProducts });
   } catch (error) {
     res.status(500).json({ Message: "Server down" });
@@ -433,7 +484,7 @@ function logout(req, res) {
         console.error("Error during logout:", err);
         return res.status(500).send("Failed to logout. Please try again.");
       }
-      res.redirect("/");
+      res.redirect("/login");
     });
   } catch (error) {
     console.error("Error in logoutPOST:", error);

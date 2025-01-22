@@ -26,24 +26,24 @@ router.get('/login',userAuth.isLoggedIn,userController.getLogin);
 router.post('/login',userAuth.isLoggedIn,userController.postLogin);
 
 ////Logout 
-router.post("/logout", userController.logout);
+router.post("/logout",userAuth.checkSession, userController.logout);
 
 ///sign-up
 router.get('/sign-up',userAuth.isLoggedIn,userController.getSignUp);
 router.post('/sign-up',userAuth.isLoggedIn,userController.signUpPost);
-router.get('/verify-otp', (req, res) => {
+router.get('/verify-otp',userAuth.isLoggedIn, (req, res) => {
     res.render('user/user-signup-otp',{message:"OTP send to Email"})
   });
 router.post('/resend-otp',userAuth.isLoggedIn,userController.resendOtp);
 router.post('/verify-otp',userAuth.isLoggedIn,userController.verifyOtp);
 
 //----------------------Forgot-Password--------------------------------------------
-router.get('/forgot-password-email', userController.getForgotPasswordEmail);
-router.post('/forgot-password-email', userController.postForgotPasswordEmail);
-router.get('/forgot-password-otp',userController.getForgotPasswordOtp);
-router.post('/forgot-password-otp',userController.postForgotPasswordOtp);
-router.get('/forgot-password-password',userController.getChangePassword);
-router.post('/forgot-password-password',userController.postChangePassword);
+router.get('/forgot-password-email',userAuth.isLoggedIn,userController.getForgotPasswordEmail);
+router.post('/forgot-password-email',userAuth.isLoggedIn,userController.postForgotPasswordEmail);
+router.get('/forgot-password-otp',userAuth.isLoggedIn,userController.getForgotPasswordOtp);
+router.post('/forgot-password-otp',userAuth.isLoggedIn,userController.postForgotPasswordOtp);
+router.get('/forgot-password-password',userAuth.isLoggedIn,userController.getChangePassword);
+router.post('/forgot-password-password',userAuth.isLoggedIn,userController.postChangePassword);
 
 //--------------------Change Password-------------------------------------------------
 router.get('/reset-password',userController.getResetPassword);

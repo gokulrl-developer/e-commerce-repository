@@ -22,21 +22,48 @@
 
     <!-- Top Selling Products Section -->
     <section class="py-5">
-      <div class="container mx-auto max-w-screen-lg">
+      <div class="container mx-auto ">
         <h2 class="font-bold text-center my-8">Top Sale This Week</h2>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <!-- Product Card -->
           <% topSoldProducts.forEach(function(product) { %>
-            <div class="card p-4 border rounded shadow-md">
-              <div class="w-full h-100">
-                <img src="<%= product.imageUrl[0] %>" class="w-full h-full object-cover rounded" alt="Product Image">
+            <div class="card p-4 border rounded shadow-md bg-gray-400">
+              <div class="w-full ">
+                <div class="w-full h-100">
+                  <img src="<%= product.imageUrl[0] %>" class="w-full h-full object-cover rounded"
+                    alt="Product Image">
+                </div>
               </div>
-              <div class="text-center mt-3">
-                <h6 class="text-lg font-semibold"><%= product.productName %></h6>
-                <p class="text-gray-600"><%= product.price %></p>
-                <a href="/product/<%= product._id %>" class="btn bg-blue-500 text-white rounded px-4 py-2 mt-2 inline-block">View Product</a>
+              <div class="mt-3 bg-white py-3 px-3">
+                <div class="flex">
+                  <h6 class="text-lg font-semibold">
+                    <%= product.productName %>
+                  </h6>
+                </div>
+                <h6 class="text-lg font-light">
+                  <%= product.description.substring(0, 20) + '...' %>
+                </h6>
+                <div class="flex justify-between items-center mb-2">
+                  <p class="font-bold text-xl">
+                    <span class="font-bold">₹</span>
+                    <%=product.finalDiscountedPrice%>
+                  </p>
+                  <%if(product.finalDiscountedPrice < product.price ){%>
+                    <span class=" line-through text-sm">₹<%=product.price%></span>
+                    <%}%>
+                </div>
+                <%if(product.stock>0){%>
+                  <h6 class="text-lg font-normal">
+                    <%= product.stock%> Pieces Left
+                  </h6>
+                  <%}else{%>
+                    <h6 class="text-lg font-normal">Out of Stock</h6>
+                    <%}%>
+                      <a href="/product/<%= product._id %>"
+                        class="btn bg-blue-500 text-white rounded px-2 py-1 mt-2 inline-block cursor-pointer">View</a>
               </div>
             </div>
-          <% }) %>
+            <% }) %>
         </div>
       </div>
     </section>
@@ -52,21 +79,48 @@
 
     <!-- New Arrivals Section -->
     <section class="py-5 bg-gray-100">
-      <div class="container mx-auto max-w-screen-lg">
+      <div class="container mx-auto">
         <h2 class="font-bold text-center my-8">New Arrivals</h2>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+          <!-- Product Card -->
           <% newProducts.forEach(function(product) { %>
-            <div class="card p-4 border rounded shadow-md">
-              <div class="w-full h-100">
-                <img src="<%= product.imageUrl[0] %>" class="w-full h-full object-cover rounded" alt="Product Image">
+            <div class="card p-4 border rounded shadow-md bg-gray-400">
+              <div class="w-full ">
+                <div class="w-full h-100">
+                  <img src="<%= product.imageUrl[0] %>" class="w-full h-full object-cover rounded"
+                    alt="Product Image">
+                </div>
               </div>
-              <div class="text-center mt-3">
-                <h6 class="text-lg font-semibold"><%= product.productName %></h6>
-                <p class="text-gray-600"><%= product.price %></p>
-                <a href="/product/<%= product._id %>" class="btn bg-blue-500 text-white rounded px-4 py-2 mt-2 inline-block">View Product</a>
+              <div class="mt-3 bg-white py-3 px-3">
+                <div class="flex">
+                  <h6 class="text-lg font-semibold">
+                    <%= product.productName %>
+                  </h6>
+                </div>
+                <h6 class="text-lg font-light">
+                  <%= product.description.substring(0, 20) + '...' %>
+                </h6>
+                <div class="flex justify-between items-center mb-2">
+                  <p class="font-bold text-xl">
+                    <span class="font-bold">₹</span>
+                    <%=product.finalDiscountedPrice%>
+                  </p>
+                  <%if(product.finalDiscountedPrice < product.price ){%>
+                    <span class=" line-through text-sm">₹<%=product.price%></span>
+                    <%}%>
+                </div>
+                <%if(product.stock>0){%>
+                  <h6 class="text-lg font-normal">
+                    <%= product.stock%> Pieces Left
+                  </h6>
+                  <%}else{%>
+                    <h6 class="text-lg font-normal">Out of Stock</h6>
+                    <%}%>
+                      <a href="/product/<%= product._id %>"
+                        class="btn bg-blue-500 text-white rounded px-2 py-1 mt-2 inline-block cursor-pointer">View</a>
               </div>
             </div>
-          <% }) %>
+            <% }) %>
         </div>
       </div>
     </section>
