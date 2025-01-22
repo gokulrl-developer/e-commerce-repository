@@ -50,7 +50,7 @@ exports.recalculateCart=async function (cart,req){
 
       let productOffer =productOffers.find((offer)=>{
         if(offer?.applicableProduct){
-       return offer.applicableProduct.toString()===product._id.toString();
+       return offer.applicableProduct.toString()===(product._id||product).toString();
         }
       })
       let categoryOffer =categoryOffers.find((offer)=>{
@@ -246,6 +246,7 @@ exports.addToCart = async (req, res) => {
       res.status(200).json({message: 'Product added to cart successfully!'});
   } catch (err) {
       console.error('Error in addToCart:', err);
+      console.log(err.message)
       res.status(500).json({message: 'An error occurred while adding to cart.' });
   }
 };
