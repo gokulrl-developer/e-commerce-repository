@@ -41,11 +41,6 @@ const validateCoupon =(couponData,mode)=>{
    if(startDate.getTime()>expiryDate.getTime){
     errors.push('Expiry Date cannot be before StartDate');
    }
-   if(mode==="ADD"){
-   if(startDate.getTime()<Date.now()){
-    errors.push('Start Date should be after present time');
-   }
-  };
    if(!totalUsageLimit){
     errors.push('Total usage limit is required')
    }else if(typeof totalUsageLimit !=='number' || totalUsageLimit <1){

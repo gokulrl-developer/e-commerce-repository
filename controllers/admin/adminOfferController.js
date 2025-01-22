@@ -34,11 +34,6 @@ const validateOffer = (offerData,mode) => {
     if (startDate.getTime() > expiryDate.getTime()) {
         errors.push('Expiry Date cannot be before StartDate');
     }
-    if(mode==="ADD"){
-        if (startDate.getTime() < Date.now()) {
-            errors.push('Start date must be after present time');
-        }
-    }
     return errors;
 }
 
