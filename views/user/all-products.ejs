@@ -22,15 +22,15 @@
     <div class="container my-4">
       <div class="flex">
         <!-- Sidebar -->
-        <aside class="w-full lg:w-1/5 mb-4 mx-4 p-4">
+        <aside class="w-full lg:w-1/5 mb-4 mx-4 p-4 bg-black">
           <div class="filter-section">
             <h4 class="text-lg font-semibold">Categories</h4>
             <div class="relative inline-block w-full">
               <label for="categories" class="block text-lg font-semibold mb-2">Select Category</label>
               <ul id="categories" 
-                  class="block w-full p-2 bg-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  class="block w-full bg-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <% if (categories) { categories.forEach((category) => { %>
-                  <li class="flex items-center gap-2 p-2 border-b">
+                  <li class="flex items-center gap-2 p-2 border-b bg-indigo-500">
                     <input 
                       type="checkbox" 
                       name="category" 
@@ -45,14 +45,12 @@
                 <% }) } %>
               </ul>
             </div>            
-            <div class="relative inline-block w-full">
+            <div class="relative inline-block w-full ">
               <h4 class="text-lg font-semibold">Sort By</h4>
               <select name="sort" id="sort" onchange="applyFilters()"
-                class="bg-white block w-full text-black border-2 border-gray-300 rounded px-4 py-2">
+                class="block w-full text-black border-2 border-gray-300 rounded px-4 py-2 bg-indigo-500">
                 <option value="" selected>Default</option>
                 <option value="rating">Average Ratings</option>
-                <option disabled value="popularity">Popularity</option>
-                <option disabled value="featured">Featured Products</option>
                 <option value="latest">Latest Arrivals</option>
                 <option value="priceAsc">Price: Low to High</option>
                 <option value="priceDesc">Price: High to Low</option>
@@ -64,7 +62,7 @@
             <div class="relative inline-block w-full">
               <label for="gender" class="block text-lg font-semibold mb-2">Gender</label>
               <select name="gender" id="gender"
-                class="block w-full p-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="block w-full p-2 bg-indigo-500 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 onchange="applyFilters()">
                 <option value="" selected>All</option>
                 <option value="Men" id="men">Men</option>
@@ -79,7 +77,7 @@
               <div class="w-1/2">
                 <label for="min-price" class="block text-sm font-medium text-gray-700 mb-1">Min Price</label>
                 <input type="number" id="min-price" name="min-price"
-                  class="form-input rounded px-4 py-2 w-full bg-gray-100 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none" 
+                  class="form-input rounded px-4 py-2 w-full bg-indigo-500 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none" 
                   oninput="applyFilters()"/>
               </div>
 
@@ -87,7 +85,7 @@
               <div class="w-1/2">
                 <label for="max-price" class="block text-sm font-medium text-gray-700 mb-1">Max Price</label>
                 <input type="number" id="max-price" name="max-price"
-                  class="form-input rounded px-4 py-2 w-full bg-gray-100 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none" 
+                  class="form-input rounded px-4 py-2 w-full bg-indigo-500 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none" 
                   oninput="applyFilters()"/>
               </div>
             </div>
