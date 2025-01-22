@@ -192,7 +192,9 @@ exports.getCart=async function (req, res){
 exports.addToCart = async (req, res) => {
   try {
       const { productId, quantity } = req.body;
+      console.log("reached")
       const userId = req.session.user?._id;
+      console.log(userId)
 
       if (!userId) {
           return res.status(401).json({ message: 'User not logged in.' });
