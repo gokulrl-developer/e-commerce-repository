@@ -28,8 +28,10 @@ exports.recalculateCart=async function (cart,req){
             isActive: true,
         });
      }));
-     console.log("offers")
+     console.log("offers"+productOffers)
      categoryOffers=await Promise.all(products.map(async(product)=>{
+        console.log("category : ",product);
+        
         return await Offer.findOne({
             applicableCategory: product.category._id,
             startDate: { $lte: new Date() },
@@ -37,7 +39,7 @@ exports.recalculateCart=async function (cart,req){
             isActive: true,
         });
      }))
-     console.log("category")
+     console.log("category",categoryOffers)
     for(const[index,item] of cart.items.entries()){
           const product=products.find((product)=>{
            return product?._id.toString()===(item.product._id || item.product).toString()
