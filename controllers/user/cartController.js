@@ -18,6 +18,7 @@ exports.recalculateCart=async function (cart,req){
             match: { status: 'Active' }
         });
      }));
+     console.log("products")
     productOffers=await Promise.all(products.map(async(product)=>{
         return await Offer.findOne({
             applicableProduct: product._id || product,
@@ -26,6 +27,7 @@ exports.recalculateCart=async function (cart,req){
             isActive: true,
         });
      }));
+     console.log("offers")
      categoryOffers=await Promise.all(products.map(async(product)=>{
         return await Offer.findOne({
             applicableCategory: product.category._id,
@@ -34,6 +36,7 @@ exports.recalculateCart=async function (cart,req){
             isActive: true,
         });
      }))
+     console.log("category")
     for(const[index,item] of cart.items.entries()){
           const product=products.find((product)=>{
            return product?._id.toString()===(item.product._id || item.product).toString()
