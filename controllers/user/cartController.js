@@ -253,7 +253,7 @@ exports.addToCart = async (req, res) => {
 
 exports.deleteFromCart = async (req, res) => {
   try {
-      const { cartItemId } = req.body;
+      const cartItemId  = req.params.id;
       const userId = req.session.user?._id;
 
       if (!userId) {
@@ -268,7 +268,7 @@ exports.deleteFromCart = async (req, res) => {
         await Cart.findOneAndDelete({userId});
           return res.status(200).json({message: 'Product removed from cart.'});
       } else {
-        let index = cart.items.findIndex((item)=>item._id.toString()===cartItemId);
+        let index = cart.items.findIndex((item)=>item._id.toString()===cartItemId.toString());
         if (index !== -1) {
             cart.items.splice(index, 1);
         }

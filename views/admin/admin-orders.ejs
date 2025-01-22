@@ -20,14 +20,14 @@
         <!-- Main Content -->
         <main class="flex-grow p-6 md:w-4/5">
           <div class="flex justify-between items-center mb-4">
-
-            <div class="mb-4">
+            
+            <h4 class="text-xl font-semibold">ORDERS</h4>
+            <div class="mb-4 flex">
               <input type="text" id="search" name="search" class="form-input bg-indigo-500 px-4 py-2 w-[90%]"
                 placeholder="Search an item" oninput="applySearch()">
               <button onclick="applySearch()">Search</button>
             </div>
 
-            <h4 class="text-xl font-semibold">Orders</h4>
 
           </div>
 
@@ -196,7 +196,7 @@
         document.getElementById('orderId').textContent = `#${data.order._id.toString().slice(-6)}`;
         document.getElementById('orderDate').textContent = data.formattedDate;
         document.getElementById('orderStatus').textContent = data.order.orderStatus;
-        if (data.order.orderStatus === "Pending" || data.order.orderStatus === "Processing") {
+        if (data.order.orderStatus === "Pending" || data.order.orderStatus === "Processing" || data.order.orderStatus ==="Shipped") {
           document.getElementById("edit-status").innerHTML = `
         <h2 class="text-lg font-bold mb-4 ">Edit Order Status</h2>
           <select class="border border-gray-300 rounded px-3 py-1 bg-red-500 hover:bg-red-800" id="edited-status">
@@ -240,10 +240,8 @@
 
                                 <p >Price: ₹${Number(item.price).toFixed(2)}</p>
                                 <p >Quantity: ${item.quantity}</p>
-                                <p >totalPrice: ₹${Number(item.price * item.quantity).toFixed(2)}</p>
-                                <p >Final price: ₹${(item.price * item.quantity -
-              item.quantity * item.price * item.discount / 100
-            ).toFixed(2)}</p>
+                                <p >TotalPrice: ₹${Number(item.price * item.quantity).toFixed(2)}</p>
+                                <p >Final price: ₹${(item.discountedPrice * item.quantity ).toFixed(2)}</p>
 
                             </div>
                         `;

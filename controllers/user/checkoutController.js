@@ -153,7 +153,7 @@ exports.placeOrder = async (req, res) => {
                 appliedCouponCode:cart.appliedCouponCode,
                 couponCode:cart.couponDetails.couponCode,
                 shippingCost:100,
-                orderTotal:(cart.grandTotal)*118/100,
+                orderTotal:(cart.grandTotal+100)*118/100,
                     
             },
             coupon: cart.appliedCouponCode?._Id

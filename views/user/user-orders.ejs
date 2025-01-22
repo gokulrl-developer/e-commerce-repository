@@ -10,19 +10,19 @@
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
 
-<body class="bg-gray-100">
+<body class="bg-orange-500">
 
   <!-- Header Section -->
   <%- include('../partials/user-header') %>
 
     <!-- Main Content -->
-    <main class="container mx-auto mb-8 mt-8 gap-3 px-4 flex flex-col md:flex-row">
+    <main class="container mx-auto mb-8 mt-8 gap-3 px-4 flex flex-col md:flex-row bg-gray-300">
 
       <!-- Sidebar -->
       <%- include('../partials/user-profile-sidebar') %>
  
     <!-- Orders Section -->
-    <div class="w-full md:w-4/5 bg-white shadow-md rounded-md p-4">
+    <div class="w-full md:w-4/5 bg-yellow-500 shadow-md rounded-md p-4 bg-slate-500">
       <div class="mb-4">
         <input type="text" id="search" name="search" class="form-input bg-indigo-500 px-4 py-2 w-[90%]"
           placeholder="Search an item" oninput="applySearch()">
@@ -33,32 +33,31 @@
       </div>
 
       <!-- Orders Table -->
-      <div class="overflow-x-auto">
-        <table class="table-auto w-full border border-gray-300" id="order-table">
-          <thead class="bg-gray-100">
-            <tr>
+      <div class="overflow-x-auto" id="order-container">
+        
               <% if (orders.length===0) { %>
                 <p class="text-gray-400">You haven't placed any orders yet.</p>
-                <% } else {orders.forEach((order)=>{%>
+                <% } else {%>
+                  <table class="table-auto w-full border border-gray-300" id="order-table">
+          <thead >
+            <tr>
                   <th class="px-4 py-2 text-left border">Order Id& Date</th>
                   <th class="px-4 py-2 text-left border">Order Details</th>
                   <th class="px-4 py-2 text-left border">Order Actions</th>
             </tr>
           </thead>
           <tbody>
+            <%orders.forEach((order)=>{%>
             <tr>
               <td class="px-4 py-2 border">
                 Id : #<%=order._id.toString().slice(-6)%><br>
                   Date : <%= order.formattedDate %>
               </td>
               <td class="px-4 py-2 border">
-                Total items : <%=order.orderItems.length%><br>
-                  Total price : <%=order.payment.totalAmount%><br>
-                  Total Discount : <%=order.payment.discount%><br>
-                  Grand Total : <%=order.payment.grandTotal%><br>
+                  Total items : <%=order.orderItems.length%><br>
+                  Order Total : <%=order.payment.orderTotal.toFixed(2)%> (Incl.GST)<br>
                   Order status : <%=order.orderStatus%><br>
-                        Payment method : <%=order.payment.paymentMethod%><br>
-                          Payment Status : <%=order.payment.paymentStatus%><br>
+                  Payment Status : <%=order.payment.paymentStatus%><br>
               </td>
               <td class="px-4 py-2 border">
                 <button onclick="viewDetails('<%= order._id %>')"
@@ -81,10 +80,11 @@
 
               </td>
             </tr>
-            <%})}%>
+            <%})%>
 
           </tbody>
         </table>
+        <%}%>
       </div>
     </div>
   </main>
@@ -153,9 +153,9 @@
             <h3 class="font-bold text-lg mb-2 text-gold">Payment Details</h3>
             <p><strong>Payment Method:</strong> <span id="paymentMethod"></span></p>
             <p><strong>Payment Status:</strong> <span id="paymentStatus"></span></p>
-            <p><strong>totalPrice:</strong> ₹<span id="totalPrice"></span></p>
             <p><strong>Discount:</strong> ₹<span id="discount"></span></p>
             <p><strong>Total:</strong> ₹<span id="total"></span></p>
+            <p><strong>Order Total:</strong> ₹<span id="order-total"></span></p>
           </div>
 
           <!-- Cancel Order Button -->
@@ -241,10 +241,10 @@
         // Populate payment details
         document.getElementById('paymentMethod').textContent = data.order.payment.paymentMethod;
         document.getElementById('paymentStatus').textContent = data.order.payment.paymentStatus;
-        document.getElementById('totalPrice').textContent =Number(data.order.payment.totalAmount).toFixed(2);
         document.getElementById('discount').textContent = (Number(data.order.payment.discount)).toFixed(2);
         document.getElementById('total').textContent =Number(data.order.payment.grandTotal).toFixed(2);
-        
+        document.getElementById('order-total').textContent =Number(data.order.payment.orderTotal).toFixed(2)+" (Incl GST)";
+
         // Add cancel button if order is cancellable
         const cancelOrderContainer = document.getElementById('cancelOrderContainer');
         if (data.order.orderStatus === 'Pending' || data.order.orderStatus === 'Processing' || data.order.orderStatus === 'Partially Cancelled') {
@@ -521,34 +521,31 @@ async function applySearch(url='/orders?page=1&limit=9') {
       
       if (response.ok) {
         const data = await response.json();
-        console.log(data)
         if (!data.orders || data.orders.length === 0) {
-          document.getElementById('order-table').innerHTML = `
+          document.getElementById('order-container').innerHTML = `
          <p class="text-gray-400">You haven't placed any orders yet.</p>`
         } else {
-          document.getElementById("order-table").innerHTML=
-          ` <thead class="bg-gray-100">
-            <tr>`+
-           data.orders.map((order) => (
-          `  <th class="px-4 py-2 text-left border">Order Id& Date</th>
+          document.getElementById("order-container").innerHTML=
+          `     <table class="table-auto w-full border border-gray-300" id="order-table">
+          <thead >
+            <tr>
+                  <th class="px-4 py-2 text-left border">Order Id& Date</th>
                   <th class="px-4 py-2 text-left border">Order Details</th>
                   <th class="px-4 py-2 text-left border">Order Actions</th>
             </tr>
           </thead>
-          <tbody>
-            <tr>
+          <tbody>`+
+           data.orders.map((order) => (
+          `  <tr>
               <td class="px-4 py-2 border">
                 Id : #${order._id.toString().slice(-6)}<br>
                   Date : ${ order.formattedDate }
               </td>
               <td class="px-4 py-2 border">
-                Total items : ${order.orderItems.length}<br>
-                  Total price : ${order.payment.totalAmount}<br>
-                  Total Discount : ${order.payment.discount}<br>
-                  Grand Total : ${order.payment.grandTotal}<br>
+                 Total items : ${order.orderItems.length}<br>
+                  Order Total : ${order.payment.orderTotal.toFixed(2)} (Incl.GST)<br>
                   Order status : ${order.orderStatus}<br>
-                        Payment method : ${order.payment.paymentMethod}<br>
-                          Payment Status : ${order.payment.paymentStatus}<br>
+                  Payment Status : ${order.payment.paymentStatus}<br>
               </td>
               <td class="px-4 py-2 border">
                 <button onclick="viewDetails('${ order._id }')"
@@ -570,6 +567,8 @@ async function applySearch(url='/orders?page=1&limit=9') {
             </tr>
             </tbody>`
            )).join(''); 
+           + `</tbody>
+          </table>`
         }
       //pagination
       const paginationContainer=document.getElementById('pagination-container');

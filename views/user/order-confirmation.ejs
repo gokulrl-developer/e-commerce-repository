@@ -42,7 +42,11 @@
             </div>
             <div class="flex justify-between items-center font-semibold">
                 <span>Total</span>
-                <span>₹<%= order.payment.grandTotal.toFixed(2) %></span>
+                <span>₹<%= order.payment.shippingCost.toFixed(2) %></span>
+            </div>
+            <div class="flex justify-between items-center font-semibold">
+                <span>Order Total : </span>
+                <span>₹<%= order.payment.orderTotal.toFixed(2) %></span>
             </div>
         </div>
 

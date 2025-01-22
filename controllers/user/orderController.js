@@ -249,9 +249,9 @@ exports.getOrderConfirmation = async (req, res) => {
       if (order.user.userId.toString() !== req.user._id.toString()) {
         return res.status(403).json({ message: 'Unauthorized access' });
       }
-      formatedDate = format(order.orderDate, 'MMMM dd, yyyy');
+      formattedDate = format(order.orderDate, 'MMMM dd, yyyy');
 
-      res.json({ order ,formatedDate});
+      res.json({ order ,formattedDate});
     } catch (error) {
       console.error('Error fetching order details:', error);
       res.status(500).json({ message: 'Failed to fetch order details' });
