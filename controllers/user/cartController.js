@@ -19,10 +19,11 @@ exports.recalculateCart=async function (cart,req){
         });
      }));
      console.log("products")
+    console.log(products)
     productOffers=await Promise.all(products.map(async(product)=>{
-        console.log(product)
+        console.log(product._id)
         return await Offer.findOne({
-            applicableProduct: product._id,
+            applicableProduct:product._id,
             startDate: { $lte: new Date() },
             expiryDate: { $gte: new Date() },
             isActive: true,
