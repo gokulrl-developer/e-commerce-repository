@@ -12,21 +12,20 @@
   <title>Shop All</title>
 </head>
 
-<body class="bg-blue-200">
+<body>
   <!-- Header Section -->
   <%- include('../partials/user-header') %>
 
 
 
     <!-- Main Content -->
-    <div class="container my-4">
-      <div class="flex">
+    <div class="flex flex-col md:flex-row">      
         <!-- Sidebar -->
-        <aside class="w-full lg:w-1/5 mb-4 mx-4 p-4 bg-black">
+        <aside class="w-full lg:w-1/5 p-4 bg-gray-500 text-white">
           <div class="filter-section">
-            <h4 class="text-lg font-semibold">Categories</h4>
-            <div class="relative inline-block w-full">
-              <label for="categories" class="block text-lg font-semibold mb-2">Select Category</label>
+            <h4 class="text-lg font-semibold my-2">CATEGORIES</h4>
+            <div class="relative inline-block w-full my-2">
+              <!-- <label for="categories" class="block text-lg font-semibold mb-2">Select Category</label> -->
               <ul id="categories" 
                   class="block w-full bg-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <% if (categories) { categories.forEach((category) => { %>
@@ -46,9 +45,9 @@
               </ul>
             </div>            
             <div class="relative inline-block w-full ">
-              <h4 class="text-lg font-semibold">Sort By</h4>
+              <h4 class="text-lg font-semibold my-2">SORT BY</h4>
               <select name="sort" id="sort" onchange="applyFilters()"
-                class="block w-full text-black border-2 border-gray-300 rounded px-4 py-2 bg-indigo-500">
+                class="block w-full text-black border-2 border-gray-300 rounded px-4 py-2 bg-indigo-500 my-2">
                 <option value="" selected>Default</option>
                 <option value="rating">Average Ratings</option>
                 <option value="latest">Latest Arrivals</option>
@@ -58,11 +57,11 @@
                 <option value="nameDesc">Zz-Aa</option>
               </select>
             </div>
-            <h4 class="text-lg font-semibold mt-4">Filter</h4>
-            <div class="relative inline-block w-full">
-              <label for="gender" class="block text-lg font-semibold mb-2">Gender</label>
+            <h4 class="text-lg font-semibold mt-4 my-4">FILTER</h4>
+            <div class="relative inline-block w-full my-2">
+              <label for="gender" class="block text-lg font-semibold mb-2 my-2">GENDER</label>
               <select name="gender" id="gender"
-                class="block w-full p-2 bg-indigo-500 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="block w-full p-2 bg-indigo-500 border my-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 onchange="applyFilters()">
                 <option value="" selected>All</option>
                 <option value="Men" id="men">Men</option>
@@ -71,8 +70,8 @@
               </select>
             </div>
 
-            <p class="text-lg font-semibold mt-4">Price</p>
-            <div class="flex space-x-4">
+            <p class="text-lg font-semibold mt-4 my-2">PRICE</p>
+            <div class="flex space-x-4 my-2">
               <!-- Min Price -->
               <div class="w-1/2">
                 <label for="min-price" class="block text-sm font-medium text-gray-700 mb-1">Min Price</label>
@@ -90,9 +89,9 @@
               </div>
             </div>
 
-            <div class="relative inline-block w-1/2 bg-red-800 mt-3">
+            <div class="relative inline-block w-1/2 bg-red-800 mt-3 my-2">
               <button onclick="removeFilters()">
-                Remove Filters
+                REMOVE FILTERS
               </button>
             </div>
 
@@ -100,14 +99,14 @@
         </aside>
 
         <!-- Product Section -->
-        <main class="w-full lg:w-4/5 p-5">
+        <main class="w-full lg:w-4/5 p-5 bg-gray-100">
           <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-semibold">Our Collections</h2>
+            <h2 class="text-xl font-semibold">OUR COLLECTIONS</h2>
           </div>
           <div class="mb-4">
             <input type="text" id="search" name="search" class="form-input rounded px-4 py-2 w-[90%]"
               placeholder="Search an item" oninput="applyFilters()">
-            <button onclick="applyFilters()">Search</button>
+            <button class="px-4 py-2 bg-white" onclick="applyFilters()">Search</button>
           </div>
           <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <!-- Product Card -->
@@ -184,7 +183,6 @@
       </nav>
     </div>
         </main>
-      </div>
     </div>
 
 

@@ -10,26 +10,26 @@
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
 
-<body class="bg-orange-500">
+<body>
 
   <!-- Header Section -->
   <%- include('../partials/user-header') %>
 
     <!-- Main Content -->
-    <main class="container mx-auto mb-8 mt-8 gap-3 px-4 flex flex-col md:flex-row bg-gray-300">
+    <main class="flex flex-col md:flex-row">
 
       <!-- Sidebar -->
       <%- include('../partials/user-profile-sidebar') %>
  
     <!-- Orders Section -->
-    <div class="w-full md:w-4/5 bg-yellow-500 shadow-md rounded-md p-4 bg-slate-500">
+    <div class="w-full md:w-4/5 shadow-md p-4 ">
       <div class="mb-4">
-        <input type="text" id="search" name="search" class="form-input bg-indigo-500 px-4 py-2 w-[90%]"
+        <input type="text" id="search" name="search" class="form-input bg-gray-200 shadow-lg text-white px-4 py-3 w-[90%]"
           placeholder="Search an item" oninput="applySearch()">
-        <button onclick="applySearch()">Search</button>
+        <button  class="py-3 bg-gray-200 ml-0 px-4 shadow-lg" onclick="applySearch()">SEARCH</button>
       </div>
       <div class="flex justify-between items-center mb-4">
-        <h2 class="text-lg font-semibold">My Orders</h2>
+        <h2 class="text-lg font-semibold">MY ORDERS</h2>
       </div>
 
       <!-- Orders Table -->
@@ -86,29 +86,29 @@
         </table>
         <%}%>
       </div>
-    </div>
-  </main>
-           <!-- Pagination -->
-<div class="my-4 flex justify-center">
+      <!-- Pagination -->
+  <div class="flex justify-center my-2">
   <nav class="inline-flex" id="pagination-container">
-       <%if(currentPage>1){%>
-         <a href="/orders?page=<%= currentPage - 1 %>"
-      class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer" id="pagination-previous">Previous</a>
-      <%}%>
-         <% for (let i=1; i <=totalPages; i++) { %>
-        <a href="/orders?page=<%= i %>"
-          class="<%= currentPage === i ? 'bg-indigo-500' : 'bg-[#222]' %> text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer"
-          id="pagination-current">
-          <%= i %>
-        </a>
-        <% } %>
-        <%if(currentPage<totalPages){%>
-           <a href="/orders?page=<%= currentPage + 1 %>"
-              class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer"
-              id="pagination-next">Next</a>
-              <%}%>
+  <%if(currentPage>1){%>
+    <a href="/orders?page=<%= currentPage - 1 %>"
+  class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer" id="pagination-previous">Previous</a>
+  <%}%>
+    <% for (let i=1; i <=totalPages; i++) { %>
+   <a href="/orders?page=<%= i %>"
+     class="<%= currentPage === i ? 'bg-indigo-500' : 'bg-[#222]' %> text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer"
+     id="pagination-current">
+     <%= i %>
+   </a>
+   <% } %>
+   <%if(currentPage<totalPages){%>
+      <a href="/orders?page=<%= currentPage + 1 %>"
+         class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer"
+         id="pagination-next">Next</a>
+         <%}%>
   </nav>
   </div> 
+    </div>
+  </main>
 
     <!-- Footer -->
     <%- include('../partials/user-footer') %>

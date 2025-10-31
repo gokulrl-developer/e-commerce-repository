@@ -11,19 +11,20 @@
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
 
-<body class="font-sans bg-blue-200">
+<body>
 
   <!-- Header Section -->
   <%- include('../partials/user-header') %>
 
     <!-- Main Content -->
-    <main class="container px-4 mb-8 mt-8 gap-3 flex flex-col md:flex-row ">
+    <main class="w-full flex flex-col md:flex-row m-0 ">
 
       <!-- Sidebar -->
+       
       <%- include('../partials/user-profile-sidebar') %>
-
+        
         <!-- Form Section -->
-        <section class="w-full md:w-4/5 bg-indigo-500 text-lg shadow-lg rounded-lg ml-6 p-6">
+        <section class="w-full md:w-4/5 bg-white text-lg shadow-lg p-6">
           <h2>YOUR ADDRESSES</h2>
           <div class="p-6">
             <button id="openAddAddressModalButton" class="bg-blue-900 text-white py-2 px-4 rounded">Add New
@@ -33,7 +34,7 @@
             <div class="flex flex-wrap mt-4 mx-4">
               <% addresses.forEach(address=> { %>
                 <div class="w-full md:w-1/2 px-4 mb-4">
-                  <div class="bg-blue-200 p-4 rounded-lg shadow-sm border border-gray-200">
+                  <div class="bg-gray-200 p-4 rounded-lg shadow-sm border border-gray-200">
                     <p>
                       <strong>Name:</strong>
                       <%= address.Name %>
@@ -86,6 +87,7 @@
               <% } %>
 
         </section>
+     
     </main>
 
     <!-- Footer -->

@@ -18,7 +18,7 @@ exports.recalculateCart=async function (cart,req){
             match: { status: 'Active' }
         });
      }));
-     console.log("products")
+     products=products.filter((product)=>product);
     console.log(products)
     productOffers=await Promise.all(products.map(async(product)=>{
         console.log(product._id)
@@ -29,9 +29,7 @@ exports.recalculateCart=async function (cart,req){
             isActive: true,
         });
      }));
-     console.log("offers"+productOffers)
      categoryOffers=await Promise.all(products.map(async(product)=>{
-        console.log("category : ",product);
         
         return await Offer.findOne({
             applicableCategory: product.category._id,
@@ -40,14 +38,18 @@ exports.recalculateCart=async function (cart,req){
             isActive: true,
         });
      }))
-     console.log("category",categoryOffers)
     for(const[index,item] of cart.items.entries()){
+        if(!item.product){
+            cart.items.splice(index,1);
+            continue;
+        }
           const product=products.find((product)=>{
-           return product?._id.toString()===(item.product._id || item.product).toString()
+           return product?._id.toString()===(item.product._id).toString()
           })
-      if (!product || !product.category) {
+      if (!product || !product.category || product.isBlocked===true) {
           console.error(`Product not found or inactive for id: ${item.product}`);
-          throw new Error(`Product not found or inactive for id: ${item.product}`);
+          continue;
+          /* throw new Error(`Product not found or inactive for id: ${item.product}`); */
       }
 
       let appliedOfferType = null;
@@ -159,7 +161,14 @@ exports.getCart=async function (req, res){
             }
       // Recalculate totals and offers
       await exports.recalculateCart(cart,req);
-
+    await cart.save();
+    if (!cart || cart.items.length === 0) {
+        if(req.xhr){
+            return res.json({ cartItems: [], totalPrice: 0, totalDiscount: 0,appliedCouponCode:null,user: req.session.user,couponDiscount:0,applicableCoupons:null, grandTotal: 0, });
+        }else{
+          return res.render('user/cart', { cartItems: [], totalPrice: 0,totalDiscount: 0,appliedCouponCode:null,user: req.session.user,couponDiscount:0,applicableCoupons:null, grandTotal: 0, });
+        }
+            }
 /*       const cartItemCount = cart.items.length;
  */                    const now=new Date();
    const applicableCoupons=await Coupon.find({startDate:{$lte:now},expiryDate:{$gte:now},isActive:true});
@@ -196,9 +205,7 @@ exports.getCart=async function (req, res){
 exports.addToCart = async (req, res) => {
   try {
       const { productId, quantity } = req.body;
-      console.log("reached")
       const userId = req.session.user?._id;
-      console.log(userId)
 
       if (!userId) {
           return res.status(401).json({ message: 'User not logged in.' });
@@ -255,7 +262,6 @@ exports.addToCart = async (req, res) => {
       res.status(200).json({message: 'Product added to cart successfully!'});
   } catch (err) {
       console.error('Error in addToCart:', err);
-      console.log(err.message)
       res.status(500).json({message: 'An error occurred while adding to cart.' });
   }
 };
