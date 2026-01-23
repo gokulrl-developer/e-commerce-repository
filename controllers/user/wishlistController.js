@@ -7,7 +7,7 @@ const mongoose = require('mongoose');
 
 exports.getWishlist = async (req, res) => {
     try {
-        res.render('user/user-wishList', { user: req.user});
+        res.render('user/user-wishlist', { user: req.user});
     } catch (error) {
         console.error('Error rendering wishlist page:', error);
         res.status(500).render('error', { message: 'Error loading wishlist page' });
