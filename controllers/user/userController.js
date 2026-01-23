@@ -98,7 +98,7 @@ async function postLogin(req, res) {
     }
   } catch (error) {
     res.status(500).json({ message: error.message || "Error on Login" });
-    console.error("Error on Login : ", err)
+    console.error("Error on Login : ", error)
   }
 }
 

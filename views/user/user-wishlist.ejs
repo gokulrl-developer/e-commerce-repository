@@ -70,6 +70,7 @@
     }
 
     function renderWishlist(wishlist,currentPage,totalPages) {
+        console.log("running render wish list,wishlist",wishlist)
         const wishlistContent = document.getElementById('wishlistContent');
         if (wishlist.products.length === 0) {
             wishlistContent.innerHTML = '<p class="text-blue-400 col-span-full text-center">Your wishlist is empty.</p>';
@@ -199,7 +200,7 @@
     }
  */
     // Fetch and render wishlist on page load
-    document.addEventListener('DOMContentLoaded', fetchWishlist(1,9));
+    document.addEventListener('DOMContentLoaded',()=>fetchWishlist(1,9));
     
    /*  document.addEventListener('DOMContentLoaded', () => {
         const userIcon = document.getElementById('user-icon');
