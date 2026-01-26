@@ -5,10 +5,9 @@ const path = require('path');
 const { render } = require('ejs');
 
 function validateFields(object){
-  let  {productName,brand,gender,stock,price,imageUrls,description,features,category,rating}=object;
+  let  {productName,brand,gender,stock,price,imageUrls,description,features,category}=object;
   price=parseFloat(price);
   stock=parseFloat(stock);
-  rating=parseFloat(rating);
   const errors=[];
   if(!productName || typeof productName!== 'string'){
      errors.push('product name is required and must be a string');
@@ -30,9 +29,6 @@ if(!price || typeof price!=='number' || price<0){
 }
 if(!stock || typeof stock!=='number' || stock<0){
      errors.push('stock should be a positive number');
-}
-if(!rating || typeof rating!=='number' || rating<0 || rating>5){
-     errors.push('rating should be a positive number');
 }
 features=JSON.parse(features)
 if(!Array.isArray(features) || !features.every((element)=>typeof element === "string")){
@@ -86,8 +82,7 @@ module.exports = {
         price,
         features,
         description,
-        imageUrl: imageUrls,
-        rating
+        imageUrl: imageUrls
       });
       const savedProduct = await newProduct.save();
 
