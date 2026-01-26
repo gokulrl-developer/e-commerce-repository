@@ -1,5 +1,7 @@
 const Product = require('../../models/productModel');
 const Category = require('../../models/categoryModel');
+const {StatusCodes}=require("../../constants/status-codes.constants")
+const {Messages}=require("../../constants/messages.constants")
 
 const path = require('path');
 const { render } = require('ejs');
@@ -10,29 +12,29 @@ function validateFields(object){
   stock=parseFloat(stock);
   const errors=[];
   if(!productName || typeof productName!== 'string'){
-     errors.push('product name is required and must be a string');
+     errors.push(Messages.PRODUCT_NAME_REQUIRED);
 }
 if(!brand || typeof brand!== 'string'){
-     errors.push('brand is required and must be a string');
+     errors.push(Messages.BRAND_REQUIRED);
 }
 if(!gender || typeof gender!== 'string'){
-     errors.push('gender is required and must be a string');
+     errors.push(Messages.GENDER_REQUIRED);
 }
 if(!description || typeof description!== 'string'){
-     errors.push('description is required and must be a string');
+     errors.push(Messages.DESCRIPTION_REQUIRED);
 }
 if(!category || typeof category!== 'string'){
-     errors.push('category is required and must be a string');
+     errors.push(Messages.CATEGORY_REQUIRED);
 }
 if(!price || typeof price!=='number' || price<0){
-     errors.push('Price should be a positive number');
+     errors.push(Messages.PRICE_REQUIRED);
 }
 if(!stock || typeof stock!=='number' || stock<0){
-     errors.push('stock should be a positive number');
+     errors.push(Messages.STOCK_REQUIRED);
 }
 features=JSON.parse(features)
 if(!Array.isArray(features) || !features.every((element)=>typeof element === "string")){
-   errors.push({message:"The features field has invalid value"})
+   errors.push({message:Messages.FEATURES_INVALID})
 };
 return errors;
 }
@@ -42,11 +44,11 @@ module.exports = {
     try{
     const categories = await Category.find({}, { _id: 1, categoryName: 1 }).lean();
     if(!categories){
-      return res.render('admin/admin-error',{statusCode:404,message:"Add some categories before adding product"})
+      return res.render('admin/admin-error',{statusCode:StatusCodes.NOT_FOUND,message:Messages.CATEGORIES_EMPTY})
     }
     res.render('admin/add-products', { admin: true, categories });
     }catch(error){
-      res.render('admin/admin-error',{statusCode:500,message:'error on showing add product page'})
+      res.render('admin/admin-error',{statusCode:StatusCodes.INTERNAL_SERVER_ERROR,message:Messages.INTERNAL_SERVER_ERROR})
       console.error("Error on Showing Product Add page : ",error)
     }
   },
@@ -63,10 +65,10 @@ module.exports = {
         features:features.trim(),
         description:description.trim()});
       if(!imageUrls || imageUrls.length !==4){
-        validationErrors.push('Four Images should be uploaded');
+        validationErrors.push(Messages.FOUR_IMAGES_NEEDED);
         }
       if(validationErrors.length!==0){
-        return res.status(400).json({validationErrors})
+        return res.status(StatusCodes.VALIDATION_ERROR).json({validationErrors})
       } 
       features=JSON.parse(features)
       features =features.map((element)=>element.trim());
@@ -86,13 +88,13 @@ module.exports = {
       });
       const savedProduct = await newProduct.save();
 
-      res.status(200).json({
-        message: "Product added successfully",
+      res.status(StatusCodes.OK).json({
+        message: Messages.PRODUCT_ADDED,
         productId: savedProduct._id,
       });
     } catch (err) {
       console.error("Error adding product:", err);
-      res.status(500).json({ message: "Error adding product" });
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: Messages.INTERNAL_SERVER_ERROR });
     }
   },
   getEditProduct:async (req,res)=>{
@@ -100,16 +102,16 @@ module.exports = {
     const productId=req.params.id;
     const categories = await Category.find({}, { _id: 1, categoryName: 1 }).lean();
     if(!categories){
-      res.render('admin/admin-error',{statusCode:404,message:"Error retrieving categories"})
+      res.render('admin/admin-error',{statusCode:StatusCodes.NOT_FOUND,message:Messages.CATEGORIES_EMPTY})
     }
     const product=await Product.findOne({_id:productId}).populate('category','categoryName').exec();
     if(!product){
-      return res.status(404).json({message:"Error retrieving the product"});
+      return res.status(StatusCodes.NOT_FOUND).json({message:Messages.PRODUCT_NOT_FOUND});
     }
     res.render('admin/edit-products',{product,categories});
     }catch(error){
       console.error("Error on showing the Edit page : ",error);
-      res.render('admin/admin-error',{statusCode:500,message:"server error on showing the product edit page"})
+      res.render('admin/admin-error',{statusCode:StatusCode.INTERNAL_SERVER_ERROR,message:Messages.INTERNAL_SERVER_ERROR})
     }
   },
   putEditProduct: async (req, res) => {
@@ -125,12 +127,12 @@ module.exports = {
         features:features.trim(),
         description:description.trim()});
       if(validationErrors.length!==0){
-        return res.status(400).json({validationErrors})
+        return res.status(StatusCodes.VALIDATION_ERROR).json({validationErrors})
       } 
       let product = await Product.findById(req.params.id);
     if (!product) {
       console.error(`Product not found with ID: ${req.params.id}`);
-      return res.status(404).json({ message: "Product not found" });
+      return res.status(StatusCodes.NOT_FOUND).json({ message: Messages.PRODUCT_NOT_FOUND });
     }
      let editedImageUrls=[];
      let count=0;
@@ -161,10 +163,10 @@ module.exports = {
           },
         { new: true }
       ); 
-      return res.status(200).json({message: 'Product updated successfully', product });
+      return res.status(StatusCodes.OK).json({message: Messages.PRODUCT_UPDATED, product });
 
     } catch (err) {
-      return res.status(500).json({message: 'Failed to update product' });
+      return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({message: Messages.INTERNAL_SERVER_ERROR });
     }
   },
 viewProducts: async (req, res, next) => {
@@ -183,7 +185,7 @@ viewProducts: async (req, res, next) => {
       ]);
       const totalPages = Math.ceil(totalProducts / limit);
       if(req.xhr){
-        return res.status(200).json({products,currentPage,totalPages})
+        return res.status(StatusCodes.OK).json({products,currentPage,totalPages})
       }else{
        return res.render('admin/view-products', {products,currentPage,totalPages})
       }
@@ -191,9 +193,9 @@ viewProducts: async (req, res, next) => {
     } catch (error) {
       console.error('Error in showing products : ', error);
       if(req.xhr){
-        return res.status(500).json({message:"server error while filtering products"})
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({message:Messages.INTERNAL_SERVER_ERROR})
       }else{
-      res.render('admin/admin-error',{statusCode:500,message:"some unexpected error while showing the products"});
+      res.render('admin/admin-error',{statusCode:StatusCodes.INTERNAL_SERVER_ERROR,message:Messages.INTERNAL_SERVER_ERROR});
       }
     }
   },
@@ -205,12 +207,12 @@ viewProducts: async (req, res, next) => {
       const status=action==='block'?true:false;
       const product = await Product.findByIdAndUpdate(id,{isBlocked:status},{new:true});
       if (!product) {
-        return res.status(404).json({ message: "Product not found" });
+        return res.status(StatusCodes.NOT_FOUND).json({ message: Messages.PRODUCT_NOT_FOUND });
       }
-      res.status(200).json({message: `Product has been successfully ${action}ed.` });
+      res.status(StatusCodes.OK).json({message:  Messages.PRODUCT_STATUS_UPDATED(action)});
     } catch (err) {
       console.error("Error blocking user:", err);
-      res.status(500).json({ message: 'Failed to block user.' });
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: Messages.INTERNAL_SERVER_ERROR });
     }
   }
 }

@@ -1,4 +1,6 @@
 const Coupon=require('../../models/couponModel');
+const {StatusCodes}=require("../../constants/status-codes.constants")
+const {Messages}=require("../../constants/messages.constants")
 
 //-------------helper function for validation----------------------------
 const validateCoupon =(couponData,mode)=>{
@@ -6,45 +8,45 @@ const validateCoupon =(couponData,mode)=>{
     
     const errors=[];
     if(!code || typeof code!== 'string'){
-       errors.push('coupon code is required and must be a string');
+       errors.push(Messages.COUPON_CODE_REQUIRED);
 }else if(!/^[A-Z0-9]{1,15}$/.test(code)){
-       errors.push('coupon code should contain only numbers and uppercase letters and its maximum length should be 15.')
+       errors.push(Messages.INVALID_COUPON_CODE_FORMAT)
 };
    if(!couponType){
-       errors.push('coupon type is required');
+       errors.push(Messages.COUPON_TYPE_REQUIRED);
 }else if(!["Percentage","Fixed"].includes(couponType)){
-       errors.push('coupon type should be Percentage or Fixed')
+       errors.push(Messages.COUPON_TYPE_INVALID)
 };
    if(!couponValue){
-       errors.push('couponValue is required');
+       errors.push(Messages.COUPON_VALUE_REQUIRED);
 }
  else if(typeof couponValue !=='number' || couponValue<0){
-     errors.push('couponValue should be a positive number');
+     errors.push(Messages.COUPON_VALUE_INVALID);
 }else if(couponType==='Percentage' && couponValue>100){
-       errors.push('couponValue should be between 0 and 100 if couponType is Percentage');
+       errors.push(Messages.COUPON_VALUE_RANGE_INVALID);
 };
    if(!minPurchaseAmount){
-    errors.push('minPurchaseAmount is required');
+    errors.push(Messages.MIN_PURCHASE_AMOUNT_REQUIRED);
    }else if(typeof minPurchaseAmount !== 'number'){
-    errors.push('minPurchaseAmount should be a number')
+    errors.push(Messages.MIN_PURCHASE_AMOUNT_INVALID)
    };
    if(!startDate){
-    errors.push('startDate is required');
+    errors.push(Messages.START_DATE_REQUIRED);
    }else if(!(startDate instanceof Date)||isNaN(startDate.getTime())){
-    errors.push('start Date should be a date');
+    errors.push(Messages.START_DATE_INVALID);
    };
    if(!expiryDate){
-    errors.push('Expiry Date is required');
+    errors.push(Messages.EXPIRY_DATE_REQUIRED);
    }else if(!(expiryDate instanceof Date) ||isNaN(expiryDate.getTime())){
-    errors.push('Expiry Date should be a date');
+    errors.push(Messages.EXPIRY_DATE_INVALID);
    };
    if(startDate.getTime()>expiryDate.getTime){
-    errors.push('Expiry Date cannot be before StartDate');
+    errors.push(Messages.EXPIRY_BEFORE_START);
    }
    if(!totalUsageLimit){
-    errors.push('Total usage limit is required')
+    errors.push(Messages.TOTAL_USAGE_LIMIT_REQUIRED)
    }else if(typeof totalUsageLimit !=='number' || totalUsageLimit <1){
-    errors.push('Total usage Limit should be a number greater than 1');
+    errors.push(Messages.TOTAL_USAGE_LIMIT_MINIMUM);
    }
   return errors;
 }
@@ -60,7 +62,7 @@ exports.getCoupons=async (req,res)=>{
     const totalPages=Math.ceil(totalCoupons/limit);
     res.render('admin/admin-coupons',{coupons,currentPage,totalPages});
     }catch(error){
-        res.render('admin/admin-dashboard',{message:"Error while loading the admin coupon page"});
+        res.render('admin/admin-dashboard',{message:Messages.INTERNAL_SERVER_ERROR});
     }
 };
 
@@ -75,7 +77,7 @@ exports.addCoupon = async (req, res) => {
         req.body.totalUsageLimit=parseFloat(req.body.totalUsageLimit);
         const validationErrors = validateCoupon(req.body,"ADD");
         if (validationErrors.length > 0) {
-            return res.status(400).json({ message: 'Validation error', errors: validationErrors });
+            return res.status(StatusCodes.VALIDATION_ERROR).json({ message: Messages.VALIDATION_ERROR, errors: validationErrors });
         }
 
         const newCoupon = new Coupon({
@@ -83,13 +85,13 @@ exports.addCoupon = async (req, res) => {
         });
 
         await newCoupon.save();
-        res.status(200).json({message: 'Coupon added successfully' });
+        res.status(StatusCodes.OK).json({message: Messages.COUPON_ADDED });
     } catch (error) {
         console.error(error);
         if (error.code === 11000) {
-            res.status(400).json({message: 'Coupon code already exists' });
+            res.status(StatusCodes.VALIDATION_ERROR).json({message: Messages.COUPON_CODE_EXISTS });
         } else {
-            res.status(500).json({message: 'Server error occurred while adding coupon' });
+            res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({message: Messages.INTERNAL_SERVER_ERROR });
         }
     }
 };
@@ -107,16 +109,16 @@ exports.editCoupon=async (req,res)=>{
         req.body.totalUsageLimit=parseFloat(req.body.totalUsageLimit);
         const validationErrors = validateCoupon(updateData,"EDIT");
         if (validationErrors.length > 0) {
-            return res.status(400).json({message: 'Validation error', errors: validationErrors });
+            return res.status(StatusCodes.VALIDATION_ERROR).json({message: Messages.VALIDATION_ERROR, errors: validationErrors });
         }
         const updatedCoupon=await Coupon.findByIdAndUpdate(couponId,{...updateData},{new:true});
         if(!updatedCoupon){
-            return res.status(404).json({message:"coupon not found"});
+            return res.status(StatusCodes.NOT_FOUND).json({message:Messages.COUPON_NOT_FOUND});
         }
-        res.status(200).json({message:"Coupon updated successfully"});
+        res.status(StatusCodes.OK).json({message:Messages.COUPON_UPDATED});
     }catch(error){
         console.error(error);
-        res.status(500).json({message:"Error on updating coupon"});
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({message:Messages.INTERNAL_SERVER_ERROR});
     }
 };
 
@@ -125,12 +127,12 @@ exports.deleteCoupon = async (req, res) => {
     try {
         const deletedCoupon = await Coupon.findByIdAndDelete(req.params.id);
         if (!deletedCoupon) {
-            return res.status(404).json({message: 'Coupon not found' });
+            return res.status(StatusCodes.NOT_FOUND).json({message: Messages.COUPON_NOT_FOUND });
         }
-        res.status(200).json({message: 'Coupon deleted successfully' });
+        res.status(StatusCodes.OK).json({message: Messages.COUPON_DELETED });
     } catch (error) {
         console.error(error);
-        res.status(500).json({message: 'Server error occurred while deleting coupon' });
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({message: Messages.INTERNAL_SERVER_ERROR });
     }
 };
 
@@ -157,13 +159,13 @@ exports.searchCoupons = async (req, res) => {
         const totalCoupons = await Coupon.countDocuments(searchQuery);
         const totalPages = Math.ceil(totalCoupons / limit);
 
-        res.status(200).json({
+        res.status(StatusCodes.OK).json({
             coupons,
             currentPage,
             totalPages
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Server error occurred while searching coupons' });
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: Messages.INTERNAL_SERVER_ERROR });
     }
 };

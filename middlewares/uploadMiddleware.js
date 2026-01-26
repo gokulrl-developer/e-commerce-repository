@@ -3,6 +3,8 @@ const multer = require("multer");
 const path = require("path");
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const stream = require("stream");
+const {Messages}=require("../constants/messages.constants")
+const {StatusCodes}=require("../constants/status-codes.constants")
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -60,7 +62,7 @@ const uploadLocal = multer({
     ) {
       cb(null, true);
     } else {
-      cb(new Error(`Unsupported file type. Allowed types: ${allowedExtensions.join(", ")}`), false);
+      cb(new Error(Messages.UNSUPPORTED_IMAGE_FILE_TYPE(allowedExtensions)), false);
     }
   },
   limits: {
@@ -79,7 +81,7 @@ const uploadMiddleware = async (req, res, next) => {
           name: multerErr.name,
           stack: multerErr.stack,
         });
-        return res.status(400).json({ error: "File upload error", details: multerErr.message });
+        return res.status(StatusCodes.BAD_REQUEST).json({ error: Messages.FILE_UPLOAD_ERROR, details: multerErr.message });
       }
 
       if (!req.files || req.files.length === 0) {
@@ -142,7 +144,7 @@ const uploadMiddleware = async (req, res, next) => {
           message: cloudinaryError.message,
           stack: cloudinaryError.stack,
         });
-        return res.status(500).json({ error: "Error uploading to cloud storage", details: cloudinaryError.message });
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: Messages.FILE_UPLOAD_ERROR, details: cloudinaryError.message });
       }
     });
   } catch (generalError) {
@@ -150,7 +152,7 @@ const uploadMiddleware = async (req, res, next) => {
       message: generalError.message,
       stack: generalError.stack,
     });
-    return res.status(500).json({ error: "Server error during upload", details: generalError.message });
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: Messages.INTERNAL_SERVER_ERROR, details: generalError.message });
   }
 };
 

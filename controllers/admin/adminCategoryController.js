@@ -1,4 +1,6 @@
 const Category = require("../../models/categoryModel");
+const {StatusCodes}=require("../../constants/status-codes.constants")
+const {Messages}=require("../../constants/messages.constants")
 
 exports.getCategories = async (req, res) => {
   try {
@@ -19,7 +21,7 @@ exports.getCategories = async (req, res) => {
     res.render('admin/view-categories', { categories, currentPage, totalPages });
   } catch (error) {
     console.error('Error fetching categories:', error);
-   res.render('admin/admin-error',{statusCode:500,message:"Server Error on showing Categories"})
+   res.render('admin/admin-error',{statusCode:StatusCodes.INTERNAL_SERVER_ERROR,message:Messages.INTERNAL_SERVER_ERROR})
   }
 };
 
@@ -27,24 +29,24 @@ exports.addCategory = async (req, res) => {
   try {
     const { categoryName, status } = req.body;
   if (!categoryName || typeof categoryName !=="string" || categoryName.length<3 || categoryName.length>50 || /^[A-Za-z0-9]+$/.test(categoryName) !==true){
-    return res.status(400).json({message:"Category must be a string with 3 to 50 characters containing numbers/letters"})
+    return res.status(StatusCodes.VALIDATION_ERROR).json({message:Messages.CATEGORY_INVALID_FORMAT})
   }
     if (!status || !["Active","Inactive"].includes(status)) {
-      return res.status(400).json({ message: "Status is required and must be a Active/Inactive" });
+      return res.status(StatusCodes.VALIDATION_ERROR).json({ message: Messages.STATUS_INVALID });
     }
 
     const categoryExists = await Category.findOne({ name: { $regex: new RegExp(`^${categoryName}$`, 'i') } });
     if (categoryExists) {
-      return res.status(400).json({message: "Category already exists" });
+      return res.status(StatusCodes.VALIDATION_ERROR).json({message: Messages.CATEGORY_EXISTS });
     }
 
     const newCategory = new Category({ categoryName, status });
     await newCategory.save();
 
-    res.status(201).json({message: "Category added successfully" });
+    res.status(StatusCodes.CREATED).json({message: Messages.CATEGORY_ADDITION_SUCCESS });
   } catch (error) {
     console.error("Error adding category:", error);
-    res.status(500).json({message: "Internal Server Error" });
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({message: Messages.INTERNAL_SERVER_ERROR });
   }
 };
 
@@ -54,15 +56,15 @@ exports.editCategory = async (req, res) => {
     const { categoryName, status } = req.body;
 
     if (!categoryName || typeof categoryName !=="string" || categoryName.length<3 || categoryName.length>50 || /^[A-Za-z0-9]+$/.test(categoryName) !==true){
-      return res.status(400).json({message:"Category must be a string with 3 to 50 characters containing numbers/letters"})
+      return res.status(StatusCodes.VALIDATION_ERROR).json({message: Messages.CATEGORY_INVALID_FORMAT})
     }
       if (!status || !["Active","Inactive"].includes(status)) {
-        return res.status(400).json({ message: "Status is required and must be a Active/Inactive" });
+        return res.status(StatusCodes.VALIDATION_ERROR).json({ message: Messages.STATUS_INVALID });
       }
 
     const category = await Category.findById(id);
     if (!category) {
-      return res.status(404).json({message: "Category not found" });
+      return res.status(StatusCodes.NOT_FOUND).json({message: Messages.CATEGORY_NOT_FOUND });
     }
 
     const categoryExists = await Category.findOne({
@@ -70,17 +72,17 @@ exports.editCategory = async (req, res) => {
       categoryName: { $regex: new RegExp(`^${categoryName}$`, 'i') }
     });
     if (categoryExists) {
-      return res.status(400).json({message: "Category name already exists" });
+      return res.status(StatusCodes.VALIDATION_ERROR).json({message: Messages.CATEGORY_EXISTS });
     }
 
     category.categoryName = categoryName;
     category.status = status;
     await category.save();
 
-    res.status(200).json({ message: "Category updated successfully" });
+    res.status(StatusCodes.OK).json({ message: Messages.CATEGORY_UPDATED });
   } catch (error) {
     console.error("Error editing category:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: Messages.INTERNAL_SERVER_ERROR });
   }
 };
 
@@ -89,15 +91,15 @@ exports.softDeleteCategory = async (req, res) => {
     const { id } = req.params;
     const category = await Category.findById(id);
     if (!category) {
-      return res.status(404).json({ message: "Category not found" });
+      return res.status(StatusCodes.NOT_FOUND).json({ message: Messages.CATEGORY_NOT_FOUND });
     }
 
     category.status = 'Inactive';
     await category.save();
 
-    res.json({ message: 'Category has been successfully deactivated.' });
+    res.json({ message: Messages.CATEGORY_DEACTIVATED });
   } catch (err) {
     console.error("Error deactivating category:", err);
-    res.status(500).json({ message: 'Failed to deactivate category.' });
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: Messages.INTERNAL_SERVER_ERROR });
   }
 };

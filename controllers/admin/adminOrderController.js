@@ -2,6 +2,8 @@ const Order = require('../../models/orderModel');
 const Product = require('../../models/productModel');
 const Wallet = require('../../models/walletModel');
 const { format } = require('date-fns');
+const {StatusCodes}=require("../../constants/status-codes.constants")
+const {Messages}=require("../../constants/messages.constants")
 
 exports.getOrders = async function (req, res) {
     try {
@@ -22,19 +24,19 @@ exports.getOrders = async function (req, res) {
 
         if (!orders || orders.length === 0) {
             if(req.xhr){
-                return res.status(200).json({orders:[],currentPage:1,totalPages:1});
+                return res.status(StatusCodes.OK).json({orders:[],currentPage:1,totalPages:1});
             }else{
-            return res.render('admin/admin-error',{statusCode:404, message: "No orders is found" });
+            return res.render('admin/admin-error',{statusCode:404, message: Messages.ORDER_NOT_FOUND });
             }
         };
         if(req.xhr){
-            return res.status(200).json({orders,currentPage,totalPages});
+            return res.status(StatusCodes.OK).json({orders,currentPage,totalPages});
         }else{
          return res.render("admin/admin-orders", { orders, currentPage, totalPages });
         }
     } catch (error) {
         console.error("error on showing orders", error);
-        return res.render('admin/admin-error',{statusCode:500, message: error.message || " Error on showing orders" });
+        return res.render('admin/admin-error',{statusCode:500, message: error.message || Messages.INTERNAL_SERVER_ERROR });
     }
 }
 
@@ -43,13 +45,13 @@ exports.getDetails = async function (req, res) {
         const orderId = req.params.id;
         const order = await Order.findOne({ _id: orderId }).populate('orderItems.product');;
         if (!order) {
-            return res.status(404).json({ message: "Order not Found" });
+            return res.status(StatusCodes.NOT_FOUND).json({ message:Messages.ORDER_NOT_FOUND });
         };
         formattedDate = format(order.orderDate, 'MMMM dd, yyyy');
-        res.status(200).json({ order, formattedDate });
+        res.status(StatusCodes.OK).json({ order, formattedDate });
     } catch (error) {
         console.error("error on getting order details : ", error);
-        return res.status(500).json({ message: error.message || "Error on showing order details" })
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: error.message || Messages.INTERNAL_SERVER_ERROR })
     }
 }
 exports.updateOrderStatus = async (req, res) => {
@@ -59,10 +61,10 @@ exports.updateOrderStatus = async (req, res) => {
         const order = await Order.findById(orderId);
 
         if (!order) {
-            return res.status(404).json({ message: 'Order not found' });
+            return res.status(StatusCodes.NOT_FOUND).json({ message: Messages.ORDER_NOT_FOUND });
         }
         if (['Cancelled', 'Delivered'].includes(order.orderStatus)) {
-            return res.status(400).json({ success: false, message: 'Cannot update status of cancelled or delivered orders' });
+            return res.status(StatusCodes.VALIDATION_ERROR).json({ success: false, message: Messages.ORDER_IN_COMPLETED_STAGE });
         }
 
         order.orderStatus = editedStatus;
@@ -84,10 +86,10 @@ exports.updateOrderStatus = async (req, res) => {
 
         await order.save();
 
-        res.status(200).json({ message: 'Order status updated successfully' });
+        res.status(StatusCodes.OK).json({ message: Messages.ORDER_STATUS_UPDATED });
     } catch (error) {
         console.error('Error updating order status:', error);
-        res.status(500).json({ message: error.message || 'Failed to update order status' });
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: error.message || Messages.INTERNAL_SERVER_ERROR });
     }
 };
 
@@ -97,16 +99,16 @@ exports.updateOrderStatus = async (req, res) => {
         const order = await Order.findById(orderId).populate('orderItems.product');
 
         if (!order) {
-            return res.status(404).json({message: 'Order not found' });
+            return res.status(StatusCodes.NOT_FOUND).json({message: Messages.ORDER_NOT_FOUND });
         }
 
         const item = order.orderItems.id(itemId);
         if (!item) {
-            return res.status(404).json({message: 'Item not found in the order' });
+            return res.status(StatusCodes.NOT_FOUND).json({message: Messages.ITEM_NOT_IN_ORDER });
         }
 
         if (item.status !== 'Return Requested') {
-            return res.status(400).json({message: 'Item is not pending return' });
+            return res.status(StatusCodes.VALIDATION_ERROR).json({message: Messages.NO_RETURN_REQUEST });
         }
 
         if (action === 'approve') {
@@ -164,7 +166,7 @@ exports.updateOrderStatus = async (req, res) => {
         } else if (action === 'reject') {
             item.status = 'Return Rejected';
         } else {
-            return res.status(400).json({ success: false, message: 'Invalid action' });
+            return res.status(StatusCodes.VALIDATION_ERROR).json({ success: false, message: Messages.INVALID_ACTION });
         }
 
         item.returnProcessedDate = new Date();
@@ -179,9 +181,9 @@ exports.updateOrderStatus = async (req, res) => {
 
         await order.save();
 
-        res.status(200).json({message: `Return request ${action}d successfully` });
+        res.status(StatusCodes.OK).json({message: Messages.RETURN_REQUEST_SUCCESS(action) });
     } catch (error) {
         console.error('Error handling return request:', error);
-        res.status(500).json({ message: 'Failed to handle return request' });
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: Messages.INTERNAL_SERVER_ERROR });
     }
 }; 

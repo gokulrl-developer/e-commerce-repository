@@ -7,6 +7,8 @@ const Order = require('../../models/orderModel');
 const Wallet = require('../../models/walletModel');
 const {recalculateCart} = require('./cartController');
 const Razorpay = require('razorpay');
+const {StatusCodes}=require("../../constants/status-codes.constants")
+const {Messages}=require("../../constants/messages.constants")
 
 const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
@@ -17,7 +19,7 @@ exports.getCheckout = async (req, res) => {
     try {
         const userId = req.session.user?._id;
         if(!userId){
-            return res.status(401).json({message:"User not Logged In"})
+            return res.status(StatusCodes.UNAUTHORIZED).json({message:Messages.USER_NOT_LOGGED})
         }
         const addresses = await Address.find({ userId });
         let cart = await Cart.findOne({ userId }).populate('items.product');
@@ -30,7 +32,7 @@ exports.getCheckout = async (req, res) => {
                 applicableCoupons:[],
                 addresses,
                 appliedCouponCode:null,
-                 message:"no items in the cart" });
+                 message:Messages.CART_EMPTY });
         }    
     await recalculateCart(cart,req);
    if(cart.appliedCouponCode){
@@ -59,7 +61,7 @@ exports.getCheckout = async (req, res) => {
     });
   } catch (error) {
     console.error("Error fetching cart items : ", error);
-    res.status(500).json({message:error.message || "An error occured while loading the checkout page"});
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({message:error.message || Messages.INTERNAL_SERVER_ERROR});
   }
 }; 
 
@@ -69,13 +71,13 @@ exports.placeOrder = async (req, res) => {
         const { addressId, paymentMethod } = req.body;
         const userId = req.session.user?._id;
         if(!userId){
-            return res.status(401).json({message:"User is not logged in"})
+            return res.status(StatusCodes.UNAUTHORIZED).json({message:Messages.USER_NOT_LOGGED})
         }
         const user = await User.findById(userId);
         const shippingAddress = await Address.findById(addressId);
         if (!shippingAddress) {
             
-            return res.status(404).json({ message: "Address not found" });
+            return res.status(StatusCodes.NOT_FOUND).json({ message: Messages.ADDRESS_NOT_FOUNT });
         }
         const cart = await Cart.findOne({ userId }).populate({
             path: 'items.product',
@@ -86,7 +88,7 @@ exports.placeOrder = async (req, res) => {
             }
         });
         if (!cart || cart.items.length === 0) {
-            return res.status(400).json({ message: "Your cart is empty" });
+            return res.status(StatusCodes.VALIDATION_ERROR).json({ message: Messages.CART_EMPTY });
         }
         
         
@@ -94,13 +96,13 @@ exports.placeOrder = async (req, res) => {
         const orderItems = (cart.items.map((item) => {
             const product = item.product;
             if(!product){
-                throw new Error(`Some products in your cart is inactive`);
+                throw new Error(Messages.INACTIVE_PRODUCT_IN_CART);
             }
             if(!product.category){
-                throw new Error(`Some products in your cart belongs to inactive category`);
+                throw new Error(Messages.INACTIVE_CATEGORY_IN_CART);
             }
             if (product.stock < item.quantity) {
-                throw new Error(`Insufficient stock for product ${product.product_name}. Only ${product.stock} items left.`);
+                throw new Error(Messages.INSUFFICIANT_STOCK(product));
             }
             return {
                 product: product._id,
@@ -116,23 +118,23 @@ exports.placeOrder = async (req, res) => {
         if(cart.appliedCouponCode){
          const coupon = await Coupon.findOne({ code: cart.appliedCouponCode, isActive: true });
          if (!coupon) {
-             return res.status(404).json({ message: "Coupon not found or inactive" });
+             return res.status(StatusCodes.NOT_FOUND).json({ message: Messages.COUPON_INVALID });
          }
    
          if (coupon.expiryDate && new Date() > coupon.expiryDate) {
-             return res.status(400).json({ message: "Coupon has expired,Go to cart and remove the coupon" });
+             return res.status(StatusCodes.VALIDATION_ERROR).json({ message: Messages.COUPON_EXPIRED });
          };
         };
         
         if (paymentMethod === 'Wallet') {
             const wallet = await Wallet.findOne({ user: userId });
             if (!wallet || wallet.balance < cart.grandTotal) {
-                return res.status(400).json({ message: "Insufficient wallet balance" });
+                return res.status(StatusCodes.VALIDATION_ERROR).json({ message: Messages.INSUFFICIENT_WALLET_BALANCE });
             }
         }
 
         if (paymentMethod === 'Cash On Delivery' && (cart.grandTotal+100)*118/100 > 1000) {
-            return res.status(400).json({ message: "Cash On Delivery is not available for orders above Rs 1000" });
+            return res.status(StatusCodes.VALIDATION_ERROR).json({ message: Messages.CASH_ON_DELIVERY_AMOUNT_EXCEEDS });
         }
         const order = new Order({
             user: {
@@ -180,7 +182,7 @@ exports.placeOrder = async (req, res) => {
             savedOrder.payment.paymentStatus = 'Pending';
             await savedOrder.save();
 
-            return res.status(200).json({ order: razorpayOrder });
+            return res.status(StatusCodes.OK).json({ order: razorpayOrder });
         } 
         else if (paymentMethod === 'Wallet') {
             await Wallet.findOneAndUpdate(
@@ -199,10 +201,10 @@ exports.placeOrder = async (req, res) => {
             );
         }
 
-        res.status(201).json({ orderId: savedOrder._id });
+        res.status(StatusCodes.CREATED).json({ orderId: savedOrder._id });
     } catch (error) {
         console.error("Place order error: ", error);
-        res.status(500).json({ message: error.message || 'Failed to place order' });
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: error.message || Messages.INTERNAL_SERVER_ERROR });
     }
 }
  
@@ -220,22 +222,22 @@ exports.applyCoupon = async (req, res) => {
         });
   
         if (!cart) {
-            return res.status(404).json({ message: "Cart not found" });
+            return res.status(StatusCodes.NOT_FOUND).json({ message: Messages.CART_NOT_FOUND });
         }
         const coupon = await Coupon.findOne({ code: couponCode, isActive: true });
         if (!coupon) {
-            return res.status(404).json({ message: "Coupon not found or inactive" });
+            return res.status(StatusCodes.NOT_FOUND).json({ message: Messages.COUPON_INVALID });
         }
   
         if (coupon.expiryDate && new Date() > coupon.expiryDate) {
-            return res.status(400).json({ message: "Coupon has expired" });
+            return res.status(StatusCodes.VALIDATION_ERROR).json({ message: Messages.COUPON_EXPIRED });
         }
         if (req.session.totalPurchaseAmount < coupon.minPurchaseAmount) {
-            return res.status(400).json({ message: `Minimum purchase amount of ₹${coupon.minPurchaseAmount} required for this coupon` });
+            return res.status(StatusCodes.VALIDATION_ERROR).json({ message: Messages.PURCHASE_AMOUNT_LOW });
         }
         const usage=coupon.usageByUser.find((usage)=>usage.userId.toString()===userId.toString());
         if(usage && coupon.totalUsageLimit<=usage.count){
-          return res.status(429).json({message:"total usage limit for this coupon exceeded"});
+          return res.status(429).json({message: Messages.TOTAL_USAGE_EXCEEDED});
         }
         cart.appliedCouponCode=couponCode;
         await recalculateCart(cart,req);
@@ -246,8 +248,8 @@ exports.applyCoupon = async (req, res) => {
         await coupon.save();
         const now=new Date();
     const applicableCoupons=await Coupon.find({startDate:{$lte:now},expiryDate:{$gte:now},isActive:true});
-        res.status(200).json({
-            message: "Coupon applied successfully",
+        res.status(StatusCodes.OK).json({
+            message: Messages.COUPON_APPLIED,
             totalPrice:cart.totalPrice,
             grandTotal:cart.grandTotal,
             totalDiscount:cart.totalDiscount,
@@ -257,7 +259,7 @@ exports.applyCoupon = async (req, res) => {
         });
     } catch (error) {
         console.error("Apply coupon error: ", error);
-        res.status(500).json({ message: "An error occurred while applying the coupon" });
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: Messages.INTERNAL_SERVER_ERROR });
     }
   
   };
@@ -277,12 +279,12 @@ exports.applyCoupon = async (req, res) => {
         });
   
         if (!cart) {
-            return res.status(404).json({ message: "Cart not found" });
+            return res.status(StatusCodes.NOT_FOUND).json({ message: Messages.CART_NOT_FOUND });
         }
   
         const coupon = await Coupon.findOne({ code: couponCode, isActive: true });
         if(!coupon){
-          return res.status(400).json({message:"The coupon is active currently to remove"});
+          return res.status(StatusCodes.VALIDATION_ERROR).json({message:Messages.COUPON_INVALID});
         }
         cart.appliedCouponCode=null;
         await recalculateCart(cart,req);
@@ -292,7 +294,7 @@ exports.applyCoupon = async (req, res) => {
         const now=new Date();
     const applicableCoupons=await Coupon.find({startDate:{$lte:now},expiryDate:{$gte:now},isActive:true});
         res.json({
-            message: "Coupon deleted successfully",
+            message: Messages.COUPON_DELETED ,
             totalPrice:cart.totalPrice,
             grandTotal:cart.grandTotal,
             totalDiscount:cart.totalDiscount,
@@ -302,7 +304,7 @@ exports.applyCoupon = async (req, res) => {
         });
     } catch (error) {
         console.error("Apply coupon error: ", error);
-        res.status(500).json({ message: "An error occurred while removing the coupon" });
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: Messages.INTERNAL_SERVER_ERROR });
     }
   
   };

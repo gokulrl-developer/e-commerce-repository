@@ -2,6 +2,8 @@ const Wallet = require('../../models/walletModel');
 const mongoose = require('mongoose');
 const Order = require('../../models/orderModel');
 const Cart = require('../../models/cartModel');
+const {StatusCodes}=require("../../constants/status-codes.constants")
+const {Messages}=require("../../constants/messages.constants")
 
 exports.getWallet = async (req, res) => {
     const {currentPage,skip,limit} =req.pagination;
@@ -38,7 +40,7 @@ exports.getWallet = async (req, res) => {
         res.render('user/wallet', { wallet,user:req.user,totalPages,currentPage});
     } catch (error) {
         console.error(error);
-        res.status(500).send('Server error');
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(Messages.INTERNAL_SERVER_ERROR);
     }
 };
 

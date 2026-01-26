@@ -1,6 +1,7 @@
 const Address = require("../../models/addressModel");
 const User = require("../../models/userModel");
-
+const {StatusCodes}=require("../../constants/status-codes.constants")
+const {Messages}=require("../../constants/messages.constants")
 
 
 
@@ -15,14 +16,14 @@ exports.getPersonalInformation = async (req, res) => {
     );
 
     if (!user) {
-      return res.status(404).send("User not found");
+      return res.status(StatusCodes.NOT_FOUND).send(Messages.USER_NOT_FOUND);
     }
 
     // Render the profile page with the user details
     res.render("user/user-profile", { user });
   } catch (err) {
     console.error("Error rendering profile page:", err);
-    res.status(500).send("Error on showing profile page");
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(Messages.INTERNAL_SERVER_ERROR);
   }
 };
 
@@ -39,13 +40,13 @@ exports.getPersonalInformation = async (req, res) => {
     );
 
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(StatusCodes.NOT_FOUND).json({ error: Messages.USER_NOT_FOUND });
     }
 
-    res.status(200).json({ message: "Profile updated successfully", user });
+    res.status(StatusCodes.OK).json({ message:Messages.PROFILE_UPDATED , user });
   } catch (err) {
     console.error("Error updating user details:", err);
-    res.status(500).json({ error: "Server Error" });
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: Messages.INTERNAL_SERVER_ERROR });
   }
 }; 
 
@@ -73,7 +74,7 @@ exports.getUserAddresses = async (req, res) => {
       res.render("user/user-address", {
         addresses: [],
         user: req.session.user,
-        error: "Failed to fetch addresses",
+        error: Messages.INTERNAL_SERVER_ERROR,
         //success: null,
       });
     }
@@ -98,21 +99,21 @@ exports.addAddress = async (req, res) => {
 
     for (const field of requiredFields) {
       if (!req.body[field]) {
-        return res.status(400).json({
-          error: `${field} is required`,
+        return res.status(StatusCodes.VALIDATION_ERROR).json({
+          error: Messages.ADDRESS_FIELD_REQUIRED(field),
         });
       }
     }
 
     if (!/^\d{10}$/.test(req.body.MobileNumber)){
-      return res.status(400).json({
-        error: "Mobile number must be 10 digits",
+      return res.status(StatusCodes.VALIDATION_ERROR).json({
+        error: Messages.MOBILE_NUMBER_INVALID_FORMAT,
       });
     }
 
     if (!/^\d{6}$/.test(req.body.pincode)) {
-      return res.status(400).json({
-        error: "Pincode must be 6 digits",
+      return res.status(StatusCodes.VALIDATION_ERROR).json({
+        error: Messages.PIN_NUMBER_INVALID_FORMAT,
       });
     }
 const address = new Address({
@@ -129,14 +130,14 @@ const address = new Address({
 
     await address.save();
 
-    res.status(201).json({
-      message: "Address added successfully",
+    res.status(StatusCodes.CREATED).json({
+      message: Messages.ADDRESS_ADDED,
       address,
     });
   } catch (err) {
     console.error("Error in addAddress:", err);
-    res.status(500).json({
-      error: "Failed to add address",
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      error: Messages.INTERNAL_SERVER_ERROR,
       details: err.message,
     });
   }
@@ -150,20 +151,19 @@ exports.getEditAddress = async (req, res) => {
       const address = await Address.findById(id);
 
       if (!address) {
-          return res.status(404).json({ error: 'Address not found' });
+          return res.status(StatusCodes.NOT_FOUND).json({ error: Messages.ADDRESS_NOT_FOUNT });
       }
 
-      res.status(200).json(address); // Return address as JSON for the modal
+      res.status(StatusCodes.OK).json(address); // Return address as JSON for the modal
   } catch (err) {
       console.error('Error fetching address:', err);
-      res.status(500).json({ error: 'Failed to fetch address' });
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: Messages.INTERNAL_SERVER_ERROR });
   }
 };
 
 // Update the address
 exports.updateAddress = async (req, res) => {
   try {
-    console.log("dflaksdfsjk")
     console.log(req.params);
 
       const { id } = req.params; // Extract address ID from the route
@@ -180,13 +180,13 @@ exports.updateAddress = async (req, res) => {
       );
 
       if (!updatedAddress) {
-          return res.status(404).json({ error: 'Address not found' });
+          return res.status(StatusCodes.NOT_FOUND).json({ error: Messages.ADDRESS_NOT_FOUNT });
       }
 
-      res.status(200).json({ message: 'Address updated successfully', address: updatedAddress });
+      res.status(StatusCodes.OK).json({ message: Messages.ADDRESS_UPDATED, address: updatedAddress });
   } catch (err) {
       console.error('Error updating address:', err);
-      res.status(500).json({ error: 'Failed to update address' });
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: Messages.INTERNAL_SERVER_ERROR });
   }
 };
 
@@ -197,12 +197,12 @@ exports.deleteAddress = async (req, res) => {
     const result = await Address.findByIdAndDelete(id);
 
     if (result) {
-      res.status(200).json({ message: "Address deleted successfully" });
+      res.status(StatusCodes.OK).json({ message: Messages.ADDRESS_DELETED});
     } else {
-      res.status(404).json({ error: "Address not found" });
+      res.status(StatusCodes.NOT_FOUND).json({ error: Messages.ADDRESS_NOT_FOUNT });
     }
   } catch (err) {
     console.error("Error deleting address:", err);
-    res.status(500).json({ error: "Server error on deleting Address." });
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: Messages.INTERNAL_SERVER_ERROR });
   }
 };

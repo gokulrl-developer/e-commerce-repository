@@ -8,6 +8,8 @@ const bcrypt = require("bcryptjs");
 const mongoose = require("mongoose");
 const Order=require('../../models/orderModel');
 const Rating=require('../../models/ratingModel');
+const {StatusCodes}=require("../../constants/status-codes.constants")
+const {Messages}=require("../../constants/messages.constants")
 
 async function getHome(req, res) {
   try {
@@ -67,7 +69,7 @@ async function getHome(req, res) {
     };
     res.render('user/user-home', { newProducts, topSoldProducts });
   } catch (error) {
-    res.status(500).json({ Message: "Server down" });
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ Message: Messages.INTERNAL_SERVER_ERROR });
     console.error("Server down : ", err)
   }
 }
@@ -76,7 +78,7 @@ async function getLogin(req, res) {
   try {
     res.render('user/user-login');
   } catch (error) {
-    res.status(500).json({ Message: "Cannot retrieve login page" });
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ Message: Messages.INTERNAL_SERVER_ERROR });
     console.error("Error on retrieving login page : ", error)
   }
 }
@@ -86,20 +88,20 @@ async function postLogin(req, res) {
     const { email, password } = req.body;
     const matchedUser = await User.findOne({ email }).lean();
     if (!matchedUser) {
-      return res.status(401).json({ message: "invalid Credentials" });
+      return res.status(StatusCodes.UNAUTHORIZED).json({ message: Messages.INVALID_CREDENTIALS });
     }
     if (matchedUser.status === 'Blocked') {
-      return res.status(401).json({ message: "User is blocked" });
+      return res.status(StatusCodes.UNAUTHORIZED).json({ message: Messages.USER_BLOCKED });
     }
     const isMatch = await bcrypt.compare(password, matchedUser.password);
     if (!isMatch) {
-      return res.status(401).json({ message: "Invalid Credentials" });
+      return res.status(StatusCodes.UNAUTHORIZED).json({ message: Messages.INVALID_CREDENTIALS });
     } else {
       req.session.user = matchedUser;
-      res.status(200).json({ redirectUrl: "/" });
+      res.status(StatusCodes.OK).json({ redirectUrl: "/" });
     }
   } catch (error) {
-    res.status(500).json({ message: error.message || "Error on Login" });
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: error.message || Messages.INTERNAL_SERVER_ERROR });
     console.error("Error on Login : ", error)
   }
 }
@@ -119,18 +121,18 @@ async function signUpPost(req, res) {
     const user = req.body;
     const matchedUser = await User.findOne({ email: user.email });
     if (matchedUser) {
-      return res.status(409).json({ Message: "Email already registered" })
+      return res.status(StatusCodes.CONFLICT).json({ Message: Messages.EMAIL_ALREADY_REGISTERED })
     } else {
       const otp = generateOtp();
       await sendOtpEmail(user.email, otp)
       await saveOtp(user.email, otp);
       req.session.userData = user;
-      return res.status(200).json({
+      return res.status(StatusCodes.OK).json({
         redirectUrl: "/verify-otp",
       });
     }
   } catch (err) {
-    res.status(500).json({ Message: "Internal server error" });
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ Message: Messages.INTERNAL_SERVER_ERROR });
     console.error("Error on user sign-up : ", err)
   }
 }
@@ -228,10 +230,10 @@ async function filterProducts(req, res) {
       }
       product.finalDiscountedPrice = finalDiscountedPrice;
     };
-    res.status(200).json({ products, currentPage, totalPages });
+    res.status(StatusCodes.OK).json({ products, currentPage, totalPages });
   } catch (error) {
     console.error('Error filtering products:', error);
-    res.status(500).json({ message: 'Error filtering products' });
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: Messages.INTERNAL_SERVER_ERROR });
   }
 }
 
@@ -241,17 +243,17 @@ async function verifyOtp(req, res) {
     const user = req.session.userData;
     const otpRecord = await Otp.findOne({ email: user.email });
     if (!otpRecord) {
-      return res.status(400).json({ message: "Invalid OTP", otp });
+      return res.status(StatusCodes.VALIDATION_ERROR).json({ message: Messages.INVALID_OTP, otp });
     }
     const newUser = new User(user);
     newUser.save();
     req.session.userData = null;
     await Otp.deleteOne({ email: user.email });
-    return res.status(200).json({
+    return res.status(StatusCodes.OK).json({
       redirectUrl: "/login",
     });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: Messages.INTERNAL_SERVER_ERROR });
 
   }
 }
@@ -269,18 +271,18 @@ async function postForgotPasswordEmail(req, res) {
   try {
     const matchedUser = await User.findOne({ email });
     if (!matchedUser) {
-      return res.status(401).json({ Message: "Email not registered" })
+      return res.status(StatusCodes.UNAUTHORIZED).json({ Message: Messages.EMAIL_NOT_REGISTERED })
     } else {
       const otp = generateOtp();
       await sendOtpEmail(email, otp)
       await saveOtp(email, otp);
       req.session.tempEmail = email;
-      return res.status(200).json({
+      return res.status(StatusCodes.OK).json({
         redirectUrl: "/forgot-password-otp",
       });
     }
   } catch (err) {
-    res.status(500).json({ Message: "Error on verifying email" });
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ Message: Messages.INTERNAL_SERVER_ERROR });
     console.error("Error on verifying Email : ", err)
   }
 }
@@ -289,7 +291,7 @@ async function getForgotPasswordOtp(req, res) {
     res.render('user/user-forgot-password-otp');
 
   } catch (error) {
-    res.status(500).json({ message: "Error on showing the otp recieving page" })
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: Messages.INTERNAL_SERVER_ERROR })
   }
 }
 async function postForgotPasswordOtp(req, res) {
@@ -298,15 +300,15 @@ async function postForgotPasswordOtp(req, res) {
     const email = req.session.tempEmail;
     const otpRecord = await Otp.findOne({ email });
     if (!otpRecord) {
-      return res.status(400).json({ message: "Invalid OTP", otp });
+      return res.status(StatusCodes.VALIDATION_ERROR).json({ message: Messages.INVALID_OTP, otp });
     }
     req.session.isForgotPasswordVerified = true;
     await Otp.deleteOne({ email });
-    return res.status(200).json({
+    return res.status(StatusCodes.OK).json({
       redirectUrl: "/forgot-password-password",
     });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: Messages.INTERNAL_SERVER_ERROR });
 
   }
 }
@@ -317,11 +319,11 @@ async function resendForgotPasswordOtp(req, res) {
     const otp = generateOtp();
     await sendOtpEmail(email, otp)
     await saveOtp(email, otp);
-    return res.status(200).json({
-      Message: "OTP resend successfully"
+    return res.status(StatusCodes.OK).json({
+      Message: Messages.OTP_RESEND
     });
   } catch (error) {
-    res.status(500).json({ Message: "Server error on resending OTP" });
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ Message: Messages.INTERNAL_SERVER_ERROR });
   }
 };
 
@@ -334,22 +336,22 @@ async function postChangePassword(req, res) {
     const email = req.session.tempEmail;
     const isVerified = req.session.isForgotPasswordVerified;
     if (!isVerified || isVerified !== true) {
-      return res.status(401).json({ message: "Please verify your email" })
+      return res.status(StatusCodes.UNAUTHORIZED).json({ message: Messages.EMAIL_NOT_VERIFIED })
     }
     const salt = await bcrypt.genSalt(10);
     password = await bcrypt.hash(password, salt);
     const user = await User.findOneAndUpdate({ email }, { password }, { new: true });
     if (!user) {
-      return res.status(401).json({ message: "The user is not found" })
+      return res.status(StatusCodes.UNAUTHORIZED).json({ message: Messages.USER_NOT_FOUND })
     }
     req.session.user = user;
     req.session.tempEmail = null;
     req.session.isForgotPasswordVerified = null;
-    return res.status(200).json({
+    return res.status(StatusCodes.OK).json({
       redirectUrl: "/",
     });
   } catch (error) {
-    res.status(500).json({ message: "Server error on changing password" });
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: Messages.INTERNAL_SERVER_ERROR });
 
   }
 }
@@ -363,28 +365,28 @@ async function postResetPassword(req, res) {
       /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,16}$/;
 
     if (!regex.test(newPassword)) {
-      return res.status(400).json({ message: "Password must be 8-16 characters long, and include a number, uppercase, lowercase, and special character." });
+      return res.status(StatusCodes.VALIDATION_ERROR).json({ message: Messages.PASSWORD_INVALID_FORMAT });
     }
     const email = req.user.email;
     if (!email) {
-      return res.status(401).json({ message: "You are not logged in" })
+      return res.status(StatusCodes.UNAUTHORIZED).json({ message: Messages.USER_NOT_LOGGED })
     }
     const salt = await bcrypt.genSalt(10);
     currentPassword = await bcrypt.hash(currentPassword, salt);
     const user = await User.findOne({ email }, { currentPassword });
     if (!user) {
-      return res.status(401).json({ message: "The user is not found" })
+      return res.status(StatusCodes.UNAUTHORIZED).json({ message: Messages.USER_NOT_FOUND })
     };
 
     user.password = newPassword;
     await user.save();
 
     req.user = user;
-    return res.status(200).json({
-      message: "password changed successfully"
+    return res.status(StatusCodes.OK).json({
+      message: Messages.PASSWORD_RESET
     });
   } catch (error) {
-    res.status(500).json({ message: "Server error on changing password" });
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: Messages.INTERNAL_SERVER_ERROR });
 
   }
 }
@@ -395,12 +397,12 @@ async function getProduct(req, res) {
     const productId = req.params.id;
 
     if (!mongoose.Types.ObjectId.isValid(productId)) {
-      return res.render('user/user-error', { statusCode: 400, message: "invalid Product Id" })
+      return res.render('user/user-error', { statusCode: StatusCodes.VALIDATION_ERROR, message: Messages.INVALID_PRODUCT_ID })
     }
 
     const product = await Product.findOne({ _id: productId, isBlocked: false });
     if (!product) {
-      return res.render('user/user-error', { statusCode: 404, message: "No product found" })
+      return res.render('user/user-error', { statusCode: StatusCodes.VALIDATION_ERROR, message: Messages.PRODUCT_NOT_FOUND })
     }
     const productOffer = await Offer.findOne({
       offerType: 'Product', applicableProduct: product._id, isActive: true,
@@ -474,7 +476,7 @@ async function getProduct(req, res) {
 
   } catch (err) {
     console.error("Error fetching product:", err.message);
-    return res.render('user/user-error', { statusCode: 500, message: "Server error while retrieving the product" });
+    return res.render('user/user-error', { statusCode: StatusCodes.INTERNAL_SERVER_ERROR, message: Messages.INTERNAL_SERVER_ERROR });
   }
 };
 async function resendOtp(req, res) {
@@ -483,11 +485,11 @@ async function resendOtp(req, res) {
     const otp = generateOtp();
     await sendOtpEmail(user.email, otp)
     await saveOtp(user.email, otp);
-    return res.status(200).json({
-      Message: "OTP resend successfully"
+    return res.status(StatusCodes.OK).json({
+      Message: Messages.OTP_RESEND
     });
   } catch (error) {
-    res.status(500).json({ Message: "Server error" });
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ Message: Messages.INTERNAL_SERVER_ERROR });
   }
 };
 
@@ -496,13 +498,13 @@ function logout(req, res) {
     req.session.destroy((err) => {
       if (err) {
         console.error("Error during logout:", err);
-        return res.status(500).send("Failed to logout. Please try again.");
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(Messages.LOGOUT_FAILURE);
       }
       res.redirect("/login");
     });
   } catch (error) {
     console.error("Error in logoutPOST:", error);
-    res.status(500).send("Server error during logout.");
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(Messages.INTERNAL_SERVER_ERROR);
   }
 };
 module.exports = {

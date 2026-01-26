@@ -1,4 +1,6 @@
 const User=require('../models/userModel')
+const {Messages}=require('../constants/messages.constants')
+const {StatusCodes}=require('../constants/status-codes.constants')
 module.exports={
     checkSession:async (req,res,next)=>{
         if(req.session.user){
@@ -6,9 +8,9 @@ module.exports={
         if(user.status !== 'Active'){
          req.session.destroy((err) => {
                 if (err) {
-                    if(req.xhr){return res.status(500).json({message:"server error while logging out"})
+                    if(req.xhr){return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({message:Messages.INTERNAL_SERVER_ERROR})
                     }else{
-                  return res.render('user/user-error',{statusCode:500,message:"server error while logging out"});
+                  return res.render('user/user-error',{statusCode:StatusCodes.INTERNAL_SERVER_ERROR,message:Messages.INTERNAL_SERVER_ERROR});
                 
                 }}
                 return res.redirect('/login');
@@ -19,7 +21,7 @@ module.exports={
         }
         }else{
             if(req.xhr){
-                return res.status(401).json({message:"You cannot access without login"});
+                return res.status(401).json({message:Messages.USER_NOT_LOGGED});
             }else{
               return res.redirect('/login');
             }
@@ -33,9 +35,9 @@ module.exports={
                 if (err) {
                   console.error("Error destroying session:", err);
                   if(req.xhr){
-                    return res.status(401).json({message:"Server error while logging out"});
+                    return res.status(StatusCodes.UNAUTHORIZED).json({message:Messages.INTERNAL_SERVER_ERROR});
                 }else{
-                  return res.render('user/user-error',{statusCode:500,message:"server error while logging out"});
+                  return res.render('user/user-error',{statusCode:StatusCodes.INTERNAL_SERVER_ERROR,message:Messages.INTERNAL_SERVER_ERROR});
                 }
                 }else{
 
@@ -56,9 +58,9 @@ module.exports={
             if(user.status !== 'Active'){
              req.session.destroy((err) => {
                     if (err) {
-                        if(req.xhr){return res.status(500).json({message:"Server error while logging out"})
+                        if(req.xhr){return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({message:Messages.INTERNAL_SERVER_ERROR})
                         }else{
-                      return res.render('user/user-error',{statusCode:500,message:"server error while logging out"});
+                      return res.render('user/user-error',{statusCode:StatusCodes.INTERNAL_SERVER_ERROR,message:Messages.INTERNAL_SERVER_ERROR});
                     }
                 }
                     next();

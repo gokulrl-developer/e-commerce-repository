@@ -2,6 +2,8 @@ const Order = require('../../models/orderModel');
 const { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, subDays } = require('date-fns');
 const PDFDocument = require('pdfkit');
 const ExcelJS = require('exceljs');
+const {StatusCodes}=require("../../constants/status-codes.constants")
+const {Messages}=require("../../constants/messages.constants")
 
 // Helper function to get date range
 const getDateRange = (range, startDate, endDate) => {
@@ -68,7 +70,7 @@ exports.renderSalesReportPage = async (req, res) => {
         res.render('admin/salesReport', { salesData, summary });
     } catch (error) {
         console.error('Error rendering sales report page:', error);
-        res.status(500).render('error', { message: 'Error rendering sales report page' });
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).render('error', { message: Messages.INTERNAL_SERVER_ERROR });
     }
 };
 
@@ -140,7 +142,7 @@ exports.getSalesReport = async (req, res) => {
         });
     } catch (error) {
         console.error('Error generating sales report:', error);
-        res.status(500).json({ success: false, message: 'Error generating sales report' });
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ success: false, message: Messages.INTERNAL_SERVER_ERROR });
     }
 };
 
@@ -232,7 +234,7 @@ exports.downloadPdfReport = async (req, res) => {
         doc.end();
     } catch (error) {
         console.error('Error generating PDF report:', error);
-        res.status(500).json({ success: false, message: 'Error generating PDF report' });
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ success: false, message: Messages.INTERNAL_SERVER_ERROR });
     }
 };
 
@@ -307,7 +309,7 @@ exports.downloadExcelReport = async (req, res) => {
         res.end();
     } catch (error) {
         console.error('Error generating Excel report:', error);
-        res.status(500).json({ success: false, message: 'Error generating Excel report' });
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ success: false, message: Messages.INTERNAL_SERVER_ERROR });
     }
 };
 

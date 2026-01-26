@@ -1,4 +1,6 @@
 const Order = require('../../models/orderModel');
+const {StatusCodes}=require("../../constants/status-codes.constants")
+const {Messages}=require("../../constants/messages.constants")
 const { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, subDays } = require('date-fns');
 
 // Helper function to get date range
@@ -54,7 +56,7 @@ exports.getDashboard = async (req, res) => {
         res.render('admin/admin-dashboard', {summary });
     } catch (error) {
         console.error('Error rendering dashboard:', error);
-        res.status(500).render({ message: 'Error rendering dashboard' });
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).render({ message: Messages.INTERNAL_SERVER_ERROR });
     }
 };
 
@@ -97,12 +99,12 @@ exports.getSalesSummary = async (req, res) => {
             return acc;
         }, { totalSales: 0, totalOrders: 0, totalDiscount: 0, totalCouponDiscount: 0, netAmount: 0 });
 
-        res.status(200).json({
+        res.status(StatusCodes.OK).json({
             summary
     });
     } catch (error) {
         console.error('Error generating sales summary:', error);
-        res.status(500).json({message: 'Error generating sales summary'});
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({message: Messages.INTERNAL_SERVER_ERROR});
     }
 };
 
@@ -183,10 +185,10 @@ exports.getSalesSummary = async (req, res) => {
             } 
         ]);
   console.log(chartData[0])
-        res.status(200).json({ chartData });
+        res.status(StatusCodes.OK).json({ chartData });
     } catch (error) {
         console.error("Error occurred while fetching chart data:", error);
-        res.status(500).json({
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
             message: "Error occurred while fetching chart data",
             error: error.message
         });
@@ -239,11 +241,11 @@ exports.getSalesSummary = async (req, res) => {
                 }
             }
         ]);
-        res.status(200).json({ chartData });
+        res.status(StatusCodes.OK).json({ chartData });
     } catch (error) {
         console.error("Error occurred while fetching chart data:", error);
-        res.status(500).json({
-            message: "Error occurred while fetching chart data",
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            message: Messages.INTERNAL_SERVER_ERROR,
             error: error.message
         });
     }
@@ -326,10 +328,10 @@ try{
         $limit:10
     }) 
     const topSoldData=await Order.aggregate(aggregationPipeline);
-    res.status(200).json({topSoldData});
+    res.status(StatusCodes.OK).json({topSoldData});
 }catch(error){
     console.error("error while getting top sold items",error.message);
-    res.status(500).json({message:"Server error while getting top sold items"})
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({message:Messages.INTERNAL_SERVER_ERROR})
 }
 };
 
@@ -343,7 +345,7 @@ exports.postLogin = (req, res) => {
   } else {
     return res.render("admin/admin-error", {
       statusCode: 401,
-      message: "Wrong Admin email or password",
+      message: Messages.INVALID_ADMIN_CREDENTIALS,
     });
   }
 };
@@ -353,12 +355,12 @@ exports.logout = (req, res) => {
     req.session.destroy((err) => {
       if (err) {
         console.error("Error during logout:", err);
-        return res.status(500).send("Failed to logout. Please try again.");
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(Messages.LOGOUT_FAILURE);
       }
       res.redirect("/admin/login");
     });
   } catch (error) {
     console.error("Error in logoutPOST:", error);
-    res.status(500).send("Server error during logout.");
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).send(Messages.INTERNAL_SERVER_ERROR);
   }
 };

@@ -5,6 +5,8 @@ const { format } = require('date-fns');
 const crypto =require('crypto');
 const Razorpay = require('razorpay');
 const PDFDocument = require('pdfkit'); 
+const {StatusCodes}=require("../../constants/status-codes.constants")
+const {Messages}=require("../../constants/messages.constants")
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -17,11 +19,11 @@ exports.continuePayment = async (req, res) => {
       const order = await Order.findById(orderId);
 
       if (!order) {
-          return res.status(404).json({ message: 'Order not found' });
+          return res.status(StatusCodes.NOT_FOUND).json({ message: Messages.ORDER_NOT_FOUND });
       }
 
       if (order.payment.paymentStatus !== 'Failed' && order.payment.paymentStatus !== 'Pending') {
-          return res.status(400).json({ message: 'This order does not require payment continuation' });
+          return res.status(StatusCodes.VALIDATION_ERROR).json({ message: Messages.CONFIRMATION_NOT_REQUIRED });
       }
      
       const razorpayOrder = await razorpay.orders.create({
@@ -42,7 +44,7 @@ exports.continuePayment = async (req, res) => {
       });
   } catch (error) {
       console.error('Error continuing payment:', error);
-      res.status(500).json({ message: 'Failed to continue payment' });
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: Messages.INTERNAL_SERVER_ERROR });
   }
 };
 
@@ -52,7 +54,7 @@ exports.verifyPayment = async (req, res) => {
       const order = await Order.findOne({ 'payment.razorpayOrderId': orderId });
 
       if (!order) {
-          return res.status(404).json({ message: 'Order not found' });
+          return res.status(StatusCodes.NOT_FOUND).json({ message: Messages.ORDER_NOT_FOUND });
       }
 
       const body = orderId + "|" + paymentId;
@@ -65,15 +67,15 @@ exports.verifyPayment = async (req, res) => {
           order.payment.paymentStatus = 'Completed';
           order.payment.razorpayPaymentId = paymentId;
           await order.save();
-          res.status(200).json({ message: 'Payment verified successfully', orderId: order._id });
+          res.status(StatusCodes.OK).json({ message: Messages.PAYMENT_VERIFIED, orderId: order._id });
       } else {
           order.payment.paymentStatus = 'Failed';
           await order.save();
-          res.status(400).json({message: 'Payment verification failed' });
+          res.status(StatusCodes.VALIDATION_ERROR).json({message: Messages.PAYMENT_VERIFICATION_FAIL });
       }
   } catch (error) {
       console.error("Payment verification error: ", error);
-      res.status(500).json({message: error.message || 'Payment verification failed' });
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({message: error.message || Messages.INTERNAL_SERVER_ERROR });
   }
 };
 
@@ -83,16 +85,16 @@ exports.handlePaymentFailure = async (req, res) => {
       const order = await Order.findOne({ 'payment.razorpayOrderId': orderId });
 
       if (!order) {
-          return res.status(404).json({ message: 'Order not found' });
+          return res.status(StatusCodes.NOT_FOUND).json({ message: Messages.ORDER_NOT_FOUND });
       }
 
       order.payment.paymentStatus = 'Failed';
       await order.save();
 
-      res.status(200).json({ message: 'Payment failure recorded successfully', orderId: order._id });
+      res.status(StatusCodes.OK).json({ message: Messages.PAYMENT_FAILURE_RECORDED, orderId: order._id });
   } catch (error) {
       console.error('Error handling payment failure:', error);
-      res.status(500).json({ message: 'Failed to handle payment failure' });
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: Messages.INTERNAL_SERVER_ERROR });
   }
 };
 
@@ -102,20 +104,20 @@ exports.cancelOrderItem = async (req, res) => {
       const order = await Order.findById(orderId);
 
       if (!order) {
-          return res.status(404).json({ message: 'Order not found' });
+          return res.status(StatusCodes.NOT_FOUND).json({ message: Messages.ORDER_NOT_FOUND });
       }
 
       if (order.user.userId.toString() !== req.user._id.toString()) {
-          return res.status(403).json({ message: 'Unauthorized access' });
+          return res.status(StatusCodes.FORBIDDEN).json({ message: Messages.UNAUTHORIZED_ACCESS });
       }
 
       const item = order.orderItems.id(itemId);
       if (!item) {
-          return res.status(404).json({ message: 'Item not found in the order' });
+          return res.status(StatusCodes.NOT_FOUND).json({ message: Messages.ITEM_NOT_IN_ORDER });
       }
 
       if (item.status !== 'Pending' && item.status !== 'Processing') {
-          return res.status(400).json({ message: 'This item cannot be cancelled' });
+          return res.status(StatusCodes.VALIDATION_ERROR).json({ message: Messages.UNCANCELLABLE_STATUS });
       }
 
       item.status = 'Cancelled';
@@ -176,10 +178,10 @@ exports.cancelOrderItem = async (req, res) => {
       order.payment.refundedAmount = (order.payment.refundedAmount || 0) + refundAmount;
       await order.save();
 
-      res.status(200).json({ message: 'Item cancelled successfully', order });
+      res.status(StatusCodes.OK).json({ message: Messages.ITEM_CANCELLED, order });
   } catch (error) {
       console.error('Error cancelling order item:', error);
-      res.status(500).json({ message: 'Failed to cancel order item' });
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: Messages.INTERNAL_SERVER_ERROR });
   }
 };
 
@@ -190,13 +192,13 @@ exports.getOrderConfirmation = async (req, res) => {
       const order = await Order.findById(orderId).populate('orderItems.product');
       
       if (!order) {
-        return res.status(404).render('error', { message: 'Order not found' });
+        return res.status(StatusCodes.NOT_FOUND).render('error', { message: Messages.ORDER_NOT_FOUND });
       }
       order.formattedDate = format(order.orderDate, 'MMMM dd, yyyy');
       res.render('user/order-confirmation', { order });
     } catch (error) {
       console.error('Error fetching order confirmation:', error);
-      res.status(500).render('error', { message: 'Failed to fetch order confirmation' });
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).render('error', { message: Messages.INTERNAL_SERVER_ERROR });
     }
   };
    
@@ -207,7 +209,7 @@ exports.getOrderConfirmation = async (req, res) => {
     try {
       const userId = req.session.user?._id;
       if(!userId){
-        return res.status(401).render('error', { message:"User not logged in." });
+        return res.status(StatusCodes.UNAUTHORIZED).render('error', { message:Messages.USER_NOT_LOGGED });
       }
       let filterObj={};
       if(req.xhr){
@@ -226,7 +228,7 @@ exports.getOrderConfirmation = async (req, res) => {
         totalItems: order.orderItems.reduce((sum, item) => sum + item.quantity, 0)
       }));
       if(req.xhr){
-        res.status(200).json({orders:formattedOrders,user:req.user,currentPage,totalPages});
+        res.status(StatusCodes.OK).json({orders:formattedOrders,user:req.user,currentPage,totalPages});
         console.log(formattedOrders)
       }else{
       res.render('user/user-orders', { orders: formattedOrders,user:req.session.user,currentPage,totalPages});
@@ -234,7 +236,7 @@ exports.getOrderConfirmation = async (req, res) => {
       }
     } catch (error) {
       console.error('Error fetching user orders:', error);
-      res.render('user-error', { statusCode:500,message: 'Failed to fetch orders' });
+      res.render('user-error', { statusCode:500,message: Messages.INTERNAL_SERVER_ERROR });
     }
   };
    
@@ -244,17 +246,17 @@ exports.getOrderConfirmation = async (req, res) => {
       const orderId = req.params.orderId;
       const order = await Order.findById(orderId).populate('orderItems.product');
       if (!order) {
-        return res.status(404).json({ message: 'Order not found' });
+        return res.status(StatusCodes.NOT_FOUND).json({ message: Messages.ORDER_NOT_FOUND });
       }
       if (order.user.userId.toString() !== req.user._id.toString()) {
-        return res.status(403).json({ message: 'Unauthorized access' });
+        return res.status(StatusCodes.FORBIDDEN).json({ message: Messages.UNAUTHORIZED_ACCESS });
       }
       formattedDate = format(order.orderDate, 'MMMM dd, yyyy');
 
       res.json({ order ,formattedDate});
     } catch (error) {
       console.error('Error fetching order details:', error);
-      res.status(500).json({ message: 'Failed to fetch order details' });
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: Messages.INTERNAL_SERVER_ERROR });
     }
   };
    
@@ -265,15 +267,15 @@ exports.cancelOrder = async (req, res) => {
       const order = await Order.findById(orderId);
   
       if (!order) {
-        return res.status(404).json({ message: 'Order not found' });
+        return res.status(StatusCodes.NOT_FOUND).json({ message: Messages.ORDER_NOT_FOUND });
       }
       const userId=req.session.user?._id;
       if (!userId || order.user.userId.toString() !== userId.toString()) {
-        return res.status(403).json({ message: 'Unauthorized access' });
+        return res.status(StatusCodes.FORBIDDEN).json({ message: Messages.UNAUTHORIZED_ACCESS });
       }
   
       if (order.orderStatus !== 'Pending' && order.orderStatus !== 'Processing' && order.orderStatus !== 'Partially Cancelled') {
-        return res.status(400).json({ message: 'This order cannot be cancelled' });
+        return res.status(StatusCodes.VALIDATION_ERROR).json({ message: Messages.UNCANCELLABLE_STATUS });
       }
   
       
@@ -312,10 +314,10 @@ exports.cancelOrder = async (req, res) => {
 
       await order.save();
   
-      res.status(200).json({ message: 'Order cancelled successfully' });
+      res.status(StatusCodes.OK).json({ message: Messages.ORDER_CANCELLED });
     } catch (error) {
       console.error('Error cancelling order:', error);
-      res.status(500).json({ message: 'Failed to cancel order' });
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: Messages.INTERNAL_SERVER_ERROR });
     }
   };
  
@@ -326,19 +328,19 @@ exports.cancelOrder = async (req, res) => {
         const order = await Order.findById(orderId);
 
         if (!order) {
-            return res.status(404).json({ message: 'Order not found' });
+            return res.status(StatusCodes.NOT_FOUND).json({ message: Messages.ORDER_NOT_FOUND });
         }
 
         if (order.user.userId.toString() !== req.user._id.toString()) {
-            return res.status(403).json({ message: 'Unauthorized access' });
+            return res.status(StatusCodes.FORBIDDEN).json({ message: Messages.UNAUTHORIZED_ACCESS });
         }
 
         const item = order.orderItems.id(itemId);
         if (!item) {
-            return res.status(404).json({ message: 'Item not found in the order' });
+            return res.status(StatusCodes.NOT_FOUND).json({ message: Messages.ITEM_NOT_IN_ORDER });
         }
         if (item.status !== 'Delivered') {
-            return res.status(400).json({ message: 'Only delivered items can be returned' });
+            return res.status(StatusCodes.VALIDATION_ERROR).json({ message: Messages.NOT_DELIVERED });
         }
 
         item.status = 'Return Requested';
@@ -347,10 +349,10 @@ exports.cancelOrder = async (req, res) => {
 
         await order.save();
        
-        res.json({ message: 'Return request submitted successfully'});
+        res.json({ message: Messages.RETURN_REQUEST_SUBMITTED});
     } catch (error) {
         console.error('Error requesting return:', error);
-        res.status(500).json({ message: 'Failed to submit return request' });
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: Messages.INTERNAL_SERVER_ERROR });
     }
 };
 
@@ -360,7 +362,7 @@ exports.downloadInvoice =async (req,res) =>{
     const {orderId}=req.query;
     const order =await Order.findOne({"user.userId":user._id,_id:orderId}).populate("orderItems.product");
     if(!order){
-      return res.status(404).json({message:"Order Not Found"});
+      return res.status(StatusCodes.NOT_FOUND).json({message:Messages.ORDER_NOT_FOUND});
     }
     function buildPDF(dataCallback,endCallback){
       const doc =new PDFDocument();
@@ -483,7 +485,7 @@ exports.downloadInvoice =async (req,res) =>{
     );
  }catch(error){
   if(!res.headersSent){
-  res.status(500).json({message:"Server error while sending pdf"});
+  res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({message:Messages.INTERNAL_SERVER_ERROR});
   }else{
   console.log(error.message)
   }

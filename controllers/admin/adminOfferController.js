@@ -1,7 +1,8 @@
 const Offer = require('../../models/offerModel');
 const Product = require('../../models/productModel');
 const Category = require('../../models/categoryModel');
-
+const {StatusCodes}=require("../../constants/status-codes.constants")
+const {Messages}=require("../../constants/messages.constants")
 
 //------------------helper function to validate-------------------------------------------
 const validateOffer = (offerData,mode) => {
@@ -9,30 +10,30 @@ const validateOffer = (offerData,mode) => {
 
     const errors = [];
     if (!title || typeof title !== 'string' || title.trim() === '' || title.trim().length>50) {
-        errors.push('offer title cannot be empty and must be a string of length less than 50.');
+        errors.push(Messages.OFFER_TITLE_INVALID_FORMAT);
     }
     if (!discountPercentage || isNaN(parseFloat(discountPercentage)) || discountPercentage < 0 || discountPercentage > 100) {
-        errors.push('Discount percentage is required and should be a number between 0 and 100');
+        errors.push(Messages.DISCOUNT_PERCENTAGE_INVALID);
     }
     if (!offerType || !['Product', 'Category'].includes(offerType)) {
-        errors.push('OfferType is required and should be of categories Product or Category')
+        errors.push(Messages.OFFER_TYPE_INVALID)
     }
     if (!applicableCategory && !applicableProduct) {
-        errors.push('applicableItem is required');
+        errors.push(Messages.APPLICABLE_ITEM_REQUIRED);
     }
     
     if (!startDate) {
-        errors.push('startDate is required');
+        errors.push(Messages.START_DATE_REQUIRED);
     } else if (!(startDate instanceof Date) || isNaN(startDate.getTime())) {
-        errors.push('start Date should be a date');
+        errors.push(Messages.START_DATE_INVALID);
     };
     if (!expiryDate) {
-        errors.push('Expiry Date is required');
+        errors.push(Messages.EXPIRY_DATE_REQUIRED);
     } else if (!(expiryDate instanceof Date) || isNaN(expiryDate.getTime())) {
-        errors.push('Expiry Date should be a date');
+        errors.push(Messages.EXPIRY_DATE_INVALID);
     };
     if (startDate.getTime() > expiryDate.getTime()) {
-        errors.push('Expiry Date cannot be before StartDate');
+        errors.push(Messages.EXPIRY_BEFORE_START);
     }
     return errors;
 }
@@ -61,7 +62,7 @@ exports.getAllOffers = async (req, res) => {
         });
     } catch (error) {
         console.error(error);
-        res.render('admin/admin-dashboard', { message:"Error while loading the admin offers page" });
+        res.render('admin/admin-dashboard', { message:Messages.INTERNAL_SERVER_ERROR });
     }
 };
 //-------------------------create Offers----------------------------------------------------
@@ -77,7 +78,7 @@ exports.createOffer = async (req, res) => {
         req.body.isActive=req.body.isActive==="true";
         const validationErrors = validateOffer(req.body,"ADD");
         if (validationErrors.length > 0) {
-           return  res.render('admin/admin-offers', { message: "error on create offer form validation", errors: validationErrors })
+           return  res.render('admin/admin-offers', { message: Messages.VALIDATION_ERROR, errors: validationErrors })
         }
         const newOffer = new Offer({
             ...req.body
@@ -85,10 +86,10 @@ exports.createOffer = async (req, res) => {
 
         await newOffer.save();
 
-        return res.status(201).json({ message: 'Offer created successfully' });
+        return res.status(StatusCodes.CREATED).json({ message: Messages.OFFER_CREATED });
     } catch (error) {
         console.error('Error creating offer:', error);
-        res.status(500).json({ message:'Failed to create offer' });
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message:Messages.INTERNAL_SERVER_ERROR });
     }
 };
 //----------------------edit offer---------------------------------------------------
@@ -105,19 +106,19 @@ exports.updateOffer = async (req, res) => {
         req.body.isActive=req.body.isActive==="true";
         const validationErrors = validateOffer(req.body,"EDIT");
         if (validationErrors.length > 0) {
-            return res.render('admin/admin-offers', { message: "error on create offer form validation", errors: validationErrors })
+            return res.render('admin/admin-offers', { message: Messages.VALIDATION_ERROR, errors: validationErrors })
         };
         const updatedOffer = await Offer.findByIdAndUpdate(id, {
             ...req.body
         }, { new: true });
         if (!updatedOffer) {
-            return res.status(404).json({ message:'Offer not found' });
+            return res.status(StatusCodes.NOT_FOUND).json({ message:Messages.OFFER_NOT_FOUND });
         }
 
-        res.status(200).json({ message: 'Offer updated successfully' });
+        res.status(StatusCodes.OK).json({ message: Messages.OFFER_UPDATED });
     } catch (error) {
         console.error('Error updating offer:', error);
-        res.status(500).json({ message:'Failed to update offer' });
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message:Messages.INTERNAL_SERVER_ERROR });
     }
 };
 //-------------------------------------delete offer------------------------------------------------------
@@ -128,13 +129,13 @@ exports.deleteOffer = async (req, res) => {
         const deletedOffer = await Offer.findByIdAndDelete(id);
 
         if (!deletedOffer) {
-            return res.status(404).json({ message: 'Offer not found' });
+            return res.status(StatusCodes.NOT_FOUND).json({ message: Messages.OFFER_NOT_FOUND });
         }
 
-        res.json({ message: 'Offer deleted successfully' });
+        res.json({ message: Messages.OFFER_DELETED });
     } catch (error) {
         console.error('Error deleting offer:', error);
-        res.status(500).json({ message: 'Failed to delete offer' });
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: Messages.INTERNAL_SERVER_ERROR });
     }
 };
 
