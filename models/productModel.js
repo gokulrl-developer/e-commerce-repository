@@ -6,7 +6,7 @@ price:{type:Number,required:true},
 gender:{type:String,required:true},
 brand:{type:String,required:true},
 stock:{type:Number,required:true},
-rating: { type: Number, required: true },
+rating: { type: Number,Default:0},
 features:[{type:String}],
 description:{type:String,required:true},
 isBlocked: {

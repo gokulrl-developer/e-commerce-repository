@@ -1,343 +1,491 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product</title>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product</title>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link rel="stylesheet" href="/style.css">
-  </head>
-  <body class="bg-blue-200">
-    <style>
-    
-  #add-to-cart:disabled {
-    cursor: not-allowed;
-    background-color: gray; 
-    color: lightgray; 
-  }
-  #buy-now:disabled {
-    cursor: not-allowed;
-    background-color: gray; 
-    color: lightgray; 
-  }
-      #main-image {
-            width: 100%;
-            max-width: 1024px;
-            max-height: 1024px;
-            position: relative;
-            cursor: zoom-in;
-            overflow: hidden;
-        }
-        #main-image-container {
-            width: 100%;
-            max-width: 500px;
-            max-height: 500px;
-            
-        }
-     
-        #main-image img {
-            width: 100%;
-            height: auto;
-            object-fit: cover;
-        }
-          #main-image-container::after {
-            content: '';
-            display: block;
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            background-image: var(--url);
-            background-size: 200%;
-            background-position: var(--zoom-x) var(--zoom-y);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            cursor: zoom-in;
+  <link rel="stylesheet" href="/style.css">
+</head>
 
-        }
+<body class="bg-blue-200">
+  <style>
+    #add-to-cart:disabled {
+      cursor: not-allowed;
+      background-color: gray;
+      color: lightgray;
+    }
 
-        #main-image-container:hover::after {
-            opacity: 1;
-        }
-    </style>
-    <!-- Header Section -->
-      <%- include('../partials/user-header') %>
+    #buy-now:disabled {
+      cursor: not-allowed;
+      background-color: gray;
+      color: lightgray;
+    }
 
-      <div class="container mx-auto my-5">
+    #main-image {
+      width: 100%;
+      max-width: 1024px;
+      max-height: 1024px;
+      position: relative;
+      cursor: zoom-in;
+      overflow: hidden;
+    }
 
-        <!-- Breadcrumbs -->
-        <div class="grid grid-cols-1 mb-4">
-          <nav class="flex" aria-label="Breadcrumb">
-            <ol class="inline-flex items-center space-x-1 md:space-x-3">
-              <li class="inline-flex items-center">
-                <a href="/" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
-                  Home
-                </a>
-              </li>
-              <li>
-                <div class="flex items-center">
-                  <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path fill-rule="evenodd" d="M10 3a1 1 0 01.894.553l3 6a1 1 0 01-.27 1.173l-5 4a1 1 0 01-1.448-1.41l4.63-3.72L7.66 4.053A1 1 0 0110 3z" clip-rule="evenodd"></path>
-                  </svg>
-                  <a href="/shopAll" class="ml-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ml-2">Shop All</a>
-                </div>
-              </li>
-              <li>
-                <div class="flex items-center">
-                  <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                    <path fill-rule="evenodd" d="M10 3a1 1 0 01.894.553l3 6a1 1 0 01-.27 1.173l-5 4a1 1 0 01-1.448-1.41l4.63-3.72L7.66 4.053A1 1 0 0110 3z" clip-rule="evenodd"></path>
-                  </svg>
-                  <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2"><%=product.productName%></span>
-                </div>
-              </li>
-            </ol>
-          </nav>
-          
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-[1fr_4fr_4fr] gap-5">
-          
-          <!-- Product Image Thumbnails -->
-          <div class="flex md:flex-col items-center gap-2" id="thumbnails">
-            <% product.imageUrl.forEach((image, index) => { %>
-              <img src="<%= image %>" 
-                   class="w-20 h-20 object-cover rounded-lg cursor-pointer hover:opacity-80" 
-                   id="<%= index %>" 
-                   onclick="changeImage('<%= image %>')" />
+    #main-image-container {
+      width: 100%;
+      max-width: 500px;
+      max-height: 500px;
+
+    }
+
+    #main-image img {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+    }
+
+    #main-image-container::after {
+      content: '';
+      display: block;
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      background-image: var(--url);
+      background-size: 200%;
+      background-position: var(--zoom-x) var(--zoom-y);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      cursor: zoom-in;
+
+    }
+
+    #main-image-container:hover::after {
+      opacity: 1;
+    }
+  </style>
+  <!-- Header Section -->
+  <%- include('../partials/user-header') %>
+
+    <div class="container mx-auto my-5">
+
+      <!-- Breadcrumbs -->
+      <div class="grid grid-cols-1 mb-4">
+        <nav class="flex" aria-label="Breadcrumb">
+          <ol class="inline-flex items-center space-x-1 md:space-x-3">
+            <li class="inline-flex items-center">
+              <a href="/" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600">
+                Home
+              </a>
+            </li>
+            <li>
+              <div class="flex items-center">
+                <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"
+                  xmlns="http://www.w3.org/2000/svg">
+                  <path fill-rule="evenodd"
+                    d="M10 3a1 1 0 01.894.553l3 6a1 1 0 01-.27 1.173l-5 4a1 1 0 01-1.448-1.41l4.63-3.72L7.66 4.053A1 1 0 0110 3z"
+                    clip-rule="evenodd"></path>
+                </svg>
+                <a href="/shopAll" class="ml-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ml-2">Shop
+                  All</a>
+              </div>
+            </li>
+            <li>
+              <div class="flex items-center">
+                <svg class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"
+                  xmlns="http://www.w3.org/2000/svg">
+                  <path fill-rule="evenodd"
+                    d="M10 3a1 1 0 01.894.553l3 6a1 1 0 01-.27 1.173l-5 4a1 1 0 01-1.448-1.41l4.63-3.72L7.66 4.053A1 1 0 0110 3z"
+                    clip-rule="evenodd"></path>
+                </svg>
+                <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2">
+                  <%=product.productName%>
+                </span>
+              </div>
+            </li>
+          </ol>
+        </nav>
+
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-[1fr_4fr_4fr] gap-5">
+
+        <!-- Product Image Thumbnails -->
+        <div class="flex md:flex-col items-center gap-2" id="thumbnails">
+          <% product.imageUrl.forEach((image, index)=> { %>
+            <img src="<%= image %>" class="w-20 h-20 object-cover rounded-lg cursor-pointer hover:opacity-80"
+              id="<%= index %>" onclick="changeImage('<%= image %>')" />
             <% }); %>
-          </div>
-      
-          <!-- Main Product Image -->
-          <div class="text-center overflow-hidden relative" id="main-image-container">
-            <img src="" class=" w-full h-auto object-cover rounded-lg shadow-lg" id="main-image" />
-          </div>
-      
-            <!-- Product Details -->
-            <div class="flex flex-col">
-              <div>
-                  <h3 class="bg-slate-500 inline-block p-1 font-semibold text-lg"><%=product.brand%></h3>
-                  <h2 class="text-3xl text-gray-800 font-bold my-2">
-                      <%= product.productName %>
-                  </h2>
-                  <section class="my-1">
-                    <p class="text-gray-600 text-2xl mb-6">
-                      <%= product.description %>
-                  </p>
-                </section>
-                <section class="my-2 ">
-                  <div class="bg-green-500 text-white w-[75px] flex items-center">
-                    <span class="text-lg font-semibold mx-2">4.2</span>
-                    <img src="https://img.icons8.com/ios-filled/19/star--v1.png" >
-                    </div>
-                </section>
-                    <hr class="mt-3 border border-black">
-                      <section class="mt-2">
-                      <span class="text-black text-3xl font-bold"><span class="text-red-600 font-bold">₹ </span><%= product.finalDiscountedPrice %></span>
-                      <%if(product.price>product.finalDiscountedPrice){%>
-                      <span class="text-gray-700 line-through text-xl ml-2">₹<%= product.price %></span>
-                      <br>
-                      <span class="text-orange-700 text-xl mt-2 font-semibold"><%= product.appliedOffer.discountPercentage %>%
-                        OFF</span>
-                      <%}%>                      
-                      </section>
-                  <p class="mb-2 text-xl <%= product.stock > 0 ? 'text-indigo-800' : 'text-red-500' %> font-semibold">
-                    <% if (product.stock > 0) { %>
-                      <span><%= product.stock %></span><span>  Pieces  </span> Left
-                    <% } else { %>
-                      Out of Stock
-                    <% } %>
-                    </p>
-                 </div>
-                 <hr class="mt-1 mb-3 border border-black">
-                 <div class="flex gap-4">
-                  <button id="add-to-cart"
-                      class="flex-1 bg-indigo-700 text-black px-6 py-3 rounded-lg hover:bg-indigo-600 transition-colors font-bold"
-                      <%= product.stock <= 0 ? 'disabled' : '' %>>
-                      Add to Cart
-                  </button>
-                  <button id="buy-now"
-                  class="flex-1 bg-indigo-700 text-black px-6 py-3 rounded-lg hover:bg-indigo-600 transition-colors font-bold"
-                  onclick="toggleWishlist('<%= product._id %>')"
-                  >
-                  WishList
-               </button>
-                 </div>
-                 <hr class="mt-3 border border-black">
-                 <div>
-                  <h3 class="mt-1 text-center font-bold">Offers </h3>
-                 <%if(product.appliedOffer){%>
-                <div class="block">
-                  <div class="w-1/4 h-auto border-black border rounded-lg">
-                    <p class="text-lg font-bold text-green-900"><%=product.appliedOffer.offerType%> Offer</p>
-                   <p class="text-lg  font-bold text-red-900">1. <%=product.appliedOffer.title%></p>
-                   <p class="font-semibold"><%=product.appliedOffer.discountPercentage%>% OFF on every purchase</p>
-                  </div>
-                </div>
-                <%}%> 
-              </div>
-          </div>
         </div>
-      
-        <!-- Related Products -->
-        <div class="mt-10">
-          <h4 class="text-center text-indigo-800 font-semibold text-2xl mb-5">Related Products</h4>
-          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-            <% products.forEach(function(product) { %>
-              <div class="card p-4 border rounded shadow-md bg-gray-400">
-                <div class="w-full ">
-                  <div class="w-full h-100">
-                    <img src="<%= product.imageUrl[0] %>" class="w-full h-full object-cover rounded"
-                      alt="Product Image">
-                  </div>
-                </div>
-                <div class="mt-3 bg-white py-3 px-3">
-                  <div class="flex">
-                    <h6 class="text-lg font-semibold">
-                      <%= product.productName %>
-                    </h6>
-                    <a class="flex items-center justify-center w-10 h-10 bg-red-100 hover:bg-red-200 rounded-full shadow-md transition duration-300 ease-in-out ml-auto"
-                      onclick="toggleWishlist('<%=product._id%>')">
-                      <svg xmlns="s://www.w3.org/2000/svg" class="h-6 w-6 text-red-500" viewBox="0 0 24 24"
-                        fill="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                      </svg>
-                    </a>
-                  </div>
-                  <h6 class="text-lg font-light">
-                    <%= product.description.substring(0, 20) + '...' %>
-                  </h6>
-                  <div class="flex justify-between items-center mb-2">
-                    <p class="font-bold text-xl">
-                      <span class="font-bold">₹</span>
-                      <%=product.finalDiscountedPrice%>
-                    </p>
-                    <%if(product.finalDiscountedPrice < product.price ){%>
-                      <span class=" line-through text-sm">₹<%=product.price%></span>
-                      <%}%>
-                  </div>
-                  <%if(product.stock>0){%>
-                    <h6 class="text-lg font-normal">
-                      <%= product.stock%> Pieces Left
-                    </h6>
-                    <%}else{%>
-                      <h6 class="text-lg font-normal">Out of Stock</h6>
-                      <%}%>
-                        <a href="/product/<%= product._id %>"
-                          class="btn bg-blue-500 text-white rounded px-2 py-1 mt-2 inline-block cursor-pointer">View</a>
-                        <a class="btn bg-blue-500 text-white rounded px-2 py-1 mt-2 inline-block cursor-pointer" id="add-to-cart"
-                          onclick="addToCart('<%=product._id%>')">Add to Cart</a>
+
+        <!-- Main Product Image -->
+        <div class="text-center overflow-hidden relative" id="main-image-container">
+          <img src="" class=" w-full h-auto object-cover rounded-lg shadow-lg" id="main-image" />
+        </div>
+
+        <!-- Product Details -->
+        <div class="flex flex-col">
+          <div>
+            <h3 class="bg-slate-500 inline-block p-1 font-semibold text-lg">
+              <%=product.brand%>
+            </h3>
+            <h2 class="text-3xl text-gray-800 font-bold my-2">
+              <%= product.productName %>
+            </h2>
+            <section class="my-1">
+              <p class="text-gray-600 text-2xl mb-6">
+                <%= product.description %>
+              </p>
+            </section>
+            <section class="my-2 flex ">
+              <div class="bg-green-500 text-white w-[75px] flex items-center">
+                <span class="text-lg font-semibold mx-2">
+                  <%=product.rating%>
+                </span>
+                <img src="https://img.icons8.com/ios-filled/19/star--v1.png">
+              </div>
+              <% if(hasProductPurchased===true && hasAlreadyRated===false){%>
+              <button class="m-2 " onClick="toggleRateModal()">Click to Rate</button>
+              <%}else if(hasAlreadyRated){%>
+              <button class="m-2" onClick="toggleEditRatingModal()">Click to Rate</button>
+               <%}%>
+            </section>
+            <hr class="mt-3 border border-black">
+            <section class="mt-2">
+              <span class="text-black text-3xl font-bold"><span class="text-red-600 font-bold">₹ </span>
+                <%= product.finalDiscountedPrice %>
+              </span>
+              <%if(product.price>product.finalDiscountedPrice){%>
+                <span class="text-gray-700 line-through text-xl ml-2">₹<%= product.price %></span>
+                <br>
+                <span class="text-orange-700 text-xl mt-2 font-semibold">
+                  <%= product.appliedOffer.discountPercentage %>%
+                    OFF
+                </span>
+                <%}%>
+            </section>
+            <p class="mb-2 text-xl <%= product.stock > 0 ? 'text-indigo-800' : 'text-red-500' %> font-semibold">
+              <% if (product.stock> 0) { %>
+                <span>
+                  <%= product.stock %>
+                </span><span> Pieces </span> Left
+                <% } else { %>
+                  Out of Stock
+                  <% } %>
+            </p>
+          </div>
+          <hr class="mt-1 mb-3 border border-black">
+          <div class="flex gap-4">
+            <button id="add-to-cart"
+              class="flex-1 bg-indigo-700 text-black px-6 py-3 rounded-lg hover:bg-indigo-600 transition-colors font-bold"
+              <%=product.stock <=0 ? 'disabled' : '' %>>
+              Add to Cart
+            </button>
+            <button id="buy-now"
+              class="flex-1 bg-indigo-700 text-black px-6 py-3 rounded-lg hover:bg-indigo-600 transition-colors font-bold"
+              onclick="toggleWishlist('<%= product._id %>')">
+              WishList
+            </button>
+          </div>
+          <hr class="mt-3 border border-black">
+          <div>
+            <h3 class="mt-1 text-center font-bold">Offers </h3>
+            <%if(product.appliedOffer){%>
+              <div class="block">
+                <div class="w-1/4 h-auto border-black border rounded-lg">
+                  <p class="text-lg font-bold text-green-900">
+                    <%=product.appliedOffer.offerType%> Offer
+                  </p>
+                  <p class="text-lg  font-bold text-red-900">1. <%=product.appliedOffer.title%>
+                  </p>
+                  <p class="font-semibold">
+                    <%=product.appliedOffer.discountPercentage%>% OFF on every purchase
+                  </p>
                 </div>
               </div>
-            <% }) %>
+              <%}%>
           </div>
         </div>
       </div>
-      
+
+      <!-- Related Products -->
+      <div class="mt-10">
+        <h4 class="text-center text-indigo-800 font-semibold text-2xl mb-5">Related Products</h4>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+          <% products.forEach(function(product) { %>
+            <div class="card p-4 border rounded shadow-md bg-gray-400">
+              <div class="w-full ">
+                <div class="w-full h-100">
+                  <img src="<%= product.imageUrl[0] %>" class="w-full h-full object-cover rounded" alt="Product Image">
+                </div>
+              </div>
+              <div class="mt-3 bg-white py-3 px-3">
+                <div class="flex">
+                  <h6 class="text-lg font-semibold">
+                    <%= product.productName %>
+                  </h6>
+                  <a class="flex items-center justify-center w-10 h-10 bg-red-100 hover:bg-red-200 rounded-full shadow-md transition duration-300 ease-in-out ml-auto"
+                    onclick="toggleWishlist('<%=product._id%>')">
+                    <svg xmlns="s://www.w3.org/2000/svg" class="h-6 w-6 text-red-500" viewBox="0 0 24 24"
+                      fill="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                  </a>
+                </div>
+                <h6 class="text-lg font-light">
+                  <%= product.description.substring(0, 20) + '...' %>
+                </h6>
+                <div class="flex justify-between items-center mb-2">
+                  <p class="font-bold text-xl">
+                    <span class="font-bold">₹</span>
+                    <%=product.finalDiscountedPrice%>
+                  </p>
+                  <%if(product.finalDiscountedPrice < product.price ){%>
+                    <span class=" line-through text-sm">₹<%=product.price%></span>
+                    <%}%>
+                </div>
+                <%if(product.stock>0){%>
+                  <h6 class="text-lg font-normal">
+                    <%= product.stock%> Pieces Left
+                  </h6>
+                  <%}else{%>
+                    <h6 class="text-lg font-normal">Out of Stock</h6>
+                    <%}%>
+                      <a href="/product/<%= product._id %>"
+                        class="btn bg-blue-500 text-white rounded px-2 py-1 mt-2 inline-block cursor-pointer">View</a>
+                      <a class="btn bg-blue-500 text-white rounded px-2 py-1 mt-2 inline-block cursor-pointer"
+                        id="add-to-cart" onclick="addToCart('<%=product._id%>')">Add to Cart</a>
+              </div>
+            </div>
+            <% }) %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Rate Modal -->
+    <div id="rate-modal" class="hidden fixed z-10 inset-0 flex items-center justify-center bg-gray-800/50">
+      <div class="bg-gray-800 p-6 rounded shadow-lg w-1/5 min-w-[300px] relative">
+        <!-- Close Button -->
+        <button class="absolute top-2 right-2 text-white text-2xl font-bold w-8 h-8 flex items-center justify-center"
+          onclick="toggleRateModal()">
+          &times;
+        </button>
+        <h2 class="text-lg text-white font-bold mb-4">RATE NOW!</h2>
+        <form id="rate-form" class="text-white" action="" onsubmit="rateProduct(event)" method="POST">
+          <div class="flex flex-col gap-2">
+            <div>
+              <label for="rating" class="block text-md mb-2 font-medium">Rating:</label>
+              <input type="number" value="<%=rating %>" min="1" max="5" id="rating" name="rating"
+                placeholder="Give Rating" class="border p-2 w-full rounded text-black">
+            </div>
+            <div>
+              <button type="submit"
+                class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">Proceed</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+    <!-- Edit Rate Modal -->
+    <div id="edit-rate-modal" class="hidden fixed z-10 inset-0 flex items-center justify-center bg-gray-800/50">
+      <div class="bg-gray-800 p-6 rounded shadow-lg w-1/5 min-w-[300px] relative">
+        <!-- Close Button -->
+        <button class="absolute top-2 right-2 text-white text-2xl font-bold w-8 h-8 flex items-center justify-center"
+          onclick="toggleEditRatingModal()">
+          &times;
+        </button>
+        <h2 class="text-lg text-white font-bold mb-4">EDIT RATING!</h2>
+        <form id="edit-rate-form" class="text-white" onsubmit="updateRating(event)" action="" method="PATCH">
+          <div class="flex flex-col gap-2">
+            <div>
+              <label for="rating" class="block text-md mb-2 font-medium">Rating:</label>
+              <input type="number"value="<%=rating.rating%>" min="1" max="5" id="rating" name="rating" placeholder="Edit Rating"
+                class="border p-2 w-full rounded text-black">
+            </div>
+            <div>
+              <button type="submit"
+                class="bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">Proceed</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
 
     <!-- Footer Section -->
-      <%- include('../partials/user-footer') %>
-    
-
-    <script>
-//---------------------------------------------Main Image-----------------------------------------------------
-
-/////////Zoom Main Image//
-       document.getElementById('main-image-container').addEventListener('mousemove',(e)=>{
-      const mainImageContainer=document.getElementById('main-image-container');
-        const {left,top,width,height}=mainImageContainer.getBoundingClientRect();   
-       const x = ((e.clientX - left) / width) * 100;
-      const y = ((e.clientY - top) / height) * 100;
-      mainImageContainer.style.setProperty('--zoom-x', `${x}%`);
-      mainImageContainer.style.setProperty('--zoom-y', `${y}%`);
-     })
-
-      document.addEventListener("DOMContentLoaded", function () {
-        const mainImage = document.getElementById('0').src;
-        document.getElementById('main-image').src = mainImage;
-        document.getElementById("main-image-container").style.setProperty('--url', `url(${mainImage})`);
-      });
+    <%- include('../partials/user-footer') %>
 
 
-      function changeImage(url) {
-        document.getElementById('main-image').src = url;
-        document.getElementById("main-image-container").style.setProperty('--url', `url(${url})`);
-      }
+      <script>
+        //---------------------------------------------Main Image-----------------------------------------------------
 
+        //////////////// Rating modals///////////////////////////////////
+        // Toggle Modal (Add/Edit Coupon)
+        function toggleRateModal() {
+          document.getElementById("rate-modal").classList.toggle("hidden");
+        }
 
-//--------------------------------Add to Cart------------------------------------------------------------------------      
-      document
-            .getElementById("add-to-cart")
-            .addEventListener("click", function () {
-              const productId = "<%= product._id %>"; // Pass dynamically from server
-              const quantity = 1; // Default quantity for now, later give option to select quantity
+        function toggleEditRatingModal() {
+          document.getElementById("edit-rate-modal").classList.toggle("hidden");
+        }
 
-              fetch("/cart/add", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify({
-                  productId,
-                  quantity,
-                }),
+        // Rating API Calls////////////////////////////////////////
+
+        async function rateProduct(event) {
+          try {
+            event.preventDefault();
+            let formData = new FormData(event.target);
+            let rating = formData.get("rating");
+            const ratingResponse = await fetch("/rating/<%=product._id%>", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-Requested-With": "XMLHttpRequest"
+              },
+              body: JSON.stringify({
+                rating: Number(rating)
               })
-                .then((response) => {
-                  if (response.ok) {
-                     return response.json();
-                  } else {
-                    return response.json().then((data) => {
-                      throw new Error(data.message || "Failed to add to cart.");
-                    });
-                  }
-                }).then((data)=>{
-                  Swal.fire('Success',data.message,'success')
-                })
-                .catch((error) => {
-                  console.error("Error adding to cart:", error.message);
-                  Swal.fire('Error',error.message,'error');
-                });
             });
- 
-//----------------------Add/Remove from wishlist--------------------------------------------------------------------            
-            function toggleWishlist(productId) {
-            fetch('/wishlist/toggle', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: JSON.stringify({ productId })
+            if (ratingResponse.ok) {
+              const ratingResult = await ratingResponse.json();
+              swal.fire('Succes', ratingResult.message, 'success');
+              window.location.reload();
+            } else {
+              const errorData = await ratingResponse.json();
+              console.log(errorData)
+              throw new Error(errorData.message || "Error rating product.Try again later.")
+            }
+          } catch (error) {
+            swal.fire('Error', error.message || "Error rating product.Try again later.", 'error')
+          }
+        }
+        async function updateRating(event) {
+          try {
+            event.preventDefault();
+            let formData = new FormData(event.target);
+            let rating = formData.get("rating");
+            const updationResponse = await fetch("/rating/<%=rating?._id%>", {
+              method: "PATCH",
+              headers: {
+                "Content-Type": "application/json",
+                "X-Requested-With": "XMLHttpRequest"
+              },
+              body: JSON.stringify({
+                rating: Number(rating)
+              })
+            });
+            if (updationResponse.ok) {
+              const updationResult = await updationResponse.json();
+              swal.fire('Succes', updationResult.message, 'success');
+              window.location.reload();
+            } else {
+              const errorData = await updationResponse.json();
+              throw new Error(errorData.message || "Error updating rating.Try again later.")
+            }
+          } catch (error) {
+            swal.fire('Error', error.message || "Error updating rating.Try again later.", 'error')
+          }
+        }
+        /////////Zoom Main Image//
+        document.getElementById('main-image-container').addEventListener('mousemove', (e) => {
+          const mainImageContainer = document.getElementById('main-image-container');
+          const { left, top, width, height } = mainImageContainer.getBoundingClientRect();
+          const x = ((e.clientX - left) / width) * 100;
+          const y = ((e.clientY - top) / height) * 100;
+          mainImageContainer.style.setProperty('--zoom-x', `${x}%`);
+          mainImageContainer.style.setProperty('--zoom-y', `${y}%`);
+        })
+
+        document.addEventListener("DOMContentLoaded", function () {
+          const mainImage = document.getElementById('0').src;
+          document.getElementById('main-image').src = mainImage;
+          document.getElementById("main-image-container").style.setProperty('--url', `url(${mainImage})`);
+        });
+
+
+        function changeImage(url) {
+          document.getElementById('main-image').src = url;
+          document.getElementById("main-image-container").style.setProperty('--url', `url(${url})`);
+        }
+
+
+        //--------------------------------Add to Cart------------------------------------------------------------------------      
+        document
+          .getElementById("add-to-cart")
+          .addEventListener("click", function () {
+            const productId = "<%= product._id %>"; // Pass dynamically from server
+            const quantity = 1; // Default quantity for now, later give option to select quantity
+
+            fetch("/cart/add", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                'X-Requested-With': 'XMLHttpRequest'
+              },
+              body: JSON.stringify({
+                productId,
+                quantity,
+              }),
             })
-            .then((response)=>{
-              if(response.ok){return response.json();               
-              }else{
+              .then((response) => {
+                if (response.ok) {
+                  return response.json();
+                } else {
+                  return response.json().then((data) => {
+                    throw new Error(data.message || "Failed to add to cart.");
+                  });
+                }
+              }).then((data) => {
+                Swal.fire('Success', data.message, 'success')
+              })
+              .catch((error) => {
+                console.error("Error adding to cart:", error.message);
+                Swal.fire('Error', error.message, 'error');
+              });
+          });
+
+        //----------------------Add/Remove from wishlist--------------------------------------------------------------------            
+        function toggleWishlist(productId) {
+          fetch('/wishlist/toggle', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ productId })
+          })
+            .then((response) => {
+              if (response.ok) {
+                return response.json();
+              } else {
                 return response.json()
-                .then((error)=>{throw new Error(error.message || "Something went wrong")})
+                  .then((error) => { throw new Error(error.message || "Something went wrong") })
               }
             })
             .then(data => {
-                    Swal.fire({
-                      title:"Success",
-                        text: data.message,
-                        icon: 'success',
-                        showConfirmButton: false,
-                        timer: 1500
-                    });
-                    // Update the wishlist icon
-                    const wishlistBtn = document.querySelector(`button[onclick="toggleWishlist('${productId}')"]`);
-                
-                })
+              Swal.fire({
+                title: "Success",
+                text: data.message,
+                icon: 'success',
+                showConfirmButton: false,
+                timer: 1500
+              });
+              // Update the wishlist icon
+              const wishlistBtn = document.querySelector(`button[onclick="toggleWishlist('${productId}')"]`);
+
+            })
             .catch(error => {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: error.message || 'Something went wrong!',
-                });
+              Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: error.message || 'Something went wrong!',
+              });
             });
         }
 
-    </script>
-  </body>
+      </script>
+</body>
+
 </html>

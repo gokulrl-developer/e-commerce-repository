@@ -56,7 +56,7 @@ module.exports = {
   },
   postAddProduct: async (req, res) => {
     try {
-      let { productName, brand, gender, category, imageUrls, stock, price, features,description,rating} = req.body;
+      let { productName, brand, gender, category, imageUrls, stock, price, features,description} = req.body;
   
       const validationErrors=validateFields({productName:productName.trim(),
         brand:brand.trim(),
@@ -65,8 +65,7 @@ module.exports = {
         stock:stock.trim(),
         price:price.trim(),
         features:features.trim(),
-        description:description.trim(),
-        rating:rating.trim()});
+        description:description.trim()});
       if(!imageUrls || imageUrls.length !==4){
         validationErrors.push('Four Images should be uploaded');
         }
@@ -120,7 +119,7 @@ module.exports = {
   },
   putEditProduct: async (req, res) => {
     try {
-      let { productName, brand, gender, category, imageUrls, stock, price,rating,features,description,indicesEdited} = req.body;
+      let { productName, brand, gender, category, imageUrls, stock, price,features,description,indicesEdited} = req.body;
 
       const validationErrors=validateFields({productName:productName.trim(),
         brand:brand.trim(),
@@ -129,8 +128,7 @@ module.exports = {
         stock:stock.trim(),
         price:price.trim(),
         features:features.trim(),
-        description:description.trim(),
-        rating:rating.trim()});
+        description:description.trim()});
       if(validationErrors.length!==0){
         return res.status(400).json({validationErrors})
       } 
@@ -164,8 +162,7 @@ module.exports = {
             price,
             features,
             description,
-            imageUrl: editedImageUrls,
-            rating
+            imageUrl: editedImageUrls
           },
         { new: true }
       ); 

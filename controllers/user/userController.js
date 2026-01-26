@@ -6,11 +6,13 @@ const { generateOtp, sendOtpEmail } = require('../../utils/sendOtpUtil');
 const { saveOtp, Otp } = require('../../models/otpModel');
 const bcrypt = require("bcryptjs");
 const mongoose = require("mongoose");
+const Order=require('../../models/orderModel');
+const Rating=require('../../models/ratingModel');
 
 async function getHome(req, res) {
   try {
-    const newProducts = await Product.find({isBlocked:false}).limit(8).lean();
-    const topSoldProducts = await Product.find({isBlocked:false}).limit(4).lean();
+    const newProducts = await Product.find({ isBlocked: false }).limit(8).lean();
+    const topSoldProducts = await Product.find({ isBlocked: false }).limit(4).lean();
     for (let product of newProducts) {
       const productOffer = await Offer.findOne({
         offerType: 'Product', applicableProduct: product._id, isActive: true,
@@ -20,12 +22,12 @@ async function getHome(req, res) {
         offerType: 'Category', applicableCategory: product.category, isActive: true,
         startDate: { $lte: Date.now() }, expiryDate: { $gte: Date.now() }
       });
-  
+
       let bestDiscount = 0;
       if (productOffer) {
         bestDiscount = Math.max(bestDiscount, productOffer.discountPercentage);
       }
-  
+
       if (categoryOffer) {
         if (categoryOffer.discountPercentage > bestDiscount) {
           bestDiscount = categoryOffer.discountPercentage;
@@ -46,12 +48,12 @@ async function getHome(req, res) {
         offerType: 'Category', applicableCategory: product.category, isActive: true,
         startDate: { $lte: Date.now() }, expiryDate: { $gte: Date.now() }
       });
-  
+
       let bestDiscount = 0;
       if (productOffer) {
         bestDiscount = Math.max(bestDiscount, productOffer.discountPercentage);
       }
-  
+
       if (categoryOffer) {
         if (categoryOffer.discountPercentage > bestDiscount) {
           bestDiscount = categoryOffer.discountPercentage;
@@ -91,7 +93,7 @@ async function postLogin(req, res) {
     }
     const isMatch = await bcrypt.compare(password, matchedUser.password);
     if (!isMatch) {
-      return res.status(401).json({message:"Invalid Credentials"});
+      return res.status(401).json({ message: "Invalid Credentials" });
     } else {
       req.session.user = matchedUser;
       res.status(200).json({ redirectUrl: "/" });
@@ -134,11 +136,11 @@ async function signUpPost(req, res) {
 }
 
 async function shopAll(req, res) {
-  const {currentPage,limit,skip}=req.pagination;
-  const products = await Product.find({isBlocked:false}).skip(skip).limit(limit).lean();
+  const { currentPage, limit, skip } = req.pagination;
+  const products = await Product.find({ isBlocked: false }).skip(skip).limit(limit).lean();
   const categories = await Category.find({}).lean();
-  const totalProducts=await Product.find({isBlocked:false}).countDocuments();
-  const totalPages=Math.ceil(totalProducts/limit);
+  const totalProducts = await Product.find({ isBlocked: false }).countDocuments();
+  const totalPages = Math.ceil(totalProducts / limit);
   for (let product of products) {
     const productOffer = await Offer.findOne({
       offerType: 'Product', applicableProduct: product._id, isActive: true,
@@ -165,16 +167,16 @@ async function shopAll(req, res) {
     }
     product.finalDiscountedPrice = finalDiscountedPrice;
   };
-  res.render('user/all-products', { products, categories,currentPage,totalPages })
+  res.render('user/all-products', { products, categories, currentPage, totalPages })
 };
 
 
 async function filterProducts(req, res) {
-  const {currentPage,limit,skip}=req.pagination;
+  const { currentPage, limit, skip } = req.pagination;
   try {
     const { categories, filters, sort } = req.body;
     if (categories.length === 0 && filters.length === 0 && !sort) { return res.redirect('/shopAll') }
-    const filter = [{isBlocked:false}];
+    const filter = [{ isBlocked: false }];
     if (categories.length !== 0) { filter.push({ category: { $in: [...categories] } }) };
     if (filters.gender) { filter.push({ gender: filters.gender }) };
     if (filters.minPrice) { filter.push({ price: { $gte: filters.minPrice } }) };
@@ -198,8 +200,8 @@ async function filterProducts(req, res) {
       sortObj.productName = -1;
     }
     const products = await Product.find({ $and: filter }).sort(sortObj).skip(skip).limit(limit).lean();
-    const totalProducts=await Product.find({ $and: filter }).sort(sortObj).countDocuments();
-    const totalPages=Math.ceil(totalProducts/limit);
+    const totalProducts = await Product.find({ $and: filter }).sort(sortObj).countDocuments();
+    const totalPages = Math.ceil(totalProducts / limit);
     for (let product of products) {
       const productOffer = await Offer.findOne({
         offerType: 'Product', applicableProduct: product._id, isActive: true,
@@ -226,7 +228,7 @@ async function filterProducts(req, res) {
       }
       product.finalDiscountedPrice = finalDiscountedPrice;
     };
-    res.status(200).json({ products,currentPage,totalPages});
+    res.status(200).json({ products, currentPage, totalPages });
   } catch (error) {
     console.error('Error filtering products:', error);
     res.status(500).json({ message: 'Error filtering products' });
@@ -356,16 +358,16 @@ async function getResetPassword(req, res) {
 };
 async function postResetPassword(req, res) {
   try {
-    let {newPassword,currentPassword} = req.body;
+    let { newPassword, currentPassword } = req.body;
     const regex =
       /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,16}$/;
-  
+
     if (!regex.test(newPassword)) {
-      return res.status(400).json({message:"Password must be 8-16 characters long, and include a number, uppercase, lowercase, and special character."});
-       }
-    const email=req.user.email;
-    if(!email){
-      return res.status(401).json({message:"You are not logged in"})
+      return res.status(400).json({ message: "Password must be 8-16 characters long, and include a number, uppercase, lowercase, and special character." });
+    }
+    const email = req.user.email;
+    if (!email) {
+      return res.status(401).json({ message: "You are not logged in" })
     }
     const salt = await bcrypt.genSalt(10);
     currentPassword = await bcrypt.hash(currentPassword, salt);
@@ -373,13 +375,13 @@ async function postResetPassword(req, res) {
     if (!user) {
       return res.status(401).json({ message: "The user is not found" })
     };
-    
-     user.password=newPassword;
-     await user.save();
+
+    user.password = newPassword;
+    await user.save();
 
     req.user = user;
-     return res.status(200).json({
-      message:"password changed successfully"
+    return res.status(200).json({
+      message: "password changed successfully"
     });
   } catch (error) {
     res.status(500).json({ message: "Server error on changing password" });
@@ -396,7 +398,7 @@ async function getProduct(req, res) {
       return res.render('user/user-error', { statusCode: 400, message: "invalid Product Id" })
     }
 
-    const product = await Product.findOne({ _id: productId,isBlocked:false });
+    const product = await Product.findOne({ _id: productId, isBlocked: false });
     if (!product) {
       return res.render('user/user-error', { statusCode: 404, message: "No product found" })
     }
@@ -410,16 +412,16 @@ async function getProduct(req, res) {
     });
 
     let bestDiscount = 0;
-    let appliedOffer=null;
+    let appliedOffer = null;
     if (productOffer) {
       bestDiscount = Math.max(bestDiscount, productOffer.discountPercentage);
-      appliedOffer=productOffer;
+      appliedOffer = productOffer;
     }
 
     if (categoryOffer) {
       if (categoryOffer.discountPercentage > bestDiscount) {
         bestDiscount = categoryOffer.discountPercentage;
-        appliedOffer=categoryOffer;
+        appliedOffer = categoryOffer;
       }
     }
     let finalDiscountedPrice = product.price;
@@ -427,9 +429,9 @@ async function getProduct(req, res) {
       finalDiscountedPrice = product.price * (1 - bestDiscount / 100);
     }
     product.finalDiscountedPrice = finalDiscountedPrice;
-    product.appliedOffer=appliedOffer;
-    
-    const products = await Product.find({isBlocked:false}).lean().limit(8);
+    product.appliedOffer = appliedOffer;
+
+    const products = await Product.find({ isBlocked: false }).lean().limit(8);
     for (let product of products) {
       const productOffer = await Offer.findOne({
         offerType: 'Product', applicableProduct: product._id, isActive: true,
@@ -439,12 +441,12 @@ async function getProduct(req, res) {
         offerType: 'Category', applicableCategory: product.category, isActive: true,
         startDate: { $lte: Date.now() }, expiryDate: { $gte: Date.now() }
       });
-  
+
       let bestDiscount = 0;
       if (productOffer) {
         bestDiscount = Math.max(bestDiscount, productOffer.discountPercentage);
       }
-  
+
       if (categoryOffer) {
         if (categoryOffer.discountPercentage > bestDiscount) {
           bestDiscount = categoryOffer.discountPercentage;
@@ -456,8 +458,20 @@ async function getProduct(req, res) {
       }
       product.finalDiscountedPrice = finalDiscountedPrice;
     };
-    res.render("user/view-product", { product, products });
-    
+    const userId = req.session.user?._id;
+    let hasProductPurchased, hasAlreadyRated,rating;
+    const purchasedOrderId = await Order.exists({
+      "user.userId": userId,
+      orderItems: { $elemMatch: { product: productId } }
+    });
+    hasProductPurchased = purchasedOrderId ? true : false;
+    const existingRating = await Rating.findOne({
+      userId: userId,
+      productId: productId
+    });
+    hasAlreadyRated = existingRating ? true : false;
+    res.render("user/view-product", { product, products, hasProductPurchased, hasAlreadyRated,rating:existingRating });
+
   } catch (err) {
     console.error("Error fetching product:", err.message);
     return res.render('user/user-error', { statusCode: 500, message: "Server error while retrieving the product" });

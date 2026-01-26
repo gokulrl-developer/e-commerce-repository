@@ -10,7 +10,7 @@ const orderController = require("../controllers/user/orderController");
 const wishlistController = require("../controllers/user/wishlistController");
 const walletController = require("../controllers/user/walletController");
 const paginate = require('../middlewares/paginate');
-
+const ratingController=require('../controllers/user/ratingController')
 
 
 
@@ -113,5 +113,9 @@ router.post('/wishlist/toggle',  userAuth.checkSession, wishlistController.toggl
 
 //-----------------------------Wallet------------------------------------------------------------------
 router.get('/wallet',userAuth.checkSession,paginate,walletController.getWallet)
+
+//----------------------------Rating----------------------------------------------------------------
+router.post('/rating/:productId',userAuth.checkSession,ratingController.rateProduct);
+router.patch('/rating/:ratingId',userAuth.checkSession,ratingController.updateProductRating);
 
 module.exports=router;

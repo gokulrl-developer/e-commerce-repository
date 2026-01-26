@@ -265,7 +265,7 @@ exports.addToCart = async (req, res) => {
       res.status(500).json({message: 'An error occurred while adding to cart.' });
   }
 };
-
+ 
 
 exports.deleteFromCart = async (req, res) => {
   try {
@@ -365,7 +365,7 @@ exports.updateQuantity = async (req, res) => {
       console.error('Error in updateQuantity:', err);
       res.status(500).json({message: 'An error occurred while updating quantity.'});
   }
-};
+}; 
 
 
 
