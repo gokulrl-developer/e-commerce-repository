@@ -20,143 +20,147 @@
 
       <!-- Sidebar -->
       <%- include('../partials/user-profile-sidebar') %>
- 
-    <!-- Orders Section -->
-    <div class="w-full md:w-4/5 shadow-md p-4 ">
-      <div class="mb-4">
-        <input type="text" id="search" name="search" class="form-input bg-gray-200 shadow-lg text-white px-4 py-3 w-[90%]"
-          placeholder="Search an item" oninput="applySearch()">
-        <button  class="py-3 bg-gray-200 ml-0 px-4 shadow-lg" onclick="applySearch()">SEARCH</button>
-      </div>
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-lg font-semibold">MY ORDERS</h2>
-      </div>
 
-      <!-- Orders Table -->
-      <div class="overflow-x-auto" id="order-container">
-        
-              <% if (orders.length===0) { %>
-                <p class="text-gray-400">You haven't placed any orders yet.</p>
-                <% } else {%>
-                  <table class="table-auto w-full border border-gray-300" id="order-table">
-          <thead >
-            <tr>
-                  <th class="px-4 py-2 text-left border">Order Id& Date</th>
-                  <th class="px-4 py-2 text-left border">Order Details</th>
-                  <th class="px-4 py-2 text-left border">Order Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <%orders.forEach((order)=>{%>
-            <tr>
-              <td class="px-4 py-2 border">
-                Id : #<%=order._id.toString().slice(-6)%><br>
-                  Date : <%= order.formattedDate %>
-              </td>
-              <td class="px-4 py-2 border">
-                  Total items : <%=order.orderItems.length%><br>
-                  Order Total : <%=order.payment.orderTotal.toFixed(2)%> (Incl.GST)<br>
-                  Order status : <%=order.orderStatus%><br>
-                  Payment Status : <%=order.payment.paymentStatus%><br>
-              </td>
-              <td class="px-4 py-2 border">
-                <button onclick="viewDetails('<%= order._id %>')"
-                  class="bg-blue-500 text-white px-3 py-2 m-2 rounded hover:bg-blue-600">
-                  View Details
-                </button><br>
-                <%if((order.payment.paymentStatus === 'Failed' || order.payment.paymentStatus === 'Pending' )&&order.payment.paymentMethod === 'Razorpay'){%>
-                <button 
-                    onclick="resumePayment('<%=order._id%>','<%=user%>')" 
-                    class="bg-orange-700 text-black  font-semibold px-3 py-2 rounded hover:bg-orange-800">
-                    RePay
-                </button>
+        <!-- Orders Section -->
+        <div class="w-full md:w-4/5 shadow-md p-4 ">
+          <div class="mb-4">
+            <input type="text" id="search" name="search"
+              class="form-input bg-gray-200 shadow-lg text-white px-4 py-3 w-[90%]" placeholder="Search an item"
+              oninput="applySearch()">
+            <button class="py-3 bg-gray-200 ml-0 px-4 shadow-lg" onclick="applySearch()">SEARCH</button>
+          </div>
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-semibold">MY ORDERS</h2>
+          </div>
+
+          <!-- Orders Table -->
+          <div class="overflow-x-auto" id="order-container">
+
+            <% if (orders.length===0) { %>
+              <p class="text-gray-400">You haven't placed any orders yet.</p>
+              <% } else {%>
+                <table class="table-auto w-full border border-gray-300" id="order-table">
+                  <thead>
+                    <tr>
+                      <th class="px-4 py-2 text-left border">Order Id& Date</th>
+                      <th class="px-4 py-2 text-left border">Order Details</th>
+                      <th class="px-4 py-2 text-left border">Order Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <%orders.forEach((order)=>{%>
+                      <tr>
+                        <td class="px-4 py-2 border">
+                          Id : #<%=order._id.toString().slice(-6)%><br>
+                            Date : <%= order.formattedDate %>
+                        </td>
+                        <td class="px-4 py-2 border">
+                          Total items : <%=order.orderItems.length%><br>
+                            Order Total : <%=order.payment.orderTotal.toFixed(2)%> (Incl.GST)<br>
+                              Order status : <%=order.orderStatus%><br>
+                                Payment Status : <%=order.payment.paymentStatus%><br>
+                        </td>
+                        <td class="px-4 py-2 border">
+                          <button onclick="viewDetails('<%= order._id %>')"
+                            class="bg-blue-500 text-white px-3 py-2 m-2 rounded hover:bg-blue-600">
+                            View Details
+                          </button><br>
+                          <%if((order.payment.paymentStatus==='Failed' || order.payment.paymentStatus==='Pending'
+                            )&&order.payment.paymentMethod==='Razorpay' && order.orderStatus !=='Cancelled' ){%>
+                            <button onclick="resumePayment('<%=order._id%>','<%=user%>')"
+                              class="bg-orange-700 text-black  font-semibold px-3 py-2 rounded hover:bg-orange-800">
+                              RePay
+                            </button>
+                            <%}%>
+                              <% if (order.orderStatus==='Pending' || order.orderStatus==='Processing' ||
+                                order.orderStatus==='Partially Cancelled' ) { %>
+                                <button class="bg-red-500 text-white px-3 py-2 m-2 rounded hover:bg-red-600"
+                                  onclick="cancelOrder('<%= order._id %>')">
+                                  Cancel Order
+                                </button>
+                                <% } %>
+
+                        </td>
+                      </tr>
+                      <%})%>
+
+                  </tbody>
+                </table>
                 <%}%>
-                <% if (order.orderStatus==='Pending' || order.orderStatus==='Processing' || order.orderStatus ==='Partially Cancelled') { %>
-                  <button class="bg-red-500 text-white px-3 py-2 m-2 rounded hover:bg-red-600"
-                    onclick="cancelOrder('<%= order._id %>')">
-                    Cancel Order
-                  </button>
-                  <% } %>
-
-              </td>
-            </tr>
-            <%})%>
-
-          </tbody>
-        </table>
-        <%}%>
-      </div>
-      <!-- Pagination -->
-  <div class="flex justify-center my-2">
-  <nav class="inline-flex" id="pagination-container">
-  <%if(currentPage>1){%>
-    <a href="/orders?page=<%= currentPage - 1 %>"
-  class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer" id="pagination-previous">Previous</a>
-  <%}%>
-    <% for (let i=1; i <=totalPages; i++) { %>
-   <a href="/orders?page=<%= i %>"
-     class="<%= currentPage === i ? 'bg-indigo-500' : 'bg-[#222]' %> text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer"
-     id="pagination-current">
-     <%= i %>
-   </a>
-   <% } %>
-   <%if(currentPage<totalPages){%>
-      <a href="/orders?page=<%= currentPage + 1 %>"
-         class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer"
-         id="pagination-next">Next</a>
-         <%}%>
-  </nav>
-  </div> 
-    </div>
-  </main>
+          </div>
+          <!-- Pagination -->
+          <div class="flex justify-center my-2">
+            <nav class="inline-flex" id="pagination-container">
+              <%if(currentPage>1){%>
+                <a href="/orders?page=<%= currentPage - 1 %>"
+                  class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer"
+                  id="pagination-previous">Previous</a>
+                <%}%>
+                  <% for (let i=1; i <=totalPages; i++) { %>
+                    <a href="/orders?page=<%= i %>"
+                      class="<%= currentPage === i ? 'bg-indigo-500' : 'bg-[#222]' %> text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer"
+                      id="pagination-current">
+                      <%= i %>
+                    </a>
+                    <% } %>
+                      <%if(currentPage<totalPages){%>
+                        <a href="/orders?page=<%= currentPage + 1 %>"
+                          class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer"
+                          id="pagination-next">Next</a>
+                        <%}%>
+            </nav>
+          </div>
+        </div>
+    </main>
 
     <!-- Footer -->
     <%- include('../partials/user-footer') %>
 
       <!-- View Details Modal -->
       <div id="detailsModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex justify-center items-center hidden">
-        <div class="bg-blue-200 text-black rounded-lg w-4/5 max-w-3xl p-6 max-h-[90vh] overflow-y-auto">
-          <div class="flex justify-between items-center border-b border-gray-700 pb-3 mb-4">
-            <h2 class="text-xl font-bold text-gold">Order Details</h2>
-            <button onclick="closeModal()" class="text-gray-400 hover:text-white">✕</button>
+        <div class="bg-indigo-500 text-black flex flex-col rounded-lg w-4/5 max-w-3xl p-6 max-h-[90vh] overflow-y-auto">
+          <div class="border-b border-gray-700 pb-3 mb-4 relative">
+            <h2 class="text-xl font-bold text-gold block text-center">Order Details</h2>
+            <button onclick="closeModal()" class="text-gray-400 hover:text-white absolute top-0 right-2">✕</button>
           </div>
 
-          <!-- Order Information -->
-          <div class="mb-6">
-            <h3 class="font-bold text-lg mb-2 text-gold">Order Information</h3>
-            <p><strong>Order ID:</strong> <span id="orderId"></span></p>
-            <p><strong>Order Date:</strong> <span id="orderDate"></span></p>
-            <p><strong>Order Status:</strong> <span id="orderStatus"></span></p>
-          </div>
+          <div class="grid grid-cols-2">
+            <!-- Order Information -->
+            <div class="mb-6 items-center">
+              <h3 class="font-bold text-lg mb-2 text-gold">Order Information</h3>
+              <p><strong>Order ID:</strong> <span id="orderId"></span></p>
+              <p><strong>Order Date:</strong> <span id="orderDate"></span></p>
+              <p><strong>Order Status:</strong> <span id="orderStatus"></span></p>
+            </div>
 
-          <!-- Customer Details -->
-          <div class="mb-6">
-            <h3 class="font-bold text-lg mb-2 text-gold">Customer Details</h3>
-            <p><strong>Name:</strong> <span id="customerName"></span></p>
-            <p><strong>Email:</strong> <span id="customerEmail"></span></p>
-          </div>
+            <!-- Payment Details -->
+            <div class="mb-6 items-center">
+              <h3 class="font-bold text-lg mb-2 text-gold">Payment Details</h3>
+              <p><strong>Payment Method:</strong> <span id="paymentMethod"></span></p>
+              <p><strong>Payment Status:</strong> <span id="paymentStatus"></span></p>
+              <p><strong>Discount:</strong> ₹<span id="discount"></span></p>
+              <p><strong>Total:</strong> ₹<span id="total"></span></p>
+              <p><strong>Order Total:</strong> ₹<span id="order-total"></span></p>
+            </div>
+            <!-- Customer Details -->
+            <div class="mb-6 items-center">
+              <h3 class="font-bold text-lg mb-2 text-gold">Customer Details</h3>
+              <p><strong>Name:</strong> <span id="customerName"></span></p>
+              <p><strong>Email:</strong> <span id="customerEmail"></span></p>
+            </div>
 
-          <!-- Shipping Address -->
-          <div class="mb-6">
-            <h3 class="font-bold text-lg mb-2 text-gold">Shipping Address</h3>
-            <p id="shippingAddress"></p>
-          </div>
+            <!-- Shipping Address -->
+            <div class="mb-6 items-center">
+              <h3 class="font-bold text-lg mb-2 text-gold">Shipping Address</h3>
+              <p id="shippingAddress"></p>
+            </div>
 
-          <!-- Product Details -->
-          <div class="mb-6">
-            <h3 class="font-bold text-lg mb-2 text-black">Products</h3>
-            <div id="productList" class="space-y-4"></div>
           </div>
-
-          <!-- Payment Details -->
-          <div class="mb-6">
-            <h3 class="font-bold text-lg mb-2 text-gold">Payment Details</h3>
-            <p><strong>Payment Method:</strong> <span id="paymentMethod"></span></p>
-            <p><strong>Payment Status:</strong> <span id="paymentStatus"></span></p>
-            <p><strong>Discount:</strong> ₹<span id="discount"></span></p>
-            <p><strong>Total:</strong> ₹<span id="total"></span></p>
-            <p><strong>Order Total:</strong> ₹<span id="order-total"></span></p>
-          </div>
+            <!-- Product Details -->
+            <div class="mb-6">
+              <h3 class="font-bold text-lg mb-2 text-black">Products</h3>
+              <div id="productList" class="flex gap-2"></div>
+            </div>
 
           <!-- Cancel Order Button -->
           <div id="cancelOrderContainer" class="mt-6"></div>
@@ -165,34 +169,38 @@
         </div>
       </div>
 
-       <!-- Return Request Modal -->
-    <div id="return-modal" class="fixed h-3/5 w-3/5 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-800 flex justify-center items-center hidden">
-      <div class="bg-darker text-white rounded-lg max-w-md w-4/5 p-6">
+      <!-- Return Request Modal -->
+      <div id="return-modal"
+        class="fixed h-3/5 w-3/5 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-800 flex justify-center items-center hidden">
+        <div class="bg-darker text-white rounded-lg max-w-md w-4/5 p-6">
           <h2 class="text-xl font-bold mb-4">Request Return</h2>
           <form id="return-form">
-              <input type="hidden" id="return-order-id" name="orderId">
-              <input type="hidden" id="return-item-id" name="itemId">
-              <div class="mb-4">
-                  <label for="return-reason" class="block text-sm font-medium text-gray-300 mb-2">Reason for Return</label>
-                  <textarea id="return-reason" name="reason" rows="3" class=" resize-none w-full px-3 py-2 bg-gray-900 border-none rounded-lg focus:outline-none" required></textarea>
-              </div>
-              <div class="flex justify-end">
-                  <button type="button" onclick="closeReturnModal()" class="bg-gray-500 text-white px-4 py-2 rounded-lg mr-2">Cancel</button>
-                  <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-lg">Submit</button>
-              </div>
+            <input type="hidden" id="return-order-id" name="orderId">
+            <input type="hidden" id="return-item-id" name="itemId">
+            <div class="mb-4">
+              <label for="return-reason" class="block text-sm font-medium text-gray-300 mb-2">Reason for Return</label>
+              <textarea id="return-reason" name="reason" rows="3"
+                class=" resize-none w-full px-3 py-2 bg-gray-900 border-none rounded-lg focus:outline-none"
+                required></textarea>
+            </div>
+            <div class="flex justify-end">
+              <button type="button" onclick="closeReturnModal()"
+                class="bg-gray-500 text-white px-4 py-2 rounded-lg mr-2">Cancel</button>
+              <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-lg">Submit</button>
+            </div>
           </form>
+        </div>
       </div>
-  </div>
 
 </body>
 
 </html>
 <script>
-  async function viewDetails(orderId){
-    try{
+  async function viewDetails(orderId) {
+    try {
       const response = await fetch(`/order/details/${orderId}`);
       const data = await response.json();
-      if (response.ok){
+      if (response.ok) {
         // Populate order information
         document.getElementById('orderId').textContent = `#${data.order._id.toString().slice(-6)}`;
         document.getElementById('orderDate').textContent = data.formattedDate;
@@ -204,36 +212,41 @@
 
         // Populate shipping address
         const address = data.order.user.shippingAddress;
-        document.getElementById('shippingAddress').textContent =
-          `${address.Name}, ${address.HouseName}, ${address.LocalityStreet}, ${address.TownCity}, ${address.state}, ${address.country}, ${address.pincode}, ${address.MobileNumber}`;
+        document.getElementById('shippingAddress').innerHTML =
+          `<p>${address.Name},</p> 
+          <p> ${address.HouseName},${address.LocalityStreet},${address.TownCity}, </p>
+            <p>${address.state},${address.country},</p> 
+            <p>Pin:${address.pincode}, Ph:${address.MobileNumber}</p>`;
         // Populate product details
         const productList = document.getElementById('productList');
         productList.innerHTML = ''; // Clear previous data
-        data.order.orderItems.forEach((item) =>{
+        data.order.orderItems.forEach((item) => {
           const productElement = document.createElement('div');
-          productElement.classList.add('flex', 'gap-4', 'border-b', 'border-gray-700', 'pb-4', 'last:border-b-0');
+          productElement.classList.add("w-1/4");
+          //productElement.classList.add('flex', 'gap-4', 'border-gray-700', 'pb-4');
 
 
           productElement.innerHTML = `
-                            <img src="${item.product.imageUrl[0]}" alt="${item.product.productName}" class="w-20 h-20 object-contain">
-                            <div>
-                                <h4 class="font-bold text-black">${item.product.productName}</h4>
-                                <p >Price: ₹${Number(item.price).toFixed(2)}</p>
-                                <p >Quantity: ${item.quantity}</p>
-                                <p >totalPrice: ₹${Number(item.totalPrice).toFixed(2)}</p>
-                                <p >Final price: ₹${(item.discountedPrice*item.quantity).toFixed(2)}</p>
-                   ${item.status === 'Delivered'?
-                      `<button 
+                     <div class="flex flex-col w-full">
+                      <img src="${item.product.imageUrl[0]}" alt="${item.product.productName}" class="w-full object-cover">
+                      <div class="">
+                       <h4 class="font-bold text-black">${item.product.productName}</h4>
+                                <p class="">₹${Number(item.price).toFixed(2)} * ${item.quantity} = ₹${Number(item.totalPrice).toFixed(2)}</p>
+                
+                                <p class="">Final price: ₹${(item.discountedPrice * item.quantity).toFixed(2)}</p>
+                   ${item.status === 'Delivered' ?
+              `<button 
                           onclick="requestReturn('${data.order._id}','${item._id}')" 
                           class="bg-orange-700 text-black  font-semibold px-3 py-2 rounded hover:bg-orange-800">
                           Return
                       </button>` : ''} 
-                      ${item.status === 'Pending' || item.status === 'Processing'?
-                      `<button 
+                      ${item.status === 'Pending' || item.status === 'Processing' ?
+              `<button 
                           onclick="cancelOrderItem('${data.order._id}','${item._id}')" 
                           class="bg-orange-700 text-black  font-semibold px-3 py-2 rounded hover:bg-orange-800">
                           Cancel Item
                       </button>` : ''} 
+                            </div>
                             </div>
                         `;
           productList.appendChild(productElement);
@@ -242,8 +255,8 @@
         document.getElementById('paymentMethod').textContent = data.order.payment.paymentMethod;
         document.getElementById('paymentStatus').textContent = data.order.payment.paymentStatus;
         document.getElementById('discount').textContent = (Number(data.order.payment.discount)).toFixed(2);
-        document.getElementById('total').textContent =Number(data.order.payment.grandTotal).toFixed(2);
-        document.getElementById('order-total').textContent =Number(data.order.payment.orderTotal).toFixed(2)+" (Incl GST)";
+        document.getElementById('total').textContent = Number(data.order.payment.grandTotal).toFixed(2);
+        document.getElementById('order-total').textContent = Number(data.order.payment.orderTotal).toFixed(2) + " (Incl GST)";
 
         // Add cancel button if order is cancellable
         const cancelOrderContainer = document.getElementById('cancelOrderContainer');
@@ -269,15 +282,15 @@
                         `;
         // Show modal
         document.getElementById('detailsModal').classList.remove('hidden');
-      }else {
+      } else {
         Swal.fire('Error', data.message || 'Failed to fetch order details', 'error');
       }
-    }catch (error) {
+    } catch (error) {
       console.error('Error fetching order details:', error);
-      Swal.fire('Error', error.message ||'An error occurred while fetching order details', 'error');
+      Swal.fire('Error', error.message || 'An error occurred while fetching order details', 'error');
     }
-    }
-  
+  }
+
   function closeModal() {
     document.getElementById('detailsModal').classList.add('hidden');
   }
@@ -302,20 +315,20 @@
           },
         });
 
-        
+
         if (response.ok) {
           const data = await response.json();
           await Swal.fire('Cancelled!', data.message, 'success');
           location.reload();
         } else {
-          let errMessage="Failed to cancel order";
-          try{
-          const data = await response.json();
-          errMessage=data.message || errMessage;
-        }catch(error){
-          errMessage="Unexpected error occured.Please try again later."
-        }
-        Swal.fire('Error!', errMessage, 'error');
+          let errMessage = "Failed to cancel order";
+          try {
+            const data = await response.json();
+            errMessage = data.message || errMessage;
+          } catch (error) {
+            errMessage = "Unexpected error occured.Please try again later."
+          }
+          Swal.fire('Error!', errMessage, 'error');
         }
       } catch (error) {
         console.error('Error cancelling order:', error);
@@ -324,7 +337,7 @@
     }
   }
 
-  async function cancelOrderItem(orderId,itemId) {
+  async function cancelOrderItem(orderId, itemId) {
     const result = await Swal.fire({
       title: 'Are you sure?',
       text: "You won't be able to revert this!",
@@ -359,174 +372,174 @@
     }
   }
 
-  async function resumePayment(orderId,user) {
-        try {
-            const response = await fetch(`/order/resume-payment/${orderId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
-            const data = await response.json();
-            if (response.ok) {
-                const options = {
-                    key: data.key,
-                    amount: data.amount,
-                    currency: data.currency,
-                    name: 'Carrymart',
-                    description: 'Order Payment',
-                    order_id: data.orderId,
-                    handler: function (response) {
-                        verifyPayment(response, data);
-                    },
-                    prefill: {
-                        name: user.name,
-                        email: user.email,
-                        contact: user.mobile
-                    },
-                    theme: {
-                        color: '#F37254'
-                    }
-                };
-                const rzp = new Razorpay(options);
-                rzp.open();
-            } else {
-                Swal.fire('Error', data.message || 'Failed to resume payment', 'error');
-            }
-        } catch (error) {
-            console.error('Error resuming payment:', error);
-            Swal.fire('Error', error.message || 'An error occurred while resuming the payment', 'error');
-        }
+  async function resumePayment(orderId, user) {
+    try {
+      const response = await fetch(`/order/resume-payment/${orderId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      const data = await response.json();
+      if (response.ok) {
+        const options = {
+          key: data.key,
+          amount: data.amount,
+          currency: data.currency,
+          name: 'Carrymart',
+          description: 'Order Payment',
+          order_id: data.orderId,
+          handler: function (response) {
+            verifyPayment(response, data);
+          },
+          prefill: {
+            name: user.name,
+            email: user.email,
+            contact: user.mobile
+          },
+          theme: {
+            color: '#F37254'
+          }
+        };
+        const rzp = new Razorpay(options);
+        rzp.open();
+      } else {
+        Swal.fire('Error', data.message || 'Failed to resume payment', 'error');
+      }
+    } catch (error) {
+      console.error('Error resuming payment:', error);
+      Swal.fire('Error', error.message || 'An error occurred while resuming the payment', 'error');
     }
+  }
 
-    async function verifyPayment(paymentResponse, orderData) {
-        try {
-            const response = await fetch('/order/verify-payment', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    orderId: orderData.orderId,
-                    paymentId: paymentResponse.razorpay_payment_id,
-                    signature: paymentResponse.razorpay_signature
-                })
-            });
+  async function verifyPayment(paymentResponse, orderData) {
+    try {
+      const response = await fetch('/order/verify-payment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          orderId: orderData.orderId,
+          paymentId: paymentResponse.razorpay_payment_id,
+          signature: paymentResponse.razorpay_signature
+        })
+      });
 
-            const result = await response.json();
+      const result = await response.json();
 
-            if (response.ok){
-                Swal.fire({
-                    title: 'Payment Successful!',
-                    text: 'Your order has been successfully paid.',
-                    icon: 'success',
-                    confirmButtonText: 'OK'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.location.reload(); // Reload the page to reflect the updated order status
-                    }
-                });
-            } else {
-                Swal.fire('Error', 'Payment verification failed. Please contact support.', 'error');
-            }
-        } catch (error) {
-            console.error('Error verifying payment:', error);
-            Swal.fire('Error','An error occurred while verifying the payment', 'error');
-        }
-    }
-
-    async function handlePaymentFailure(orderId) {
-        try {
-            const response = await fetch('/order/payment-failed', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ orderId })
-            });
-
-            const result = await response.json();
-
-            if (response.ok) {
-                Swal.fire({
-                    title: 'Payment Failed',
-                    text: 'Your order has been saved. You can complete the payment later from your order details page.',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'View Order',
-                    cancelButtonText: 'Close'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.location.href = `/orders`;
-                    }
-                });
-            } else {
-                Swal.fire('Error', result.message || 'An error occurred while processing your payment.', 'error');
-            }
-        } catch (error) {
-            console.error("Error handling payment failure:", error);
-            Swal.fire('Error', 'An error occurred while processing your payment. Please check your order status.', 'error');
-        }
-    }
-//----------------------------Handle return request--------------------------------------------------------------------------
-    function requestReturn(orderId, itemId) {
-            document.getElementById('return-order-id').value = orderId;
-            document.getElementById('return-item-id').value = itemId;
-            document.getElementById('return-modal').classList.remove('hidden');
-        }
-
-        function closeReturnModal() {
-            document.getElementById('return-modal').classList.add('hidden');
-        }
-
-        document.getElementById('return-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            const returnData = Object.fromEntries(formData.entries());
-
-            try {
-                const response = await fetch('/order/return-request', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(returnData),
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    await Swal.fire('Success', data.message, 'success');
-                    closeReturnModal();
-                    location.reload();
-                } else {
-                    Swal.fire('Error', data.message || 'Failed to submit return request', 'error');
-                }
-            } catch (error) {
-                console.error('Error submitting return request:', error);
-                Swal.fire('Error', 'An error occurred while submitting the return request', 'error');
-            }
+      if (response.ok) {
+        Swal.fire({
+          title: 'Payment Successful!',
+          text: 'Your order has been successfully paid.',
+          icon: 'success',
+          confirmButtonText: 'OK'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            window.location.reload(); // Reload the page to reflect the updated order status
+          }
         });
+      } else {
+        Swal.fire('Error', 'Payment verification failed. Please contact support.', 'error');
+      }
+    } catch (error) {
+      console.error('Error verifying payment:', error);
+      Swal.fire('Error', 'An error occurred while verifying the payment', 'error');
+    }
+  }
 
-//Apply Filters
-async function applySearch(url='/orders?page=1&limit=9') {
+  async function handlePaymentFailure(orderId) {
+    try {
+      const response = await fetch('/order/payment-failed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId })
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        Swal.fire({
+          title: 'Payment Failed',
+          text: 'Your order has been saved. You can complete the payment later from your order details page.',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#d33',
+          confirmButtonText: 'View Order',
+          cancelButtonText: 'Close'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            window.location.href = `/orders`;
+          }
+        });
+      } else {
+        Swal.fire('Error', result.message || 'An error occurred while processing your payment.', 'error');
+      }
+    } catch (error) {
+      console.error("Error handling payment failure:", error);
+      Swal.fire('Error', 'An error occurred while processing your payment. Please check your order status.', 'error');
+    }
+  }
+  //----------------------------Handle return request--------------------------------------------------------------------------
+  function requestReturn(orderId, itemId) {
+    document.getElementById('return-order-id').value = orderId;
+    document.getElementById('return-item-id').value = itemId;
+    document.getElementById('return-modal').classList.remove('hidden');
+  }
+
+  function closeReturnModal() {
+    document.getElementById('return-modal').classList.add('hidden');
+  }
+
+  document.getElementById('return-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const returnData = Object.fromEntries(formData.entries());
+
+    try {
+      const response = await fetch('/order/return-request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(returnData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        await Swal.fire('Success', data.message, 'success');
+        closeReturnModal();
+        location.reload();
+      } else {
+        Swal.fire('Error', data.message || 'Failed to submit return request', 'error');
+      }
+    } catch (error) {
+      console.error('Error submitting return request:', error);
+      Swal.fire('Error', 'An error occurred while submitting the return request', 'error');
+    }
+  });
+
+  //Apply Filters
+  async function applySearch(url = '/orders?page=1&limit=9') {
     try {
       const search = document.getElementById('search').value.trim();
-      url=url+`&search=${search}`
-      const response = await fetch(url,{
+      url = url + `&search=${search}`
+      const response = await fetch(url, {
         headers: {
           'X-Requested-With': 'XMLHttpRequest'
         }
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         if (!data.orders || data.orders.length === 0) {
           document.getElementById('order-container').innerHTML = `
          <p class="text-gray-400">You haven't placed any orders yet.</p>`
         } else {
-          document.getElementById("order-container").innerHTML=
-          `     <table class="table-auto w-full border border-gray-300" id="order-table">
+          document.getElementById("order-container").innerHTML =
+            `     <table class="table-auto w-full border border-gray-300" id="order-table">
           <thead >
             <tr>
                   <th class="px-4 py-2 text-left border">Order Id& Date</th>
@@ -535,11 +548,11 @@ async function applySearch(url='/orders?page=1&limit=9') {
             </tr>
           </thead>
           <tbody>`+
-           data.orders.map((order) => (
-          `  <tr>
+            data.orders.map((order) => (
+              `  <tr>
               <td class="px-4 py-2 border">
                 Id : #${order._id.toString().slice(-6)}<br>
-                  Date : ${ order.formattedDate }
+                  Date : ${order.formattedDate}
               </td>
               <td class="px-4 py-2 border">
                  Total items : ${order.orderItems.length}<br>
@@ -548,63 +561,64 @@ async function applySearch(url='/orders?page=1&limit=9') {
                   Payment Status : ${order.payment.paymentStatus}<br>
               </td>
               <td class="px-4 py-2 border">
-                <button onclick="viewDetails('${ order._id }')"
+                <button onclick="viewDetails('${order._id}')"
                   class="bg-blue-500 text-white px-3 py-2 m-2 rounded hover:bg-blue-600">
                   View Details
                 </button><br>
-                ${((order.payment.paymentStatus === 'Failed' || order.payment.paymentStatus === 'Pending' )&&order.payment.paymentMethod === 'Razorpay')?
+                ${((order.payment.paymentStatus === 'Failed' || order.payment.paymentStatus === 'Pending') && order.payment.paymentMethod === 'Razorpay') ?
                 `<button 
                     onclick="resumePayment('${order._id}','${user}')" 
                     class="bg-orange-700 text-black  font-semibold px-3 py-2 rounded hover:bg-orange-800">
                     RePay
-                </button>`:''}
-                ${(order.orderStatus==='Pending' || order.orderStatus==='Processing' || order.orderStatus ==='Partially Cancelled')?
-                  `<button class="bg-red-500 text-white px-3 py-2 m-2 rounded hover:bg-red-600"
-                    onclick="cancelOrder('${ order._id }')">
+                </button>`: ''}
+                ${(order.orderStatus === 'Pending' || order.orderStatus === 'Processing' || order.orderStatus === 'Partially Cancelled') ?
+                `<button class="bg-red-500 text-white px-3 py-2 m-2 rounded hover:bg-red-600"
+                    onclick="cancelOrder('${order._id}')">
                     Cancel Order
-                  </button>`:''}
+                  </button>`: ''}
                     </td>
             </tr>
             </tbody>`
-           )).join(''); 
-           + `</tbody>
+            )).join('');
+          + `</tbody>
           </table>`
         }
-      //pagination
-      const paginationContainer=document.getElementById('pagination-container');
-      paginationContainer.innerHTML='';
-     let html=` 
-             ${data.currentPage>1 ?`
-               <a onclick="setPaginationDetails(${data.currentPage-1},9)"
+        //pagination
+        const paginationContainer = document.getElementById('pagination-container');
+        paginationContainer.innerHTML = '';
+        let html = ` 
+             ${data.currentPage > 1 ? `
+               <a onclick="setPaginationDetails(${data.currentPage - 1},9)"
             class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer" >Previous</a>
             `: ''}
             `;
-         for (let i=1; i <=data.totalPages; i++) {
-          html+=    `<a onclick="setPaginationDetails(${i},9)"
+        for (let i = 1; i <= data.totalPages; i++) {
+          html += `<a onclick="setPaginationDetails(${i},9)"
                 class="${data.currentPage === i ? 'bg-indigo-500' : 'bg-[#222]'} text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer"
                 >
                 ${i}
               </a>`;
-            }
-              
-           html+= `${data.currentPage<data.totalPages ?
-                 `<a onclick="setPaginationDetails(${data.currentPage+1},9)"
-                    class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer"
-                    >Next</a>`:''}`
-        paginationContainer.innerHTML=html;
+        }
 
-    }}catch (error){
+        html += `${data.currentPage < data.totalPages ?
+          `<a onclick="setPaginationDetails(${data.currentPage + 1},9)"
+                    class="bg-[#222] text-white px-3 py-1 mx-1 rounded-md hover:bg-indigo-600 cursor-pointer"
+                    >Next</a>`: ''}`
+        paginationContainer.innerHTML = html;
+
+      }
+    } catch (error) {
       console.error("error applying filters", error);
       Swal.fire("Error", error.message || "Error In Filtering Products", "error");
     }
   }
-  
- 
-//----------------------------------------Pagination---------------------------------------------
-async function setPaginationDetails(page,limit){
-const url=`/orders?page=${page}&limit=${limit}`
-applySearch(url);
-}
 
-    
+
+  //----------------------------------------Pagination---------------------------------------------
+  async function setPaginationDetails(page, limit) {
+    const url = `/orders?page=${page}&limit=${limit}`
+    applySearch(url);
+  }
+
+
 </script>

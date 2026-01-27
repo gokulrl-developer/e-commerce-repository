@@ -166,6 +166,7 @@ exports.cancelOrderItem = async (req, res) => {
 
       // Update order status
       const allCancelled = order.orderItems.every(item => item.status === 'Cancelled' || item.status ==='Returned');
+      if(order.payment.paymentStatus !== 'Failed'){
       if (allCancelled) {
           order.orderStatus = 'Cancelled';
           order.payment.paymentStatus = 'Refunded';
@@ -175,6 +176,8 @@ exports.cancelOrderItem = async (req, res) => {
               order.payment.paymentStatus = 'Partially Refunded';
           }
       }
+    }
+    
       order.payment.refundedAmount = (order.payment.refundedAmount || 0) + refundAmount;
       await order.save();
 
@@ -310,7 +313,9 @@ exports.cancelOrder = async (req, res) => {
 
       order.orderStatus = 'Cancelled';
       order.orderItems.forEach((item)=>item.status='Cancelled');
+      if(order.payment.paymentStatus!=='Failed'){
       order.payment.paymentStatus = 'Refunded';
+      }
 
       await order.save();
   

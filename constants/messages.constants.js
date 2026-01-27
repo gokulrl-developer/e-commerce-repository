@@ -103,7 +103,7 @@ module.exports.Messages=Object.freeze({
     PRODUCT_RATED_SUCCESS:"Product rated successfullly.",
     PRODUCT_NOT_RATED:"You have not rated the product.",
     RATING_EDITED:"Rating edited successfullly.",
-    INVALID_CREDENTIALS:"Rating edited successfullly.",
+    INVALID_CREDENTIALS:"Invalid credentials.",
     USER_BLOCKED:"User is blocked",
     EMAIL_ALREADY_REGISTERED:"Email already registered",
     INVALID_OTP:"Invalid otp",
