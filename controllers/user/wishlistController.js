@@ -119,7 +119,7 @@ exports.getWishlistData = async (req, res) => {
         }
         const existingItem = await Wishlist.findOne({ user: req.user._id, "products.product":product });
         if (existingItem) {
-            return res.status(StatusCodes.VALIDATION_ERROR).json({message: 'Product already in wishlist' });
+            return res.status(StatusCodes.BAD_REQUEST).json({message: 'Product already in wishlist' });
         }
         wishlist.products.push({product});
         await wishlist.save();

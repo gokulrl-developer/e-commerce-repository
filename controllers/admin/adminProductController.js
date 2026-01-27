@@ -68,7 +68,7 @@ module.exports = {
         validationErrors.push(Messages.FOUR_IMAGES_NEEDED);
         }
       if(validationErrors.length!==0){
-        return res.status(StatusCodes.VALIDATION_ERROR).json({validationErrors})
+        return res.status(StatusCodes.BAD_REQUEST).json({validationErrors})
       } 
       features=JSON.parse(features)
       features =features.map((element)=>element.trim());
@@ -127,7 +127,7 @@ module.exports = {
         features:features.trim(),
         description:description.trim()});
       if(validationErrors.length!==0){
-        return res.status(StatusCodes.VALIDATION_ERROR).json({validationErrors})
+        return res.status(StatusCodes.BAD_REQUEST).json({validationErrors})
       } 
       let product = await Product.findById(req.params.id);
     if (!product) {

@@ -10,10 +10,10 @@ async function rateProduct(req, res) {
         const { rating } = req.body;
         const userId = req.session.user?._id;
         if(typeof rating !== "number"){
-            return res.status(StatusCodes.VALIDATION_ERROR).json({message:Messages.RATING_FIELD_REQUIRED})
+            return res.status(StatusCodes.BAD_REQUEST).json({message:Messages.RATING_FIELD_REQUIRED})
         }
         if(rating>5 || rating<0){
-            return res.status(StatusCodes.VALIDATION_ERROR).json({message:Messages.INVALID_RATING_VALUE})
+            return res.status(StatusCodes.BAD_REQUEST).json({message:Messages.INVALID_RATING_VALUE})
         }
         const hasProductPurchased = await Order.exists({
             "user.userId": userId,
@@ -54,10 +54,10 @@ async function updateProductRating(req, res) {
         const { rating } = req.body;
         const userId = req.session.user?._id;
         if(typeof rating !== "number"){
-            return res.status(StatusCodes.VALIDATION_ERROR).json({message:Messages.RATING_FIELD_REQUIRED})
+            return res.status(StatusCodes.BAD_REQUEST).json({message:Messages.RATING_FIELD_REQUIRED})
         }
         if(rating>5 || rating<0){
-            return res.status(StatusCodes.VALIDATION_ERROR).json({message:Messages.INVALID_RATING_VALUE})
+            return res.status(StatusCodes.BAD_REQUEST).json({message:Messages.INVALID_RATING_VALUE})
         }
        
        const updatedRatingDocument= await Rating.findByIdAndUpdate(ratingId,{ rating },{new:true});

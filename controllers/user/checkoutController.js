@@ -88,7 +88,7 @@ exports.placeOrder = async (req, res) => {
             }
         });
         if (!cart || cart.items.length === 0) {
-            return res.status(StatusCodes.VALIDATION_ERROR).json({ message: Messages.CART_EMPTY });
+            return res.status(StatusCodes.BAD_REQUEST).json({ message: Messages.CART_EMPTY });
         }
         
         
@@ -122,19 +122,19 @@ exports.placeOrder = async (req, res) => {
          }
    
          if (coupon.expiryDate && new Date() > coupon.expiryDate) {
-             return res.status(StatusCodes.VALIDATION_ERROR).json({ message: Messages.COUPON_EXPIRED });
+             return res.status(StatusCodes.BAD_REQUEST).json({ message: Messages.COUPON_EXPIRED });
          };
         };
         
         if (paymentMethod === 'Wallet') {
             const wallet = await Wallet.findOne({ user: userId });
             if (!wallet || wallet.balance < cart.grandTotal) {
-                return res.status(StatusCodes.VALIDATION_ERROR).json({ message: Messages.INSUFFICIENT_WALLET_BALANCE });
+                return res.status(StatusCodes.BAD_REQUEST).json({ message: Messages.INSUFFICIENT_WALLET_BALANCE });
             }
         }
 
         if (paymentMethod === 'Cash On Delivery' && (cart.grandTotal+100)*118/100 > 1000) {
-            return res.status(StatusCodes.VALIDATION_ERROR).json({ message: Messages.CASH_ON_DELIVERY_AMOUNT_EXCEEDS });
+            return res.status(StatusCodes.BAD_REQUEST).json({ message: Messages.CASH_ON_DELIVERY_AMOUNT_EXCEEDS });
         }
         const order = new Order({
             user: {
@@ -230,10 +230,10 @@ exports.applyCoupon = async (req, res) => {
         }
   
         if (coupon.expiryDate && new Date() > coupon.expiryDate) {
-            return res.status(StatusCodes.VALIDATION_ERROR).json({ message: Messages.COUPON_EXPIRED });
+            return res.status(StatusCodes.BAD_REQUEST).json({ message: Messages.COUPON_EXPIRED });
         }
         if (req.session.totalPurchaseAmount < coupon.minPurchaseAmount) {
-            return res.status(StatusCodes.VALIDATION_ERROR).json({ message: Messages.PURCHASE_AMOUNT_LOW });
+            return res.status(StatusCodes.BAD_REQUEST).json({ message: Messages.PURCHASE_AMOUNT_LOW });
         }
         const usage=coupon.usageByUser.find((usage)=>usage.userId.toString()===userId.toString());
         if(usage && coupon.totalUsageLimit<=usage.count){
@@ -284,7 +284,7 @@ exports.applyCoupon = async (req, res) => {
   
         const coupon = await Coupon.findOne({ code: couponCode, isActive: true });
         if(!coupon){
-          return res.status(StatusCodes.VALIDATION_ERROR).json({message:Messages.COUPON_INVALID});
+          return res.status(StatusCodes.BAD_REQUEST).json({message:Messages.COUPON_INVALID});
         }
         cart.appliedCouponCode=null;
         await recalculateCart(cart,req);

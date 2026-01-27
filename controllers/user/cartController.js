@@ -214,7 +214,7 @@ exports.addToCart = async (req, res) => {
       }
 
       if (!productId || !quantity || quantity <= 0) {
-          return res.status(StatusCodes.VALIDATION_ERROR).json({ message: Messages.INVALID_PRODUCT_OR_QUANTITY });
+          return res.status(StatusCodes.BAD_REQUEST).json({ message: Messages.INVALID_PRODUCT_OR_QUANTITY });
       }
 
       const product = await Product.findOne({ _id: productId, isBlocked: false })
@@ -224,7 +224,7 @@ exports.addToCart = async (req, res) => {
           });
 
       if (!product || !product.category || product.stock < quantity) {
-          return res.status(StatusCodes.VALIDATION_ERROR).json({ message:  Messages.PRODUCT_UNAVAILABLE});
+          return res.status(StatusCodes.BAD_REQUEST).json({ message:  Messages.PRODUCT_UNAVAILABLE});
       }
 
       let cart = await Cart.findOne({ userId });
@@ -238,7 +238,7 @@ exports.addToCart = async (req, res) => {
           const newQuantity = currentQuantity + quantity;
 
           if (newQuantity > 5 ){
-              return res.status(StatusCodes.VALIDATION_ERROR).json({message:  Messages.MAX_ITEMS_EXCEEDS});
+              return res.status(StatusCodes.BAD_REQUEST).json({message:  Messages.MAX_ITEMS_EXCEEDS});
           }
 
           cart.items[itemIndex].quantity = newQuantity;
@@ -280,7 +280,7 @@ exports.deleteFromCart = async (req, res) => {
 
       let cart = await Cart.findOne({ userId });
       if (!cart) {
-          return res.status(StatusCodes.VALIDATION_ERROR).json({ message: Messages.CART_NOT_FOUND});
+          return res.status(StatusCodes.BAD_REQUEST).json({ message: Messages.CART_NOT_FOUND});
       }
       if (cart.items.length === 1) {
         await Cart.findOneAndDelete({userId});
@@ -322,10 +322,10 @@ exports.updateQuantity = async (req, res) => {
       }
       const productId=cart.items.find((item)=>item._id.toString()===cartItemId).product;
       if (!productId || quantity <= 0) {
-          return res.status(StatusCodes.VALIDATION_ERROR).json({message: Messages.INVALID_PRODUCT_OR_QUANTITY});
+          return res.status(StatusCodes.BAD_REQUEST).json({message: Messages.INVALID_PRODUCT_OR_QUANTITY});
       }
       if (quantity > 5) {
-          return res.status(StatusCodes.VALIDATION_ERROR).json({message: Messages.MAX_ITEMS_EXCEEDS});
+          return res.status(StatusCodes.BAD_REQUEST).json({message: Messages.MAX_ITEMS_EXCEEDS});
       }
 
       const product = await Product.findOne({ _id: productId, isBlocked: false })
@@ -335,11 +335,11 @@ exports.updateQuantity = async (req, res) => {
           });
 
       if (!product || !product.category || product.stock < quantity) {
-          return res.status(StatusCodes.VALIDATION_ERROR).json({message: Messages.PRODUCT_UNAVAILABLE });
+          return res.status(StatusCodes.BAD_REQUEST).json({message: Messages.PRODUCT_UNAVAILABLE });
       }
 
       if (!cart) {
-          return res.status(StatusCodes.VALIDATION_ERROR).json({message: Messages.CART_NOT_FOUND});
+          return res.status(StatusCodes.BAD_REQUEST).json({message: Messages.CART_NOT_FOUND});
       }
  
       const index = cart.items.findIndex(item => item.product.toString() === productId.toString());
@@ -361,7 +361,7 @@ exports.updateQuantity = async (req, res) => {
           await cart.save();
           res.status(StatusCodes.OK).json({message: Messages.CART_UPDATED });
       } else {
-          res.status(StatusCodes.VALIDATION_ERROR).json({ message: Messages.PRODUCT_NOT_FOUND});
+          res.status(StatusCodes.BAD_REQUEST).json({ message: Messages.PRODUCT_NOT_FOUND});
       }
   } catch (err) {
       console.error('Error in updateQuantity:', err);

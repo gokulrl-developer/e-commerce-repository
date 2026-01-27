@@ -99,20 +99,20 @@ exports.addAddress = async (req, res) => {
 
     for (const field of requiredFields) {
       if (!req.body[field]) {
-        return res.status(StatusCodes.VALIDATION_ERROR).json({
+        return res.status(StatusCodes.BAD_REQUEST).json({
           error: Messages.ADDRESS_FIELD_REQUIRED(field),
         });
       }
     }
 
     if (!/^\d{10}$/.test(req.body.MobileNumber)){
-      return res.status(StatusCodes.VALIDATION_ERROR).json({
+      return res.status(StatusCodes.BAD_REQUEST).json({
         error: Messages.MOBILE_NUMBER_INVALID_FORMAT,
       });
     }
 
     if (!/^\d{6}$/.test(req.body.pincode)) {
-      return res.status(StatusCodes.VALIDATION_ERROR).json({
+      return res.status(StatusCodes.BAD_REQUEST).json({
         error: Messages.PIN_NUMBER_INVALID_FORMAT,
       });
     }

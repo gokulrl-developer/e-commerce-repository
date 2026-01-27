@@ -25,6 +25,7 @@ module.exports.Messages=Object.freeze({
     EXPIRY_BEFORE_START:'Expiry date should be after the start date',
     TOTAL_USAGE_LIMIT_REQUIRED:"Total usage limit is required",
     TOTAL_USAGE_LIMIT_MINIMUM:'Total usage limit should be at least 1',
+    DISCOUNTED_VALUE_NEGATIVE:'Minumum purchase amount should be greater than coupon value.',
     VALIDATION_ERROR:"Validation error",
     COUPON_ADDED:'Coupon added successfully',
     COUPON_CODE_EXISTS:'Coupon code already exists',

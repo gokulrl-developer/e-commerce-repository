@@ -64,7 +64,7 @@ exports.updateOrderStatus = async (req, res) => {
             return res.status(StatusCodes.NOT_FOUND).json({ message: Messages.ORDER_NOT_FOUND });
         }
         if (['Cancelled', 'Delivered'].includes(order.orderStatus)) {
-            return res.status(StatusCodes.VALIDATION_ERROR).json({ success: false, message: Messages.ORDER_IN_COMPLETED_STAGE });
+            return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: Messages.ORDER_IN_COMPLETED_STAGE });
         }
 
         order.orderStatus = editedStatus;
@@ -108,7 +108,7 @@ exports.updateOrderStatus = async (req, res) => {
         }
 
         if (item.status !== 'Return Requested') {
-            return res.status(StatusCodes.VALIDATION_ERROR).json({message: Messages.NO_RETURN_REQUEST });
+            return res.status(StatusCodes.BAD_REQUEST).json({message: Messages.NO_RETURN_REQUEST });
         }
 
         if (action === 'approve') {
@@ -166,7 +166,7 @@ exports.updateOrderStatus = async (req, res) => {
         } else if (action === 'reject') {
             item.status = 'Return Rejected';
         } else {
-            return res.status(StatusCodes.VALIDATION_ERROR).json({ success: false, message: Messages.INVALID_ACTION });
+            return res.status(StatusCodes.BAD_REQUEST).json({ success: false, message: Messages.INVALID_ACTION });
         }
 
         item.returnProcessedDate = new Date();

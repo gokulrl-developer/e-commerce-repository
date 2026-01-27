@@ -243,7 +243,7 @@ async function verifyOtp(req, res) {
     const user = req.session.userData;
     const otpRecord = await Otp.findOne({ email: user.email });
     if (!otpRecord) {
-      return res.status(StatusCodes.VALIDATION_ERROR).json({ message: Messages.INVALID_OTP, otp });
+      return res.status(StatusCodes.BAD_REQUEST).json({ message: Messages.INVALID_OTP, otp });
     }
     const newUser = new User(user);
     newUser.save();
@@ -300,7 +300,7 @@ async function postForgotPasswordOtp(req, res) {
     const email = req.session.tempEmail;
     const otpRecord = await Otp.findOne({ email });
     if (!otpRecord) {
-      return res.status(StatusCodes.VALIDATION_ERROR).json({ message: Messages.INVALID_OTP, otp });
+      return res.status(StatusCodes.BAD_REQUEST).json({ message: Messages.INVALID_OTP, otp });
     }
     req.session.isForgotPasswordVerified = true;
     await Otp.deleteOne({ email });
@@ -365,7 +365,7 @@ async function postResetPassword(req, res) {
       /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,16}$/;
 
     if (!regex.test(newPassword)) {
-      return res.status(StatusCodes.VALIDATION_ERROR).json({ message: Messages.PASSWORD_INVALID_FORMAT });
+      return res.status(StatusCodes.BAD_REQUEST).json({ message: Messages.PASSWORD_INVALID_FORMAT });
     }
     const email = req.user.email;
     if (!email) {
@@ -397,12 +397,12 @@ async function getProduct(req, res) {
     const productId = req.params.id;
 
     if (!mongoose.Types.ObjectId.isValid(productId)) {
-      return res.render('user/user-error', { statusCode: StatusCodes.VALIDATION_ERROR, message: Messages.INVALID_PRODUCT_ID })
+      return res.render('user/user-error', { statusCode: StatusCodes.BAD_REQUEST, message: Messages.INVALID_PRODUCT_ID })
     }
 
     const product = await Product.findOne({ _id: productId, isBlocked: false });
     if (!product) {
-      return res.render('user/user-error', { statusCode: StatusCodes.VALIDATION_ERROR, message: Messages.PRODUCT_NOT_FOUND })
+      return res.render('user/user-error', { statusCode: StatusCodes.BAD_REQUEST, message: Messages.PRODUCT_NOT_FOUND })
     }
     const productOffer = await Offer.findOne({
       offerType: 'Product', applicableProduct: product._id, isActive: true,

@@ -48,6 +48,9 @@ const validateCoupon =(couponData,mode)=>{
    }else if(typeof totalUsageLimit !=='number' || totalUsageLimit <1){
     errors.push(Messages.TOTAL_USAGE_LIMIT_MINIMUM);
    }
+   if(couponType==="Fixed" &&(couponValue>minPurchaseAmount)){
+    errors.push(Messages.DISCOUNTED_VALUE_NEGATIVE);
+   }
   return errors;
 }
 
@@ -77,7 +80,7 @@ exports.addCoupon = async (req, res) => {
         req.body.totalUsageLimit=parseFloat(req.body.totalUsageLimit);
         const validationErrors = validateCoupon(req.body,"ADD");
         if (validationErrors.length > 0) {
-            return res.status(StatusCodes.VALIDATION_ERROR).json({ message: Messages.VALIDATION_ERROR, errors: validationErrors });
+            return res.status(StatusCodes.BAD_REQUEST).json({ message: Messages.VALIDATION_ERROR, errors: validationErrors });
         }
 
         const newCoupon = new Coupon({
@@ -89,7 +92,7 @@ exports.addCoupon = async (req, res) => {
     } catch (error) {
         console.error(error);
         if (error.code === 11000) {
-            res.status(StatusCodes.VALIDATION_ERROR).json({message: Messages.COUPON_CODE_EXISTS });
+            res.status(StatusCodes.BAD_REQUEST).json({message: Messages.COUPON_CODE_EXISTS });
         } else {
             res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({message: Messages.INTERNAL_SERVER_ERROR });
         }
@@ -109,7 +112,7 @@ exports.editCoupon=async (req,res)=>{
         req.body.totalUsageLimit=parseFloat(req.body.totalUsageLimit);
         const validationErrors = validateCoupon(updateData,"EDIT");
         if (validationErrors.length > 0) {
-            return res.status(StatusCodes.VALIDATION_ERROR).json({message: Messages.VALIDATION_ERROR, errors: validationErrors });
+            return res.status(StatusCodes.BAD_REQUEST).json({message: Messages.VALIDATION_ERROR, errors: validationErrors });
         }
         const updatedCoupon=await Coupon.findByIdAndUpdate(couponId,{...updateData},{new:true});
         if(!updatedCoupon){

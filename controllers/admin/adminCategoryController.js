@@ -29,15 +29,15 @@ exports.addCategory = async (req, res) => {
   try {
     const { categoryName, status } = req.body;
   if (!categoryName || typeof categoryName !=="string" || categoryName.length<3 || categoryName.length>50 || /^[A-Za-z0-9]+$/.test(categoryName) !==true){
-    return res.status(StatusCodes.VALIDATION_ERROR).json({message:Messages.CATEGORY_INVALID_FORMAT})
+    return res.status(StatusCodes.BAD_REQUEST).json({message:Messages.CATEGORY_INVALID_FORMAT})
   }
     if (!status || !["Active","Inactive"].includes(status)) {
-      return res.status(StatusCodes.VALIDATION_ERROR).json({ message: Messages.STATUS_INVALID });
+      return res.status(StatusCodes.BAD_REQUEST).json({ message: Messages.STATUS_INVALID });
     }
 
     const categoryExists = await Category.findOne({ name: { $regex: new RegExp(`^${categoryName}$`, 'i') } });
     if (categoryExists) {
-      return res.status(StatusCodes.VALIDATION_ERROR).json({message: Messages.CATEGORY_EXISTS });
+      return res.status(StatusCodes.BAD_REQUEST).json({message: Messages.CATEGORY_EXISTS });
     }
 
     const newCategory = new Category({ categoryName, status });
@@ -56,10 +56,10 @@ exports.editCategory = async (req, res) => {
     const { categoryName, status } = req.body;
 
     if (!categoryName || typeof categoryName !=="string" || categoryName.length<3 || categoryName.length>50 || /^[A-Za-z0-9]+$/.test(categoryName) !==true){
-      return res.status(StatusCodes.VALIDATION_ERROR).json({message: Messages.CATEGORY_INVALID_FORMAT})
+      return res.status(StatusCodes.BAD_REQUEST).json({message: Messages.CATEGORY_INVALID_FORMAT})
     }
       if (!status || !["Active","Inactive"].includes(status)) {
-        return res.status(StatusCodes.VALIDATION_ERROR).json({ message: Messages.STATUS_INVALID });
+        return res.status(StatusCodes.BAD_REQUEST).json({ message: Messages.STATUS_INVALID });
       }
 
     const category = await Category.findById(id);
@@ -72,7 +72,7 @@ exports.editCategory = async (req, res) => {
       categoryName: { $regex: new RegExp(`^${categoryName}$`, 'i') }
     });
     if (categoryExists) {
-      return res.status(StatusCodes.VALIDATION_ERROR).json({message: Messages.CATEGORY_EXISTS });
+      return res.status(StatusCodes.BAD_REQUEST).json({message: Messages.CATEGORY_EXISTS });
     }
 
     category.categoryName = categoryName;

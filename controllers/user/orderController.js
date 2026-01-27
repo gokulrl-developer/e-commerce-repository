@@ -23,7 +23,7 @@ exports.continuePayment = async (req, res) => {
       }
 
       if (order.payment.paymentStatus !== 'Failed' && order.payment.paymentStatus !== 'Pending') {
-          return res.status(StatusCodes.VALIDATION_ERROR).json({ message: Messages.CONFIRMATION_NOT_REQUIRED });
+          return res.status(StatusCodes.BAD_REQUEST).json({ message: Messages.CONFIRMATION_NOT_REQUIRED });
       }
      
       const razorpayOrder = await razorpay.orders.create({
@@ -71,7 +71,7 @@ exports.verifyPayment = async (req, res) => {
       } else {
           order.payment.paymentStatus = 'Failed';
           await order.save();
-          res.status(StatusCodes.VALIDATION_ERROR).json({message: Messages.PAYMENT_VERIFICATION_FAIL });
+          res.status(StatusCodes.BAD_REQUEST).json({message: Messages.PAYMENT_VERIFICATION_FAIL });
       }
   } catch (error) {
       console.error("Payment verification error: ", error);
@@ -117,7 +117,7 @@ exports.cancelOrderItem = async (req, res) => {
       }
 
       if (item.status !== 'Pending' && item.status !== 'Processing') {
-          return res.status(StatusCodes.VALIDATION_ERROR).json({ message: Messages.UNCANCELLABLE_STATUS });
+          return res.status(StatusCodes.BAD_REQUEST).json({ message: Messages.UNCANCELLABLE_STATUS });
       }
 
       item.status = 'Cancelled';
@@ -275,7 +275,7 @@ exports.cancelOrder = async (req, res) => {
       }
   
       if (order.orderStatus !== 'Pending' && order.orderStatus !== 'Processing' && order.orderStatus !== 'Partially Cancelled') {
-        return res.status(StatusCodes.VALIDATION_ERROR).json({ message: Messages.UNCANCELLABLE_STATUS });
+        return res.status(StatusCodes.BAD_REQUEST).json({ message: Messages.UNCANCELLABLE_STATUS });
       }
   
       
@@ -340,7 +340,7 @@ exports.cancelOrder = async (req, res) => {
             return res.status(StatusCodes.NOT_FOUND).json({ message: Messages.ITEM_NOT_IN_ORDER });
         }
         if (item.status !== 'Delivered') {
-            return res.status(StatusCodes.VALIDATION_ERROR).json({ message: Messages.NOT_DELIVERED });
+            return res.status(StatusCodes.BAD_REQUEST).json({ message: Messages.NOT_DELIVERED });
         }
 
         item.status = 'Return Requested';
