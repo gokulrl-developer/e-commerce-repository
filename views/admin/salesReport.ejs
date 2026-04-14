@@ -112,7 +112,7 @@
                                             </td>
                                             <td class="p-4">₹<%= order.couponDiscount.toFixed(2) %>
                                             </td>
-                                            <td class="p-4">₹<%= (order.totalAmount - order.discount).toFixed(2) %>
+                                            <td class="p-4">₹<%= ((order.totalAmount + 100 - order.discount)*1.18).toFixed(2) %>
                                             </td>
                                             <td class="p-4">
                                                 <%= order.paymentMethod %>
@@ -170,7 +170,6 @@
         if (dateRange === 'custom') {
             url += `&startDate=${startDate}&endDate=${endDate}`;
         }
-console.log(url)
         try {
             const response = await fetch(url);
             const data = await response.json();
@@ -211,7 +210,7 @@ console.log(url)
                     <td class="p-4">₹${order.totalAmount.toFixed(2)}</td>
                     <td class="p-4">₹${order.discount.toFixed(2)}</td>
                     <td class="p-4">₹${order.couponDiscount.toFixed(2)}</td>
-                    <td class="p-4">₹${(order.totalAmount - order.discount).toFixed(2)}</td>
+                    <td class="p-4">₹${((order.totalAmount + 100 - order.discount)*1.18).toFixed(2)}</td>
                     <td class="p-4">${order.paymentMethod}</td>
                     <td class="p-4">${order.paymentStatus}</td>
                 </tr>

@@ -214,7 +214,7 @@ exports.downloadPdfReport = async (req, res) => {
 
         salesData.forEach(day => {
             day.orders.forEach(order => {
-                const netAmount = order.totalAmount - order.discount;
+                const netAmount = (order.totalAmount +100 - order.discount)*1.18;
                 doc.text(day._id, tableLeft, currentTop);
                 doc.text(order.orderId.toString().slice(-6), tableLeft + colWidth, currentTop);
                 doc.text(order.customerName.slice(0, 10), tableLeft + colWidth * 2, currentTop);
@@ -289,7 +289,7 @@ exports.downloadExcelReport = async (req, res) => {
 
         salesData.forEach(day => {
             day.orders.forEach(order => {
-                const netAmount = order.totalAmount - order.discount;
+                const netAmount = (order.totalAmount + 100 - order.discount)*1.18;
                 worksheet.addRow({
                     date: day._id,
                     orderId: order.orderId,

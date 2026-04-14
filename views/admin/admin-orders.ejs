@@ -62,7 +62,7 @@
                       </td>
                       <td class="p-2 break-words">
                         Payment status : <%= order.payment.paymentStatus %><br>
-                          Total price : <%= order.payment.totalFinalPrice %><br>
+                          Total price : <%= order.payment.orderTotal %><br>
                             Payment method : <%= order.payment.paymentMethod %><br>
                       </td>
                       <td class="p-2 break-words">
@@ -397,6 +397,7 @@ async function applySearch(url='/admin/orders?page=1&limit=9') {
       });
       if (response.ok) {
         const data = await response.json();
+        console.log(data)
         if (!data.orders || data.orders.length === 0) {
           document.getElementById('order-table-body').innerHTML = `
          <p class="text-gray-400">You haven't placed any orders yet.</p>`
@@ -419,7 +420,7 @@ async function applySearch(url='/admin/orders?page=1&limit=9') {
                       </td>
                       <td class="p-2 break-words">
                         Payment status : ${order.payment.paymentStatus }<br>
-                          Total price : ${order.payment.totalFinalPrice }<br>
+                          Total price : ${order.payment.orderTotal }<br>
                             Payment method : ${order.payment.paymentMethod }<br>
                       </td>
                       <td class="p-2 break-words">
