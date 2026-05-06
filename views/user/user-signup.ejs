@@ -17,37 +17,37 @@
      <%- include('../partials/user-header') %>
 
     <!-- Main Content -->
-    <div class="container mx-auto my-8 max-w-xl">
-        <div class="bg-[#eef6f9] p-8 rounded-lg">
+    <div class="container bg-white shadow-md mx-auto my-8 max-w-xl">
+        <div class="p-8 rounded-lg">
             <h3 class="text-center text-2xl font-semibold mb-6">Sign-up</h3>
-            <form onclick="handleSignup(event)">
+            <form onsubmit="handleSignup(event)">
                 <div class="mb-4">
                     <label for="fullName" class="block text-sm font-semibold">Full Name</label>
-                    <input type="text" class="form-control w-full py-2 px-3 rounded" id="fullName" placeholder="Enter your full name" name="name">
+                    <input type="text" spellcheck="false" class="border border-gray-300 w-full py-2 px-3 rounded" id="fullName" placeholder="Enter your full name" name="name">
                     <div id="fullName-error" class="error-text text-red-500"></div>
 
                 </div>
                 <div class="mb-4">
                     <label for="email" class="block text-sm font-semibold">Email</label>
-                    <input type="email" class="form-control w-full py-2 px-3 rounded" id="email" placeholder="Enter your email" name="email">
+                    <input type="email" spellcheck="false" class="border border-gray-300 orm-control w-full py-2 px-3 rounded" id="email" placeholder="Enter your email" name="email">
                     <div id="email-error" class="error-text text-red-500"></div>
 
                 </div>
                 <div class="mb-4">
                     <label for="contact" class="block text-sm font-semibold">Contact</label>
-                    <input type="number" class="form-control w-full py-2 px-3 rounded" id="contact" placeholder="Enter your contact number" name="mobile">
+                    <input type="tel" class="border border-gray-300 form-control w-full py-2 px-3 rounded" id="contact" placeholder="Enter your contact number" name="mobile">
                     <div id="contact-error" class="error-text text-red-500"></div>
 
                 </div>
                 <div class="mb-4">
                     <label for="password" class="block text-sm font-semibold">Password</label>
-                    <input type="password" class="form-control w-full py-2 px-3 rounded" id="password" placeholder="Enter your password" name="password">
+                    <input type="password" spellcheck="false" class="border border-gray-300 form-control w-full py-2 px-3 rounded" id="password" placeholder="Enter your password" name="password">
                     <div id="password-error" class="error-text text-red-500"></div>
 
                 </div>
                 <div class="mb-4">
                     <label for="confirmPassword" class="block text-sm font-semibold">Confirm Password</label>
-                    <input type="password" class="form-control w-full py-2 px-3 rounded" id="confirmPassword" placeholder="Confirm your password" name="confirmPassword">
+                    <input type="password" spellcheck="false" class="border border-gray-300 form-control w-full py-2 px-3 rounded" id="confirmPassword" placeholder="Confirm your password" name="confirmPassword">
                     <div id="confirm-password-error" class="error-text text-red-500"></div>
 
                 </div>

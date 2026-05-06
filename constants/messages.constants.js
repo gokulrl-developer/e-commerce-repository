@@ -126,4 +126,9 @@ module.exports.Messages=Object.freeze({
     WISHLIST_ITEM_ADDED:"Product added to wishlist",
     UNSUPPORTED_IMAGE_FILE_TYPE:(allowedExtensions)=>`Unsupported file type. Allowed types: ${allowedExtensions.join(", ")}`,
     FILE_UPLOAD_ERROR:"File upload error",
+    EMAIL_REQUIRED:"Email is required",
+    EMAIL_INVALID:"Enter a valid email.",
+    EMAIL_SIZE_EXCEEDED:"Maximum length of email is 254 characters.",
+    PASSWORD_REQUIRED:"Password is required",
+    PASSWORD_SIZE_EXCEEDED:"Password can be at most password is 128 characters length."
 })

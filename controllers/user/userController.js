@@ -6,10 +6,12 @@ const { generateOtp, sendOtpEmail } = require('../../utils/sendOtpUtil');
 const { saveOtp, Otp } = require('../../models/otpModel');
 const bcrypt = require("bcryptjs");
 const mongoose = require("mongoose");
-const Order=require('../../models/orderModel');
-const Rating=require('../../models/ratingModel');
-const {StatusCodes}=require("../../constants/status-codes.constants")
-const {Messages}=require("../../constants/messages.constants")
+const Order = require('../../models/orderModel');
+const Rating = require('../../models/ratingModel');
+const { StatusCodes } = require("../../constants/status-codes.constants")
+const { Messages } = require("../../constants/messages.constants")
+
+
 
 async function getHome(req, res) {
   try {
@@ -85,7 +87,36 @@ async function getLogin(req, res) {
 
 async function postLogin(req, res) {
   try {
-    const { email, password } = req.body;
+    let { email, password } = req.body;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) {
+      return res.status(StatusCodes.BAD_REQUEST).json({ message: Messages.EMAIL_REQUIRED });
+    }
+
+    if (typeof email !== "string"){
+      return res.status(StatusCodes.BAD_REQUEST).json({ message: Messages.EMAIL_INVALID });
+    }else{
+      email=email.trim();
+      if(!emailRegex.test(email)) {
+        return res.status(StatusCodes.BAD_REQUEST).json({ message: Messages.EMAIL_INVALID });
+      }
+    }
+    if (email.length > 254) {
+      return res.status(StatusCodes.BAD_REQUEST).json({ message: Messages.EMAIL_SIZE_EXCEEDED });
+    }
+    email=email.toLowerCase();
+    
+    if(!password){
+      return res.status(StatusCodes.BAD_REQUEST).json({ message: Messages.PASSWORD_REQUIRED });
+    }
+    
+    if(typeof password !== "string"){
+      return res.status(StatusCodes.BAD_REQUEST).json({ message: Messages.PASSWORD_INVALID_FORMAT });
+    }
+    if(password.length > 128){
+      return res.status(StatusCodes.BAD_REQUEST).json({ message: Messages.PASSWORD_SIZE_EXCEEDED });     
+    }
+    
     const matchedUser = await User.findOne({ email }).lean();
     if (!matchedUser) {
       return res.status(StatusCodes.UNAUTHORIZED).json({ message: Messages.INVALID_CREDENTIALS });
@@ -101,7 +132,7 @@ async function postLogin(req, res) {
       res.status(StatusCodes.OK).json({ redirectUrl: "/" });
     }
   } catch (error) {
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: error.message || Messages.INTERNAL_SERVER_ERROR });
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: error.message || Messages.INTERNAL_SERVER_ERROR });
     console.error("Error on Login : ", error)
   }
 }
@@ -461,7 +492,7 @@ async function getProduct(req, res) {
       product.finalDiscountedPrice = finalDiscountedPrice;
     };
     const userId = req.session.user?._id;
-    let hasProductPurchased, hasAlreadyRated,rating;
+    let hasProductPurchased, hasAlreadyRated, rating;
     const purchasedOrderId = await Order.exists({
       "user.userId": userId,
       orderItems: { $elemMatch: { product: productId } }
@@ -472,7 +503,7 @@ async function getProduct(req, res) {
       productId: productId
     });
     hasAlreadyRated = existingRating ? true : false;
-    res.render("user/view-product", { product, products, hasProductPurchased, hasAlreadyRated,rating:existingRating });
+    res.render("user/view-product", { product, products, hasProductPurchased, hasAlreadyRated, rating: existingRating });
 
   } catch (err) {
     console.error("Error fetching product:", err.message);
