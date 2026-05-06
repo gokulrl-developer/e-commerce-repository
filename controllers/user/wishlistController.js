@@ -53,7 +53,7 @@ exports.getWishlistData = async (req, res) => {
 
         // If no wishlist found, return empty array
         if (wishlist.length === 0) {
-            return res.status(StatusCodes.OK).json({ wishlist: [], totalPages, currentPage: 1 });
+            return res.status(StatusCodes.OK).json({ wishlist: {_id:req.user._id,products:[]}, totalPages, currentPage: 1 });
         }
 
        // Process the offers for each product in the wishlist
