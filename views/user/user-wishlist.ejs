@@ -55,7 +55,6 @@
         }
 
     async function fetchWishlist(page=1,limit=9){
-        console.log(page);
         try {
             const response = await fetch(`/wishlist/data?page=${page}&limit=${limit}`, {
                 headers: {
@@ -63,6 +62,7 @@
                 }
             });
             const data = await response.json();
+            console.log(data)
             renderWishlist(data.wishlist,data.currentPage,data.totalPages);
         } catch (err) {
             showMessage('error', 'Error', err.message||'An error occurred while fetching your wishlist.');
